@@ -1,0 +1,13 @@
+model,strategy,seed,features_passed,features_total,peak_passed,regressions,sessions,turns,total_tokens,est_cost_usd,budget_hit_tokens
+claude-haiku-4-5-20251001,naive,0,28,30,28,0,1,18,539243,0.7233,True
+claude-haiku-4-5-20251001,naive,1,21,30,21,0,1,23,537183,0.7626,True
+claude-haiku-4-5-20251001,naive,2,28,30,28,0,1,17,519320,0.7359,True
+claude-haiku-4-5-20251001,naive,3,0,30,0,0,1,16,514076,0.7071,True
+claude-haiku-4-5-20251001,structured,0,12,30,12,0,11,53,505795,0.6989,True
+claude-haiku-4-5-20251001,structured,1,11,30,11,0,13,59,500444,0.6533,True
+claude-haiku-4-5-20251001,structured,2,12,30,12,0,12,55,509779,0.6589,True
+claude-haiku-4-5-20251001,structured,3,14,30,14,0,13,53,512819,0.6758,True
+claude-sonnet-4-6,naive,0,30,30,30,0,1,16,276248,1.0548,False
+claude-sonnet-4-6,naive,1,30,30,30,0,1,13,244185,0.9477,False
+claude-sonnet-4-6,structured,0,30,30,30,0,22,47,502776,1.7524,True
+claude-sonnet-4-6,structured,1,29,30,29,0,23,52,504130,1.6614,True
