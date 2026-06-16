@@ -54,3 +54,4 @@ secrets live in this repo.
 | Technique | Date | Result | Verdict | Link |
 | --- | --- | --- | --- | --- |
 | Long-running-agent harness: structured (1-feature/session, clean state) vs naive, Sonnet 4.6, 10-feature toy | 2026-06-15 | Both 10/10 (identical); structured cost 8.3× tokens / 10× turns for 0 quality gain | Null at tested scale — overhead-only; positive claim untestable on a toy budget | [notes](experiments/2026-06-agent-harness/notes.md) |
+| Same harness, stress config: Haiku 4.5, 20 features, tight 80k-token budget | 2026-06-15 | Naive 20/20; structured 7.7/20 (exhausted budget on per-session overhead), 5.9× tokens | Negative — structured strictly dominated; task still one-shot-able so failure mode never engaged | [notes](experiments/2026-06-agent-harness-stress/notes.md) |
