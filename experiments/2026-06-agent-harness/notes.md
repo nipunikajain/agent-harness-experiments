@@ -58,5 +58,37 @@ work per token, within a fixed budget.
 - **Grader design** is mine; both arms graded identically, but the task choice itself is a
   lever.
 
-## Results
-_(filled in after Phase 3 run)_
+## Results (2026-06-15, claude-sonnet-4-6, 3 seeds each)
+
+| Metric | Baseline (naive) | Intervention (structured) | Delta | Distributions |
+| --- | --- | --- | --- | --- |
+| features_passed | 10.0 ± 0.0 | 10.0 ± 0.0 | 0 | identical (both point masses at 10/10) |
+| pass_rate | 1.00 | 1.00 | 0 | identical |
+| total_tokens | 8,095 ± 294 | 74,907 ± 1,373 | **+8.3×** | far apart, non-overlapping |
+| est_cost_usd | $0.042 ± 0.002 | $0.335 ± 0.007 | **+8.0×** | far apart, non-overlapping |
+| sessions / turns | 1 / 3 | 10 / 30 | — | by construction |
+
+Total experiment spend (incl. smoke): ≈ **$1.15**. No run hit its token cap.
+
+### Verdict: NULL on quality; structured is pure overhead at this scale.
+Both harnesses solved the task perfectly (10/10, zero variance), so there is **no quality
+signal** to compare — the distributions are identical. The only measurable difference is
+cost: the structured harness spent **~8× more tokens and 10× more turns to reach the same
+outcome**.
+
+This is **not** a refutation of the article. Its claim lives in a regime — 200+ features
+over hours — where the monolithic transcript grows long enough to degrade the model
+(context rot, regressions, window pressure). The smoke test confirmed empirically that
+Sonnet **one-shots** 10 tiny functions in a single turn, so that long-horizon failure mode
+**never engages here**. Below the horizon where context bloat bites, the structured harness's
+clean-state-per-session machinery is cost with no payoff.
+
+The honest, postable finding: **at a scale a <$10 budget can reach, the harness's benefit is
+not reproducible — and its overhead is real.** Confirming the *positive* claim would require a
+genuinely long-horizon task (large N, interacting/regression-prone features) that costs far
+more than this budget. That was the Phase-1 risk; the data bore it out.
+
+### What would change this conclusion
+- A task large enough that the naive transcript exceeds the window / induces regressions.
+- A weaker model that fails the monolithic approach but is rescued by incremental sessions.
+- Measuring *quality degradation over horizon*, not pass/fail on independent toy features.

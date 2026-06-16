@@ -28,11 +28,33 @@ def _load_features(n_features: int) -> list[dict]:
     return [{"id": f["id"], "name": f["name"], "spec": " ".join(f["spec"].split())} for f in feats]
 
 
+def _load_dotenv() -> None:
+    """Best-effort: load ANTHROPIC_* keys from a gitignored .env at the repo root.
+
+    Keeps the secret out of the shell history / process listing and out of git, while letting
+    the same `python -m shared.runner ...` command work without exporting anything.
+    """
+    for root in (EXPERIMENT_DIR.parents[1], EXPERIMENT_DIR):  # repo root, then experiment dir
+        env_file = root / ".env"
+        if not env_file.exists():
+            continue
+        for line in env_file.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, val = line.partition("=")
+            key, val = key.strip(), val.strip().strip('"').strip("'")
+            if key.startswith("ANTHROPIC_") and key not in os.environ:
+                os.environ[key] = val
+
+
 def _make_client():
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        _load_dotenv()
     if not os.environ.get("ANTHROPIC_API_KEY"):
         raise RuntimeError(
             "ANTHROPIC_API_KEY is not set. This experiment bills the Anthropic API per token. "
-            "Export a key (e.g. `export ANTHROPIC_API_KEY=sk-ant-...`) before running."
+            "Put it in ml-experiments/.env (ANTHROPIC_API_KEY=sk-ant-...) or export it."
         )
     import anthropic
 
