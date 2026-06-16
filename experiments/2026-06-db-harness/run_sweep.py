@@ -149,6 +149,10 @@ def main():
         except agent.BudgetExceeded as e:
             print(f"BUDGET KILL: {e}")
             break
+        except Exception as e:  # API/credit/network error: stop cleanly, keep completed runs
+            print(f"\n  STOP (API error): {type(e).__name__}: {str(e)[:200]}")
+            print("  Completed runs are saved; re-run this script to resume after fixing.")
+            break
 
     # Aggregate everything on disk.
     all_rows = [json.loads(p.read_text()) for p in sorted(runs_dir.glob("*.json"))]
