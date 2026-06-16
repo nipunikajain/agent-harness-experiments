@@ -1,0 +1,23 @@
+# Baseline config for the example experiment.
+#
+# This is the *controlled comparison* template: baseline (this file) and
+# config.intervention.yaml differ in EXACTLY ONE field — learning_rate — so any difference
+# in final_loss is attributable to the learning rate and nothing else.
+
+compute:
+  backend: local      # flip to "modal" to run scored on a GPU; nothing else changes
+  gpu: T4             # only used when backend == modal (e.g. T4, A10G, A100, H100)
+
+seeds: [0, 1, 2]      # the runner runs all of these and reports mean ± std
+
+# ---- the single variable under study ----
+learning_rate: 0.01
+
+# ---- fixed setup shared by baseline and intervention (the "controls") ----
+model:
+  input_dim: 16
+  hidden_dim: 32
+training:
+  n_samples: 512
+  epochs: 100
+  batch_size: 64

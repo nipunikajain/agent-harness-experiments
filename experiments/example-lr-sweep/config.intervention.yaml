@@ -1,0 +1,20 @@
+# Intervention config. IDENTICAL to config.yaml except for `learning_rate`.
+# This is what makes the comparison controlled — change one field, rerun, compare.
+
+compute:
+  backend: local
+  gpu: T4
+
+seeds: [0, 1, 2]
+
+# ---- the single variable under study (CHANGED vs baseline 0.01) ----
+learning_rate: 0.1
+
+# ---- fixed setup, identical to baseline ----
+model:
+  input_dim: 16
+  hidden_dim: 32
+training:
+  n_samples: 512
+  epochs: 100
+  batch_size: 64

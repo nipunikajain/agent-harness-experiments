@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# Experiment run artifacts: keep the folder (via .gitkeep) but ignore generated runs.
+# Comment these out if you want to commit results into the repo for the record.
+experiments/**/results/*.json
+experiments/**/results/*.jsonl
+
+# Caches / tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Modal / secrets
+.env
+*.local
+
+# OS
+.DS_Store
