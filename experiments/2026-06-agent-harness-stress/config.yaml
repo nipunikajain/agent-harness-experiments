@@ -1,0 +1,22 @@
+# STRESS BASELINE arm. Single variable: harness.strategy.
+# Differences vs v1: weaker model (Haiku), 20 features, tighter per-run token budget — chosen
+# to push the naive arm toward exhausting its budget on transcript bloat before finishing.
+
+compute:
+  backend: local
+
+harness:
+  strategy: naive         # <-- THE SINGLE VARIABLE
+
+model: claude-haiku-4-5-20251001
+temperature: 1.0
+seeds: [0, 1, 2]
+
+task:
+  n_features: 20
+
+budget:
+  max_total_tokens: 80000    # tighter than v1 (120k) and shared by both arms
+max_output_tokens: 4096      # generous, so write_file is never truncated (avoids a tool artifact)
+max_turns: 60
+max_turns_per_feature: 6

@@ -93,6 +93,37 @@ GRADERS: list[tuple[str, str, Check]] = [
     ("f12", "gcd", _c(lambda m: (
         m.gcd(12, 18) == 6 and m.gcd(17, 5) == 1 and m.gcd(0, 5) == 5
     ))),
+    ("f13", "lcm", _c(lambda m: (
+        m.lcm(4, 6) == 12 and m.lcm(21, 6) == 42 and m.lcm(0, 5) == 0
+    ))),
+    ("f14", "factorial", _c(lambda m: (
+        m.factorial(0) == 1 and m.factorial(1) == 1 and m.factorial(5) == 120
+    ))),
+    ("f15", "reverse_words", _c(lambda m: (
+        m.reverse_words("the quick brown") == "brown quick the"
+        and m.reverse_words("hello") == "hello"
+    ))),
+    ("f16", "count_vowels", _c(lambda m: (
+        m.count_vowels("Hello World") == 3
+        and m.count_vowels("xyz") == 0
+        and m.count_vowels("AEIOU") == 5
+    ))),
+    ("f17", "title_case", _c(lambda m: (
+        m.title_case("hELLo wORLd") == "Hello World" and m.title_case("foo") == "Foo"
+    ))),
+    ("f18", "is_anagram", _c(lambda m: (
+        m.is_anagram("Listen", "Silent") is True
+        and m.is_anagram("a", "b") is False
+        and m.is_anagram("Dormitory", "Dirty Room") is True
+    ))),
+    ("f19", "unique", _c(lambda m: (
+        m.unique([1, 2, 1, 3, 2]) == [1, 2, 3] and m.unique([]) == []
+    ))),
+    ("f20", "rle_encode", _c(lambda m: (
+        m.rle_encode("aaabbc") == "a3b2c1"
+        and m.rle_encode("") == ""
+        and m.rle_encode("a") == "a1"
+    ))),
 ]
 
 

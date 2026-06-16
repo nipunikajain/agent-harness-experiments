@@ -1,0 +1,20 @@
+# STRESS INTERVENTION arm. IDENTICAL to config.yaml except harness.strategy: structured.
+
+compute:
+  backend: local
+
+harness:
+  strategy: structured    # <-- THE SINGLE VARIABLE (changed vs baseline)
+
+model: claude-haiku-4-5-20251001
+temperature: 1.0
+seeds: [0, 1, 2]
+
+task:
+  n_features: 20
+
+budget:
+  max_total_tokens: 80000
+max_output_tokens: 4096
+max_turns: 60
+max_turns_per_feature: 6
