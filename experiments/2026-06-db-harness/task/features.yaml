@@ -1,0 +1,95 @@
+# 30 prose feature descriptions, order-aligned with shared/agent_eval_db.py FEATURES.
+# These are what the agent sees (alongside task/contract.md). Grading is done by the SQL
+# batteries in agent_eval_db.py, comparing the agent's engine to the reference engine.
+
+features:
+  - id: f01
+    name: create_insert_select
+    spec: "CREATE TABLE, INSERT INTO ... VALUES, and SELECT * FROM t returning all rows as tuples in column/insertion order."
+  - id: f02
+    name: select_columns
+    spec: "SELECT a subset of columns by name, e.g. SELECT name, age FROM t, returning tuples in that order."
+  - id: f03
+    name: where_eq
+    spec: "WHERE col = value (equality filter)."
+  - id: f04
+    name: where_neq
+    spec: "WHERE col != value (inequality filter)."
+  - id: f05
+    name: where_lt
+    spec: "WHERE col < value (numeric less-than)."
+  - id: f06
+    name: where_gt
+    spec: "WHERE col > value (numeric greater-than)."
+  - id: f07
+    name: where_range
+    spec: "WHERE combining two comparisons on a column, e.g. age >= 28 AND age <= 35."
+  - id: f08
+    name: where_and
+    spec: "WHERE with AND across two columns."
+  - id: f09
+    name: where_or
+    spec: "WHERE with OR across two predicates."
+  - id: f10
+    name: order_by_asc
+    spec: "ORDER BY col ascending (default)."
+  - id: f11
+    name: order_by_desc
+    spec: "ORDER BY col DESC."
+  - id: f12
+    name: limit
+    spec: "LIMIT n to cap the number of returned rows (with ORDER BY)."
+  - id: f13
+    name: offset
+    spec: "OFFSET n to skip rows (with ORDER BY and LIMIT)."
+  - id: f14
+    name: distinct
+    spec: "SELECT DISTINCT col returning unique values."
+  - id: f15
+    name: count_star
+    spec: "SELECT COUNT(*) FROM t returning [(rowcount,)]."
+  - id: f16
+    name: sum
+    spec: "SELECT SUM(col) FROM t (ignoring NULLs)."
+  - id: f17
+    name: avg
+    spec: "SELECT AVG(col) FROM t returning a float, ignoring NULLs."
+  - id: f18
+    name: min_max
+    spec: "SELECT MIN(col), MAX(col) FROM t in one row."
+  - id: f19
+    name: group_by_count
+    spec: "SELECT col, COUNT(*) FROM t GROUP BY col, one row per group in first-appearance order."
+  - id: f20
+    name: group_by_sum
+    spec: "SELECT col, SUM(other) FROM t GROUP BY col."
+  - id: f21
+    name: like_prefix
+    spec: "WHERE col LIKE 'A%' (prefix match; % is any run of characters)."
+  - id: f22
+    name: like_contains
+    spec: "WHERE col LIKE '%e%' (contains match)."
+  - id: f23
+    name: in_list
+    spec: "WHERE col IN (v1, v2)."
+  - id: f24
+    name: between
+    spec: "WHERE col BETWEEN lo AND hi (inclusive)."
+  - id: f25
+    name: update
+    spec: "UPDATE t SET col = value WHERE ..., then observable via SELECT."
+  - id: f26
+    name: delete
+    spec: "DELETE FROM t WHERE ..., then observable via SELECT COUNT(*)."
+  - id: f27
+    name: is_null
+    spec: "WHERE col IS NULL, including rows inserted with explicit columns leaving others NULL."
+  - id: f28
+    name: inner_join
+    spec: "SELECT a.x, b.y FROM a JOIN b ON a.k = b.k (inner join, only matching pairs)."
+  - id: f29
+    name: left_join
+    spec: "LEFT JOIN keeping all left rows; unmatched right columns are NULL."
+  - id: f30
+    name: drop_table
+    spec: "DROP TABLE t, then re-CREATE and SELECT returns no rows."

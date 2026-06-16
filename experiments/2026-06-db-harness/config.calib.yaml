@@ -1,0 +1,22 @@
+# Tiny calibration: validate the full API loop + grading + ledger for a few cents before
+# committing to the real sweep. Haiku, both arms, 1 seed, only 6 features, low caps.
+
+task:
+  n_features: 6
+  contract_file: task/contract.md
+  features_file: task/features.yaml
+
+sweep:
+  strategies: [naive, structured]
+  models:
+    - id: claude-haiku-4-5-20251001
+      seeds: [0]
+
+temperature: 1.0
+
+budget:
+  usd_cap: 24.0
+  max_total_tokens: 60000
+max_output_tokens: 4096
+max_turns: 12
+max_turns_per_feature: 6

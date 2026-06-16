@@ -29,3 +29,7 @@ experiments/**/results/*.jsonl
 
 # agent-harness experiment scratch workspaces
 experiments/**/results/_workspaces/
+
+# db-harness sweep artifacts
+experiments/**/results/runs/
+experiments/**/results/.spend_ledger.json

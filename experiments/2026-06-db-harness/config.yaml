@@ -1,0 +1,26 @@
+# DB-harness sweep. Single variable per (model): harness.strategy ∈ {naive, structured}.
+# Second axis: model (Haiku primary, Sonnet sanity). Hard USD kill-switch enforced across the
+# whole sweep via a file ledger — the run physically cannot exceed budget.usd_cap.
+
+task:
+  n_features: 30
+  contract_file: task/contract.md
+  features_file: task/features.yaml
+
+sweep:
+  strategies: [naive, structured]
+  # per-model seed lists: Haiku is the primary (more seeds), Sonnet is a sanity check
+  models:
+    - id: claude-haiku-4-5-20251001
+      seeds: [0, 1, 2, 3]
+    - id: claude-sonnet-4-6
+      seeds: [0, 1]
+
+temperature: 1.0
+
+budget:
+  usd_cap: 24.0            # hard kill-switch for the ENTIRE sweep (leaves margin under $25)
+  max_total_tokens: 500000   # per-run token ceiling, shared by both arms
+max_output_tokens: 4096
+max_turns: 40               # naive: single session
+max_turns_per_feature: 6    # structured: per feature-session
