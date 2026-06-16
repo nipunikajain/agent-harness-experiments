@@ -17,6 +17,6 @@ temperature: 1.0
 budget:
   usd_cap: 24.0
   max_total_tokens: 60000
-max_output_tokens: 4096
+max_output_tokens: 8192
 max_turns: 12
 max_turns_per_feature: 6

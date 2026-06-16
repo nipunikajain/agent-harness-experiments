@@ -21,6 +21,6 @@ temperature: 1.0
 budget:
   usd_cap: 24.0            # hard kill-switch for the ENTIRE sweep (leaves margin under $25)
   max_total_tokens: 500000   # per-run token ceiling, shared by both arms
-max_output_tokens: 4096
+max_output_tokens: 8192
 max_turns: 40               # naive: single session
 max_turns_per_feature: 6    # structured: per feature-session

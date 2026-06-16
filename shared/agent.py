@@ -121,6 +121,13 @@ def make_tools(workspace: Path, n_features: int, grader=agent_eval):
         p.write_text(content)
         return f"wrote {path} ({len(content)} bytes)"
 
+    def append_file(path: str, content: str) -> str:
+        p = _safe_path(workspace, path)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with p.open("a") as fh:
+            fh.write(content)
+        return f"appended {len(content)} bytes to {path}"
+
     def read_file(path: str) -> str:
         p = _safe_path(workspace, path)
         return p.read_text() if p.exists() else f"(no such file: {path})"
@@ -134,12 +141,17 @@ def make_tools(workspace: Path, n_features: int, grader=agent_eval):
 
     impls: dict[str, Callable] = {
         "write_file": lambda path, content: write_file(path, content),
+        "append_file": lambda path, content: append_file(path, content),
         "read_file": lambda path: read_file(path),
         "list_files": lambda: list_files(),
         "run_tests": lambda: run_tests(),
     }
     schemas = [
         {"name": "write_file", "description": "Create or overwrite a file in the workspace.",
+         "input_schema": {"type": "object", "properties": {
+             "path": {"type": "string"}, "content": {"type": "string"}},
+             "required": ["path", "content"]}},
+        {"name": "append_file", "description": "Append text to the end of a file (for building a large file in pieces).",
          "input_schema": {"type": "object", "properties": {
              "path": {"type": "string"}, "content": {"type": "string"}},
              "required": ["path", "content"]}},
@@ -188,6 +200,20 @@ def _run_session(client, model, system, messages, schemas, impls, budget, max_tu
                 assistant_content.append({"type": "tool_use", "id": block.id,
                                           "name": block.name, "input": block.input})
                 tool_uses.append(block)
+
+        # Output truncated mid-message: the trailing tool_use is incomplete and unusable.
+        # Keep only the text, nudge the model to continue in smaller pieces, and loop —
+        # do NOT silently drop the turn (that would falsely zero a one-shot attempt).
+        if resp.stop_reason == "max_tokens":
+            text_only = [b for b in assistant_content if b["type"] == "text"] or \
+                        [{"type": "text", "text": "(continuing)"}]
+            messages.append({"role": "assistant", "content": text_only})
+            messages.append({"role": "user", "content": (
+                "Your previous message was cut off because it was too long. Continue. Build "
+                "solution.py in smaller steps: write_file for the first chunk, then append_file "
+                "to add more. Keep each individual tool call well under ~150 lines.")})
+            continue
+
         messages.append({"role": "assistant", "content": assistant_content})
 
         if resp.stop_reason != "tool_use":
@@ -207,7 +233,9 @@ def _run_session(client, model, system, messages, schemas, impls, budget, max_tu
 _SHARED_RULES = (
     "You are a coding agent. You implement a Python file named solution.py in the workspace "
     "using the provided tools. Write plain standard-library Python (no third-party imports). "
-    "Use run_tests to check your work. When the targeted features pass, stop."
+    "If solution.py is large, build it across multiple tool calls: write_file for the first "
+    "chunk, then append_file for the rest, keeping each call well under ~150 lines so it is "
+    "never truncated. Use run_tests to check your work. When the targeted features pass, stop."
 )
 
 
