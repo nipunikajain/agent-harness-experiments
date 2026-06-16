@@ -1,0 +1,71 @@
+# The build task: a small pure-Python utility library (solution.py) with N independent,
+# objectively-gradable features. This is the miniature stand-in for the article's
+# "200+ feature app". Each feature is graded by shared/agent_eval.py.
+#
+# Specs are deliberately precise (with examples) so the contract is unambiguous and the
+# only thing that varies between arms is the harness strategy, not interpretation.
+
+features:
+  - id: f01
+    name: slugify
+    spec: >
+      slugify(s) -> str. Lowercase the string, and replace every run of non-alphanumeric
+      characters with a single hyphen, with no leading or trailing hyphen.
+      Example: "  Hello, World!  " -> "hello-world"; "Foo_Bar 123" -> "foo-bar-123".
+  - id: f02
+    name: word_count
+    spec: >
+      word_count(s) -> dict. Return a dict mapping each lowercased whitespace-delimited word
+      to its count. Example: "The cat the CAT" -> {"the": 2, "cat": 2}.
+  - id: f03
+    name: is_palindrome
+    spec: >
+      is_palindrome(s) -> bool. True iff the string reads the same forwards and backwards,
+      ignoring case and all non-alphanumeric characters.
+      Example: "A man, a plan, a canal: Panama" -> True; "hello" -> False.
+  - id: f04
+    name: roman_to_int
+    spec: >
+      roman_to_int(s) -> int. Convert an uppercase Roman numeral to an integer.
+      Example: "IV" -> 4; "MCMXCIV" -> 1994.
+  - id: f05
+    name: int_to_roman
+    spec: >
+      int_to_roman(n) -> str. Convert an integer 1..3999 to an uppercase Roman numeral.
+      Example: 4 -> "IV"; 1994 -> "MCMXCIV".
+  - id: f06
+    name: fibonacci
+    spec: >
+      fibonacci(n) -> int. Return the nth Fibonacci number, 0-indexed, with
+      fibonacci(0)=0 and fibonacci(1)=1. Example: fibonacci(10) -> 55.
+  - id: f07
+    name: is_prime
+    spec: >
+      is_prime(n) -> bool. True iff n is a prime number. is_prime(1) is False,
+      is_prime(2) is True.
+  - id: f08
+    name: flatten
+    spec: >
+      flatten(nested) -> list. Fully flatten an arbitrarily-nested list of lists into a flat
+      list, preserving order. Example: [1,[2,[3,4],5]] -> [1,2,3,4,5].
+  - id: f09
+    name: chunk
+    spec: >
+      chunk(lst, size) -> list. Split a list into consecutive chunks of length `size`; the
+      final chunk may be shorter. Example: chunk([1,2,3,4,5],2) -> [[1,2],[3,4],[5]].
+  - id: f10
+    name: caesar_cipher
+    spec: >
+      caesar_cipher(s, shift) -> str. Shift each ASCII letter by `shift` positions (wrapping
+      within its case); leave non-letters unchanged. Example: caesar_cipher("Hello, World!",
+      13) -> "Uryyb, Jbeyq!".
+  - id: f11
+    name: to_snake_case
+    spec: >
+      to_snake_case(s) -> str. Convert CamelCase or camelCase to snake_case.
+      Example: "CamelCase" -> "camel_case"; "myVariableName" -> "my_variable_name".
+  - id: f12
+    name: gcd
+    spec: >
+      gcd(a, b) -> int. Return the greatest common divisor of two non-negative integers,
+      with gcd(0, 5) == 5. Example: gcd(12, 18) -> 6.

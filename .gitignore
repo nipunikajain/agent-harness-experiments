@@ -26,3 +26,6 @@ experiments/**/results/*.jsonl
 
 # OS
 .DS_Store
+
+# agent-harness experiment scratch workspaces
+experiments/**/results/_workspaces/

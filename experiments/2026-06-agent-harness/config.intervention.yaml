@@ -1,0 +1,22 @@
+# INTERVENTION arm. IDENTICAL to config.yaml except harness.strategy.
+# Intervention = "structured": one feature per session, context reset to a compact
+# documented state between features (the article's incremental mechanism).
+
+compute:
+  backend: local
+
+harness:
+  strategy: structured    # <-- THE SINGLE VARIABLE (changed vs baseline)
+
+model: claude-sonnet-4-6
+temperature: 1.0
+seeds: [0, 1, 2]
+
+task:
+  n_features: 10
+
+budget:
+  max_total_tokens: 120000
+max_output_tokens: 4096
+max_turns: 40
+max_turns_per_feature: 6

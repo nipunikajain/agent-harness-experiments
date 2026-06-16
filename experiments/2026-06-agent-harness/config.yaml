@@ -1,0 +1,25 @@
+# BASELINE arm. The single variable under study is harness.strategy.
+# Baseline = "naive": one session, all features dumped at once, transcript grows each turn.
+#
+# config.intervention.yaml is byte-for-byte identical except harness.strategy: structured.
+
+compute:
+  backend: local          # the "model" is the Anthropic API; this runs on your laptop
+
+harness:
+  strategy: naive         # <-- THE SINGLE VARIABLE (naive vs structured)
+
+model: claude-sonnet-4-6
+temperature: 1.0          # natural sampling variance across seeds
+seeds: [0, 1, 2]          # each seed = an independent stochastic agent run
+
+task:
+  n_features: 10          # use the first N features from task/features.yaml
+
+# Hard caps so cost is bounded and the same for both arms (controls the compute confound).
+budget:
+  max_total_tokens: 120000   # per run (per seed); both arms share this ceiling
+max_output_tokens: 4096      # per API call
+# turn limits: naive uses max_turns; structured uses max_turns_per_feature
+max_turns: 40
+max_turns_per_feature: 6

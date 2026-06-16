@@ -1,0 +1,21 @@
+# SMOKE config: 1 seed, 3 features, tiny caps. Purpose is to verify the plumbing end-to-end
+# and MEASURE actual token cost before committing the full <$10 budget. Cheap by design.
+
+compute:
+  backend: local
+
+harness:
+  strategy: naive
+
+model: claude-sonnet-4-6
+temperature: 1.0
+seeds: [0]
+
+task:
+  n_features: 3
+
+budget:
+  max_total_tokens: 30000
+max_output_tokens: 4096
+max_turns: 12
+max_turns_per_feature: 6
