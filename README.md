@@ -2,6 +2,8 @@
 
 A monorepo for running **reproducible** ML/LLM research experiments.
 
+> **Discovery layer:** `/scout-research` and `/scout-skills` (the `research-scout` / `skill-scout` subagents) propose new things to test into [`queue.md`](queue.md) — they only propose, never run. You pick from the queue and run `/test-paper` yourself. Pipeline and gates: [`CLAUDE.md`](CLAUDE.md).
+
 The core idea: an experiment is a folder under `experiments/` with a `config.yaml` and an
 `intervention.py` exposing a `run(config, seed) -> dict` entrypoint. A shared runner executes
 that entrypoint across multiple seeds, records everything needed to reproduce the run (git
