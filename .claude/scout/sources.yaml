@@ -1,0 +1,81 @@
+# Sources for the discovery scouts. Edit freely — add, remove, reorder.
+# Read by the research-scout and skill-scout subagents. Nothing here runs anything;
+# it only tells the scouts where to look and how to judge testability.
+
+# ---------------------------------------------------------------------------
+# Your lane: AI agents, MCP, agent harnesses & infrastructure, LLM systems & serving.
+# The scout should weight candidates toward these themes.
+# ---------------------------------------------------------------------------
+
+arxiv:
+  # Categories to scan (arXiv listing / API).
+  categories:
+    - cs.AI      # artificial intelligence
+    - cs.LG      # machine learning
+    - cs.CL      # computation & language (LLMs)
+    - cs.DC      # distributed/parallel computing (serving, infra)
+    - cs.SE      # software engineering (agent tooling)
+  # Free-text terms to bias the search toward your lane.
+  query_terms:
+    - LLM agent
+    - agent harness
+    - model context protocol
+    - tool use
+    - agent scaffolding
+    - LLM serving
+    - inference optimization
+    - KV cache
+    - speculative decoding
+
+github:
+  trending_url: https://github.com/trending
+  trending_languages: [python, typescript]
+  topics: [llm, agents, mcp, llm-serving, agent-framework, inference]
+
+# A few sensible defaults. Replace with whatever you actually read.
+newsletters_and_blogs:
+  - name: Anthropic Engineering
+    url: https://www.anthropic.com/engineering
+  - name: Latent Space
+    url: https://www.latent.space/
+  - name: Simon Willison's Weblog
+    url: https://simonwillison.net/
+  - name: Ahead of AI (Sebastian Raschka)
+    url: https://magazine.sebastianraschka.com/
+
+lab_blogs:
+  - name: vLLM blog (serving)
+    url: https://blog.vllm.ai/
+  - name: Hugging Face blog
+    url: https://huggingface.co/blog
+  - name: Google DeepMind research
+    url: https://deepmind.google/research/
+
+# ---------------------------------------------------------------------------
+# Skill scout: where to look for skills, in preference order.
+# ---------------------------------------------------------------------------
+skill_sources:
+  preferred:
+    - name: Anthropic official skills marketplace
+      note: first choice; treat as vetted
+    - name: Anthropic skills repo (github.com/anthropics/skills)
+      note: official, security-reviewed
+  other:
+    - name: Claude Code plugin marketplaces
+      note: check who publishes; review before trusting
+    - name: Community SKILL.md repos on GitHub
+      note: UNVETTED — flag permissions and any shell/network access explicitly
+
+# ---------------------------------------------------------------------------
+# Context for the testability read (edit to match your setup). The research scout
+# uses this to judge whether a candidate is cheap/feasible to test.
+# ---------------------------------------------------------------------------
+test_context:
+  hardware: Apple Silicon Mac, CPU only (no local GPU)
+  gpu_backend: Modal (set compute.backend=modal in the experiment config) for GPU runs
+  budget_per_experiment_usd: 25
+  preferred_models: [claude-haiku-4-5, claude-sonnet-4-6]
+  note: >
+    Prefer candidates testable with a small model over the API on Apple Silicon, or a
+    directional repro that fits the per-experiment budget. Flag anything that needs a GPU
+    (estimate the Modal cost) or large-scale training (likely out of budget).
