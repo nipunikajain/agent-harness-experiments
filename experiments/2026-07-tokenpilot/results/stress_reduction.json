@@ -1,0 +1,30 @@
+[
+  {
+    "reduce_max_chars": 600,
+    "accuracy": 1.0,
+    "cost_usd": 0.021808766666666667,
+    "avg_turns": 5.0,
+    "recover_calls": 0.0
+  },
+  {
+    "reduce_max_chars": 130,
+    "accuracy": 1.0,
+    "cost_usd": 0.06386901666666667,
+    "avg_turns": 9.0,
+    "recover_calls": 20.0
+  },
+  {
+    "reduce_max_chars": 70,
+    "accuracy": 1.0,
+    "cost_usd": 0.0667265,
+    "avg_turns": 9.0,
+    "recover_calls": 20.0
+  },
+  {
+    "reduce_max_chars": 35,
+    "accuracy": 1.0,
+    "cost_usd": 0.06611046666666667,
+    "avg_turns": 9.0,
+    "recover_calls": 20.0
+  }
+]

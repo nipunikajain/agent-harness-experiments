@@ -13,10 +13,13 @@ mutated mid-stream. Paper's headline: **cost ↓ 56–87%** vs a "Vanilla" (no-m
 **task accuracy stays competitive**, cost measured in billed dollars decomposed into cache-hit /
 cache-miss / output tokens.
 
-The paper's models (GPT-5.4-mini, Qwen3.5-35B-A3B) and benchmarks (PinchBench, Claw-Eval) are not
-publicly available, so this is **not** a re-run of their numbers. It is a **directional test of the
-mechanism** on a real cache-aware API (Claude Haiku 4.5), which returns the exact
-`cache_read_input_tokens` / `cache_creation_input_tokens` fields TokenPilot reads.
+Provenance check (done 2026-07-08): the paper is credible. It is from Ningyu Zhang's group at
+Zhejiang University and builds on their prior, verifiable LightMem paper ([arXiv:2510.18866](https://arxiv.org/abs/2510.18866),
+overlapping authors). It is a legitimate preprint, safe to cite. However, I did not have access to
+their exact models or private benchmarks (PinchBench, Claw-Eval) to reproduce their numbers
+directly. So this is **not** a re-run of their setup. It is a **directional test of the mechanism**
+on a real cache-aware API (Claude Haiku 4.5), which returns the exact `cache_read_input_tokens` /
+`cache_creation_input_tokens` fields TokenPilot reads.
 
 ## What I built
 - **Task (fixed, shared by both conditions; `tasks.py`):** a long-horizon *referral-chain* task. Each
@@ -113,5 +116,6 @@ python -m shared.runner --experiment experiments/2026-07-tokenpilot --config con
 python -m shared.runner --experiment experiments/2026-07-tokenpilot --config config.intervention.yaml   # TokenPilot
 python -m shared.runner --experiment experiments/2026-07-tokenpilot --config config.vanilla_nocache.yaml # Vanilla (no cache)
 ```
-Total API spend for the whole investigation (incl. all smoke/threshold probes + the Vanilla arm): **$0.79**.
+Total API spend for the whole investigation (all smoke/threshold probes + the 3 arms + the stress
+sweep): **$1.64**.
 Raw per-seed results + manifests (git commit, seeds, env, pip-freeze) in `results/`.
