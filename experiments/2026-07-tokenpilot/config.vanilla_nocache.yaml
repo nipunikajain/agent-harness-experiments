@@ -1,0 +1,29 @@
+# REFERENCE arm — "Vanilla" with NO prompt caching at all.
+#
+# This is NOT the controlled one-variable comparison (that is config.yaml vs
+# config.intervention.yaml). It is an extra reference point: the no-cache naive agent the paper
+# actually compares TokenPilot against. It differs from config.yaml in one added field
+# (caching.enabled: false), so cost here vs. the intervention shows the paper-comparable spread.
+
+compute:
+  backend: local
+
+seeds: [0, 1, 2]
+
+# no context management AND no prompt caching
+tokenpilot:
+  enabled: false
+  reduce_max_chars: 600
+  evict_batch_turns: 3
+  evict_keep_last: 2
+caching:
+  enabled: false          # <-- the added field: disable all prompt caching (the paper's "Vanilla")
+
+# ---- fixed setup shared with the other arms ----
+model: claude-haiku-4-5-20251001
+n_questions: 5
+chain_len: 4
+max_turns: 10
+max_output_tokens: 512
+temperature: 0.0
+usd_cap: 4.5

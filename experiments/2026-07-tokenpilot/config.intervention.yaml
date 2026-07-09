@@ -1,0 +1,24 @@
+# INTERVENTION config — TokenPilot framework ON.
+#
+# Identical to config.yaml except tokenpilot.enabled: true (the single variable under study).
+
+compute:
+  backend: local
+
+seeds: [0, 1, 2]
+
+# ---- the single variable under study ----
+tokenpilot:
+  enabled: true           # <-- the ONLY field that differs from the baseline config
+  reduce_max_chars: 600
+  evict_batch_turns: 3
+  evict_keep_last: 2
+
+# ---- fixed setup shared by baseline and intervention (the controls) ----
+model: claude-haiku-4-5-20251001
+n_questions: 5
+chain_len: 4
+max_turns: 10
+max_output_tokens: 512
+temperature: 0.0
+usd_cap: 4.5

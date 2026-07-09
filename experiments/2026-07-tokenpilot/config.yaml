@@ -1,0 +1,26 @@
+# BASELINE config — "Vanilla" competent naive agent.
+#
+# This file and config.intervention.yaml differ in EXACTLY ONE field: tokenpilot.enabled.
+# Any difference in cost or accuracy between the two runs is therefore attributable to the
+# TokenPilot context-management framework and nothing else.
+
+compute:
+  backend: local          # API-bound, not GPU-bound: runs on the laptop. Modal not used.
+
+seeds: [0, 1, 2]          # >= 3 seeds; runner reports mean ± std
+
+# ---- the single variable under study ----
+tokenpilot:
+  enabled: false          # <-- the ONLY field that differs from the intervention config
+  reduce_max_chars: 600   # (inert when disabled) observation-reduction truncation budget
+  evict_batch_turns: 3    # (inert when disabled) B: eviction cadence in turns
+  evict_keep_last: 2      # (inert when disabled) keep this many most-recent observations
+
+# ---- fixed setup shared by baseline and intervention (the controls) ----
+model: claude-haiku-4-5-20251001
+n_questions: 5           # 5 referral-chain questions per seed
+chain_len: 4             # 4 hops (records to open) per chain -> long-horizon accumulation
+max_turns: 10            # generous cap; a clean trajectory needs chain_len+1 turns
+max_output_tokens: 512
+temperature: 0.0
+usd_cap: 4.5             # hard, file-backed USD kill switch across all seeds AND both configs
