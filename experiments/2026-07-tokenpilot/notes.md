@@ -22,17 +22,18 @@ on a real cache-aware API (Claude Haiku 4.5), which returns the exact `cache_rea
 `cache_creation_input_tokens` fields TokenPilot reads.
 
 ## What I built
-- **Task (fixed, shared by both conditions; `tasks.py`):** a long-horizon *referral-chain* task. Each
+- **Task (fixed, shared by all three arms; `tasks.py`):** a long-horizon *referral-chain* task. Each
   question is a chain of 4 registry-record documents; the start id is given, each record's main
   content points to the next record's id, and the final record names a destination city (the exact
   answer). Solving = open 4 docs in pointer order + submit. Each doc is ~3 KB of noisy HTML (nav,
   cookie banner, scripts, footer) with the routing line in a `<main>` region. 5 questions/seed.
 - **Single variable:** `tokenpilot.enabled` (baseline `false` → intervention `true`). Identical
   model, tasks, tools, seeds, and prompt-caching setup otherwise.
-- **Both conditions use standard Anthropic prompt caching** (cache breakpoint on the static
-  system+tools prefix + a rolling breakpoint on the growing conversation). The baseline is a
-  *competent cache-using agent*, **not** a no-cache strawman. On top of it, TokenPilot adds all three
-  mechanisms. This makes the measured gap a **conservative** read of the paper's claim.
+- **Both main arms (baseline and TokenPilot) use standard Anthropic prompt caching** (cache breakpoint
+  on the static system+tools prefix + a rolling breakpoint on the growing conversation). The baseline
+  is a *competent cache-using agent*, **not** a no-cache strawman. On top of it, TokenPilot adds all
+  three mechanisms. This makes the controlled baseline-vs-TokenPilot gap a **conservative** read of the
+  paper's claim. (The third arm, Vanilla, deliberately disables caching — see Results.)
 - **Cost** = real Haiku 4.5 billing computed from the API's own usage metadata:
   input $1.00/M, cache-write $1.25/M, cache-read $0.10/M, output $5.00/M.
 - Reuses the shared runner (`shared/runner.py` — logs resolved config, seeds, git commit, env,
