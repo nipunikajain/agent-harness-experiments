@@ -101,3 +101,56 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A serving-infra KV-cache-compression claim distinct from the queued "Can I Buy Your KV Cache?" (cache *reuse* across calls) — this is about compressing/evicting KV during a single long reasoning generation, testable directly against the vLLM blog's own lane.
 - Testability: Needs a GPU and vLLM — not feasible on CPU-only Apple Silicon. Could run a small open reasoning model (e.g. a 1.5B-7B class model) on a Modal A10G, comparing vanilla vLLM KV cache vs. a simplified sliding-window compression at a couple of retention ratios on a small math-reasoning eval subset. Rough Modal cost: $15-25 for a few hours of A10G time — near the top of the per-experiment budget; would need to be scoped tightly (small model, small eval set) to fit.
 - Source: arXiv cs.DC/cs.CL (2607.01237), submitted 2026-07-01
+
+---
+
+## 2026-07-13 — proposed by research-scout
+
+### [Stop Comparing LLM Agents Without Disclosing the Harness](https://arxiv.org/abs/2605.23950)
+- Status: proposed — awaiting review
+- Claim: Position/empirical paper arguing the "Binding Constraint Thesis": for long-horizon tasks among comparably-capable frontier models, harness-induced performance variance often exceeds model-induced variance (including cases of outright model-ranking reversal), so leaderboard comparisons that don't disclose harness configuration are incomplete/misleading; proposes a harness-aware evaluation framework with a disclosure standard and variance-decomposition protocol.
+- Why it matters: Directly upstream of this repo's own scoreboard — all 3 tested harness-overhead experiments here already show harness choice swinging cost/quality outcomes dramatically. This paper gives a formal variance-decomposition method to quantify "how much of the variance is harness vs. model," reusable on the repo's own existing harness code.
+- Testability: Cheap, API-only, and reuses existing repo assets. Run a small 2×2 (structured vs. naive harness, already built here) × (Haiku 4.5 vs. Sonnet 4.6) grid with a few seeds each on one toy task, then decompose variance (harness effect vs. model effect vs. interaction) the way the paper proposes. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI/cs.SE (2605.23950), submitted 2026-05-29
+
+### [HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry](https://arxiv.org/abs/2606.14249)
+- Status: proposed — awaiting review
+- Claim: Assembling typed harness primitives via a "substitution algebra" and adapting them with AEGIS, a trace-driven multi-agent evolution engine that also feeds trajectories back as model-training signal, yields an average +14.5% (up to +44.0%) across 5 agent benchmarks (ALFWorld, GAIA, WebShop, tau³-Bench, SWE-bench Verified), with gains largest where baselines are weakest.
+- Why it matters: A different self-evolving-harness mechanism than the already-queued Self-Harness (which mines failure traces → proposes edits → validates via regression testing) — HarnessX composes typed primitives algebraically and closes the loop into model-training signal too. Worth flagging the overlap explicitly: both ultimately test "can a self-editing harness earn its keep," which this repo's tested rows say hand-designed structured harnesses generally do not.
+- Testability: Feasible small-scale. Implement a stripped-down primitive library (3-5 primitives: memory, tool-selection, replanning, verification) plus a simple trace-driven selection loop (skip the full AEGIS/RL machinery) on a toy task suite, Haiku 4.5 as agent, Sonnet 4.6 as evolution/judge. No GPU. Rough cost: $15-20; full 5-benchmark scale is out of budget — this would be a directional check on 1-2 toy tasks.
+- Source: arXiv cs.AI/cs.CL (2606.14249), submitted 2026-06-12
+
+### [Natural-Language Agent Harnesses](https://arxiv.org/abs/2603.25723)
+- Status: proposed — awaiting review
+- Claim: Harness control logic (handoffs, state updates, validation gates, artifact contracts) can be represented as an editable natural-language document (a "Natural-Language Agent Harness") interpreted at runtime by a shared "Intelligent Harness Runtime," with empirically demonstrated operational viability, interpretable module-level effects, and robust code-to-text migration — i.e. NL-harnesses behave equivalently to code-based ones while being more inspectable/portable.
+- Why it matters: A representational claim about harnesses rather than a performance-optimization one — directly relevant to how this repo authors its own harnesses (currently Python `intervention.py`); tests whether describing the *exact same* structured-vs-naive harness policy as an NL document interpreted by a runtime changes behavior/cost/quality vs. the code version already on the scoreboard.
+- Testability: Very cheap, API-only. Rewrite the repo's existing tested structured harness's control logic as an NL policy document, build a minimal interpreter loop, and compare token cost/task success against the already-tested code version on the same toy task. No GPU. Rough cost: $5-10 — could even reuse existing scoreboard results as one arm instead of rerunning them.
+- Source: arXiv cs.AI/cs.CL (2603.25723), submitted 2026-03-26
+
+### [AOrchestra: Automating Sub-Agent Creation for Agentic Orchestration](https://arxiv.org/abs/2602.03786)
+- Status: proposed — awaiting review
+- Claim: Modeling every (sub)agent as a dynamic (Instruction, Context, Tools, Model) tuple, with a non-executing orchestrator that concretizes and spawns a tailored sub-agent on demand per subtask, yields a 16.28% relative improvement over the strongest baseline (paired with Gemini-3-Flash) across GAIA, SWE-Bench, and Terminal-Bench.
+- Why it matters: Distinct from the already-queued Recursive Agent Harnesses (a parent that spawns full recursive subagent harnesses via a generated script) — AOrchestra's orchestrator never executes tasks itself and dynamically selects tools/model/context per subtask rather than recursing. Worth checking whether "on-demand specialized sub-agent creation" earns back overhead the way this repo's tested harnesses have not.
+- Testability: Feasible small-scale. Build a toy multi-step task solvable by (a) one flat agent and (b) an orchestrator (Sonnet 4.6) that dynamically spawns tailored sub-agents (Haiku 4.5) per subtask, compare cost and success. No GPU. Rough cost: $10-15; won't match GAIA/SWE-Bench scale, directional only.
+- Source: arXiv cs.AI/cs.MA (2602.03786), submitted 2026-02-04
+
+### [Model Context Protocol (MCP) Tool Descriptions Are Smelly!](https://arxiv.org/abs/2602.14878)
+- Status: proposed — awaiting review
+- Claim: Empirical study of 856 tools across 103 real MCP servers finds 97.1% of tool descriptions have at least one "smell" (56% don't state purpose clearly); augmenting descriptions to fix all identified smells improves task success by a median +5.85pp and partial-goal completion by +15.12%, but increases execution steps by 67.46% and regresses performance in 16.67% of cases.
+- Why it matters: A concrete, quantified MCP-specific claim in this repo's lane — distinct from the queued MCP-security paper (attack surface) and the context-pruning candidates (verbose tool *outputs*), this is about tool *description* quality, with an explicit tradeoff (better success sometimes, but more steps and real regression risk) that's cheap to falsify.
+- Testability: Very feasible, API-only. Build a small MCP-style toy server (5-10 tools) with deliberately "smelly" descriptions (missing purpose/params/examples) vs. an augmented set, run Haiku 4.5 and Sonnet 4.6 across a small task suite, measure success rate, step count, and regression rate. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.SE/cs.AI (2602.14878), submitted 2026-02-14
+
+### [DemoEvolve: Overcoming Sparse Feedback in Agentic Harness Evolution with Demonstrations](https://arxiv.org/abs/2605.24539)
+- Status: proposed — awaiting review
+- Claim: In long-horizon, high-variance, sparse-reward stochastic environments (tested on the card games Liar's Dice and Balatro), pure self-rollout harness evolution (reward-only search) is misled by noisy/sparse feedback, but bootstrapping the harness-editing proposer with a handful of competent human demonstration trajectories produces more effective and auditable harness edits under the same limited budget.
+- Why it matters: A different failure mode for self-evolving harnesses than HarnessX/Self-Harness above — specifically the sparse-feedback/high-variance regime where naive self-rollout evolution breaks down; complements this repo's own finding that structured harnesses often fail to earn back overhead, by asking whether demonstrations specifically fix that failure mode.
+- Testability: Feasible small-scale. Use a small custom stochastic toy task with sparse, delayed reward (not the full Balatro/Liar's Dice games) with Haiku 4.5 as the acting agent and Sonnet 4.6 as the harness-editing proposer; compare self-rollout-only evolution vs. demonstration-bootstrapped evolution over a handful of iterations. No GPU. Rough cost: $15-20.
+- Source: arXiv cs.AI/cs.LG (2605.24539), submitted 2026-05-30
+
+### [Speculative Speculative Decoding](https://arxiv.org/abs/2603.03251)
+- Status: proposed — awaiting review
+- Claim: An asynchronous speculative-decoding variant that parallelizes drafting and verification — the draft model predicts likely verification outcomes and pre-generates the next speculation while the previous step's verification is still in flight, skipping drafting overhead when the prediction is right. The resulting "Saguaro" implementation is reported ~30% faster on average than optimized speculative-decoding baselines and up to 5x faster than plain autoregressive decoding on open-source inference engines.
+- Why it matters: A concrete LLM-serving/inference-optimization claim (speculative decoding is explicitly in `sources.yaml`'s query terms) distinct from the KV-cache-focused candidates already queued — this is about decode-time throughput via async draft/verify overlap.
+- Testability: Needs a GPU and a real inference engine (vLLM/SGLang) with an open-weight draft+target model pair — not feasible on CPU-only Apple Silicon. Could run a small pair (e.g. ~1B draft + 7-8B target) on a Modal A10G, comparing vanilla speculative decoding vs. an implemented async draft/verify overlap on a small generation benchmark. Rough Modal cost: $15-25 for a few hours of A10G — near/at the top of the per-experiment budget; would need tight scoping (small models, short benchmark) to fit.
+- Source: arXiv cs.CL/cs.LG (2603.03251), submitted 2026-03-03
