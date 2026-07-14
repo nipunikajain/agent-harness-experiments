@@ -101,3 +101,49 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A serving-infra KV-cache-compression claim distinct from the queued "Can I Buy Your KV Cache?" (cache *reuse* across calls) — this is about compressing/evicting KV during a single long reasoning generation, testable directly against the vLLM blog's own lane.
 - Testability: Needs a GPU and vLLM — not feasible on CPU-only Apple Silicon. Could run a small open reasoning model (e.g. a 1.5B-7B class model) on a Modal A10G, comparing vanilla vLLM KV cache vs. a simplified sliding-window compression at a couple of retention ratios on a small math-reasoning eval subset. Rough Modal cost: $15-25 for a few hours of A10G time — near the top of the per-experiment budget; would need to be scoped tightly (small model, small eval set) to fit.
 - Source: arXiv cs.DC/cs.CL (2607.01237), submitted 2026-07-01
+
+---
+
+## 2026-07-09 — proposed by research-scout
+
+### [Harness Updating Is Not Harness Benefit: Disentangling Evolution Capabilities in Self-Evolving LLM Agents](https://arxiv.org/abs/2605.30621)
+- Status: proposed — awaiting review
+- Claim: Disentangles two capabilities in self-evolving harness agents — "harness-updating" (producing useful persistent harness updates from execution evidence) is flat across model capability tiers, while "harness-benefit" (actually benefiting from those updates during task-solving) is non-monotonic: weak-tier models gain little because they fail to activate relevant harness artifacts or follow them faithfully once activated, even when the updates themselves are just as good as a stronger model's.
+- Why it matters: A skeptical, diagnostic paper that directly parallels this repo's own findings (structured harnesses repeatedly showing cost without quality gain, especially on Haiku) — offers a concrete hypothesis for *why* weaker models might fail to benefit from harness structure even when the harness content is sound, and is a natural stress test alongside the already-queued Self-Harness.
+- Testability: Feasible small-scale, API only. Have both Haiku 4.5 and Sonnet 4.6 generate harness updates from the same shared set of induced failure traces on a toy task, then cross-apply updates (e.g. give Haiku 4.5 the Sonnet-authored updates) to see whether the weaker model still under-benefits even from stronger-model-authored harness content. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI/cs.CL (2605.30621), submitted 2026-05-30
+
+### [Adapting the Interface, Not the Model: Runtime Harness Adaptation for Deterministic LLM Agents](https://arxiv.org/abs/2605.22166)
+- Status: proposed — awaiting review
+- Claim: Life-Harness converts recurring interaction failures observed during a training phase into reusable interventions across four categories (environment contracts, procedural skills, action realization, trajectory regulation), then freezes the harness for evaluation on unseen tasks — improving 116 of 126 model×environment settings across 18 model backbones on τ-bench, τ²-bench, and AgentBench, averaging +88.5% relative improvement, without changing model weights.
+- Why it matters: A much larger claimed effect size than this repo's own tested "1-feature/session" structuring (which found zero benefit for real cost) — the key structural difference is "freeze after training, no further per-session overhead at eval time," which is exactly the failure mode the scoreboard rows blame for the tested harness's cost. Worth checking if freezing is the missing ingredient.
+- Testability: Feasible small-scale, API only. Build a toy deterministic tool-use task (τ-bench-style), run a short "training" phase where Sonnet 4.6 mines a handful of induced failures into the four intervention categories, freeze the resulting harness, then evaluate both Haiku 4.5 and Sonnet 4.6 against a naive baseline on held-out tasks. No GPU. Rough cost: $10-20; won't match the 18-backbone/3-benchmark scale, only the directional "does freezing help" effect.
+- Source: arXiv cs.AI (2605.22166), submitted 2026-05-22
+
+### [Stop Comparing LLM Agents Without Disclosing the Harness](https://arxiv.org/abs/2605.23950)
+- Status: proposed — awaiting review
+- Claim: Position paper proposing the "Binding Constraint Thesis" — for long-horizon tasks evaluated across models of comparable frontier capability, harness configuration (context construction, tool interaction, orchestration, verification) explains more performance variance than model choice, sometimes reversing model rankings; proposes a harness-aware evaluation and disclosure standard with a variance-decomposition protocol.
+- Why it matters: This is close to the theoretical frame this repo's entire scoreboard has been informally testing (three rows already show structured-harness cost without quality gain) — a direct opportunity to run the paper's own proposed variance-decomposition check at small scale using harness code this repo already has.
+- Testability: Very feasible, API only. Fix a small task set, cross 2 harness configs (naive vs. one of the already-tested structured harnesses) with 2 models (Haiku 4.5, Sonnet 4.6), and compute a basic variance decomposition (harness-attributable vs model-attributable). No GPU, reuses existing repo code. Rough cost: $5-10.
+- Source: arXiv cs.AI (2605.23950), submitted 2026-05-07
+
+### [Better Models: Worse Tools](https://simonwillison.net/2026/Jul/4/better-models-worse-tools/)
+- Status: proposed — awaiting review
+- Claim: Blog post (Armin Ronacher, syndicated via Simon Willison) reporting that newer Claude models (Opus 4.8, Sonnet 5) invent extra, non-schema fields when calling a third-party harness's custom edit tool (the Pi editor), a regression not present in older models — hypothesized to result from RL post-training tuned specifically to Claude Code's own edit-tool schema, which fails to generalize to other harnesses' custom tool schemas.
+- Why it matters: A concrete, falsifiable claim squarely in the agent-harness lane — if newer/"better" models are quietly worse at *custom* (non-Claude-Code) tool schemas, that's a direct risk for any harness in this repo built on bespoke tools rather than Claude Code's own conventions.
+- Testability: Very cheap, API only. Define two edit-tool schemas — one mirroring Claude Code's own edit-tool field conventions and one deliberately different (custom field names/structure) — run a small battery of edit tasks against current models (Haiku 4.5, Sonnet 4.6) and measure schema-violation rate on the non-standard schema. No GPU. Rough cost: $5-10.
+- Source: Blog — Armin Ronacher (lucumr.pocoo.org), syndicated via Simon Willison's Weblog, published 2026-07-04
+
+### [DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation](https://arxiv.org/abs/2607.05147)
+- Status: proposed — awaiting review
+- Claim: Combines a semi-autoregressive drafter (parallel backbone plus a lightweight sequential module to model intra-block token dependencies and mitigate "suffix decay") with confidence-scheduled verification (dynamically sizing verification length per request from estimated prefix-survival probability); deployed in DeepSeek-V4's serving system, it lifts per-user generation speed 60-85% at matched throughput and shifts the latency/throughput Pareto frontier.
+- Why it matters: A concrete, falsifiable serving-infra claim in the LLM-serving lane — tests whether confidence-scheduled, variable-length speculative verification actually beats fixed-length speculative decoding, distinct from the queued KV-cache-reuse/compression candidates.
+- Testability: Needs a GPU with an open draft/target model pair — not feasible on CPU-only Apple Silicon. A small open pair (e.g. a ~0.5-1B draft model with a 3-7B target) on a Modal A10G could directly compare fixed-length speculative decoding vs. a simplified confidence-scheduled variant on a small generation benchmark. Rough Modal cost: $15-25 for a few hours of A10G time — near the top of the per-experiment budget; would need tight scoping (small models, small eval set) to fit.
+- Source: arXiv cs.LG/cs.DC (2607.05147), submitted 2026-07-06
+
+### [Enhancing Model Context Protocol (MCP) with Context-Aware Server Collaboration](https://arxiv.org/abs/2601.11595)
+- Status: proposed — awaiting review
+- Claim: Proposes CA-MCP, restructuring stock (stateless) MCP so the central LLM handles only high-level planning and final summarization, while a Shared Context Store accessible to all MCP servers holds global context — aiming to cut redundant computation and improve coherence in multi-server agent workflows.
+- Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
+- Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
