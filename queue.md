@@ -197,3 +197,56 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-07-15 — proposed by research-scout
+
+### [HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry](https://arxiv.org/abs/2606.14249)
+- Status: proposed — awaiting review
+- Claim: A foundry assembling typed harness primitives via a substitution algebra, adapted by a trace-driven multi-agent evolution engine (AEGIS) that turns execution trajectories into both harness updates and model-training signal, yields an average +14.5% gain (up to +44.0%) across five benchmarks (ALFWorld, GAIA, WebShop, τ³-Bench, SWE-bench Verified) vs static hand-crafted harnesses — gains largest where baselines are weakest.
+- Why it matters: The most direct large-effect-size counter-example yet to this repo's own three scoreboard rows (all showing structured harnesses losing to naive) — squarely in the harness-evolution theme already queued (Self-Harness, HarnessUpdating) but with the largest claimed numbers, making it a good adversarial test of whether *any* self-evolving harness mechanism actually earns its keep at small scale.
+- Testability: Feasible small-scale, API only. Build one toy task resembling WebShop/ALFWorld-lite, implement a simplified substitution-algebra harness plus a lightweight trace-driven evolution loop, compare vs. a static baseline harness using Haiku 4.5 (and Sonnet 4.6 as evolution-engine/judge). No GPU. Rough cost: $15-20; won't match the 5-benchmark scale, only the directional "does evolving the harness beat a static one" check this repo keeps failing to confirm.
+- Source: arXiv cs.AI (2606.14249), submitted 2026-06-12
+
+### [From Prompts to Contracts: Harness Engineering for Auditable Enterprise LLM Agents](https://arxiv.org/abs/2607.08028)
+- Status: proposed — awaiting review
+- Claim: Moving deterministic behavior (source-grounding, entity-routing, trace, output-hygiene, recommendation-language contracts) out of prompts into code-owned manifests/schemas/validators holds across 270 composition-boundary runs on 3 hosted models with zero contract violations reaching output, and a fault-injection control confirms the validators catch deliberately broken contracts — guarantees the paper argues are not reproducible by prompting alone.
+- Why it matters: A concrete, falsifiable "code > prompt for guarantees" claim adjacent to the already-queued CAAF/determinism candidate, but with an explicit ablation (code-owned checks vs. prompt-only) and a fault-injection control this repo could reuse directly.
+- Testability: Very feasible, API only. Build a small toy harness with 2-3 code-owned validators (e.g. source-grounding, output-hygiene) vs. a prompt-only baseline enforcing the same rules, inject deliberate contract violations, measure catch rate across Haiku 4.5 and Sonnet 4.6. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.AI/cs.SE (2607.08028), submitted 2026-07-09
+
+### [The Interplay of Harness Design and Post-Training in LLM Agents](https://arxiv.org/abs/2606.25447)
+- Status: proposed — awaiting review
+- Claim: Extending ALFWorld to treat the harness (tool exposure, descriptions, per-step observation format) as a controllable design dimension during post-training, and evaluating under task/tool-environment shift, shows harness-aware post-training improves both in-distribution performance and robustness to out-of-distribution shifts, vs. post-training with a fixed harness.
+- Why it matters: Directly tests whether harness design and training should be co-optimized rather than treated as separable — a different axis than this repo's fixed-harness comparisons, and relevant if any future experiment here considers fine-tuning.
+- Testability: Only partially testable in this repo — the core claim depends on actual RL post-training, which is not reproducible via the Claude API at this budget (no fine-tuning access to Claude models at this scale). A cheap proxy ($5-10, API-only) could vary harness/tool-description design and measure prompt-only ID-vs-OOD performance without any weight updates, but that would only test the harness-design half, not the harness-x-post-training interaction the paper actually claims. Flag as largely out of budget for a faithful test.
+- Source: arXiv cs.AI (2606.25447), submitted 2026-06-24
+
+### [Model Context Protocol (MCP) Tool Descriptions Are Smelly! Towards Improving AI Agent Efficiency with Augmented MCP Tool Descriptions](https://arxiv.org/abs/2602.14878)
+- Status: proposed — awaiting review
+- Claim: Empirical study of 856 tools across 103 real MCP servers finds 97.1% of tool descriptions contain at least one "smell" (56% fail to state purpose clearly); augmenting descriptions to fix these smells raises task success by a median 5.85 percentage points and partial-goal completion by 15.12%, but increases execution steps by 67.46% and regresses performance in 16.67% of cases.
+- Why it matters: A concrete, cheap, falsifiable MCP-infra claim distinct from the already-queued MCP security/design-pattern candidates — this is about whether fixing tool-description quality is a clean win or a real tradeoff (more steps, some regressions), directly testable with toy MCP tools.
+- Testability: Very feasible, API only. Write ~10-15 toy MCP tools with deliberately "smelly" descriptions (per the paper's rubric), apply the paper's augmentation pattern, compare task success/step count/regression rate with Haiku 4.5 and Sonnet 4.6. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.SE/cs.AI (2602.14878), submitted 2026-02-14
+
+### [A First Measurement Study on Authentication Security in Real-World Remote MCP Servers](https://arxiv.org/abs/2605.22333)
+- Status: proposed — awaiting review
+- Claim: Scanning 7,973 live remote MCP servers found 40.55% expose tools with no authentication at all; of 119 testable OAuth-enabled servers, every single one exhibited at least one of 9 authentication flaw types (4 taxonomy categories, 325 flaws total), yielding 9 CVEs via responsible disclosure.
+- Why it matters: The most concrete real-world MCP security prevalence data found this run — complements the already-queued MCP security/defense-placement papers (which use synthetic attack scenarios) with actual measured base rates.
+- Testability: The prevalence claim itself requires scanning real third-party internet infrastructure, which is out of scope and ethically inappropriate for this repo (no consent to probe live servers, no shell access anyway). A safe, cheap substitute: build a handful of mock MCP servers implementing the paper's specific flaw patterns (open client registration, missing PKCE, etc.) and verify a simplified version of their detection logic correctly flags each one. No GPU. Rough cost: under $5. Note this only tests the detector, not the paper's headline prevalence numbers.
+- Source: arXiv cs.CR (2605.22333), submitted 2026-05-22
+
+### [VeriCache: Turning Lossy KV Cache into Lossless LLM Inference](https://arxiv.org/abs/2605.17613)
+- Status: proposed — awaiting review
+- Claim: Using a compressed KV cache to draft tokens and verifying against the full KV cache (parallelizing the HBM-bound compressed decode with a PCIe/network-bound full-KV swap) achieves output identical to full-KV-cache decoding while retaining most of the compressed cache's speed — up to 4x higher throughput than full-KV inference, applicable to long-context decoding and remote prefix caching.
+- Why it matters: A serving-infra claim distinct from the already-queued KV-cache reuse ("Can I Buy Your KV Cache?") and sliding-window compression (KARA) candidates — this specifically targets the lossy-vs-lossless tradeoff via a draft-and-verify scheme, testable against the vLLM-blog lane.
+- Testability: Needs a GPU and an open-weight model with a working KV-compression method — not feasible on CPU-only Apple Silicon. A small open model (1-4B) on a Modal A10G could verify token-exact output between compressed-draft+full-verify vs. full-KV decoding, and measure throughput vs. a simple token-dropping baseline on a small long-context eval. Rough Modal cost: $15-25 for a few GPU-hours — near the top of the per-experiment budget, needs tight scoping.
+- Source: arXiv cs.DC/cs.LG (2605.17613), submitted 2026-05-17
+
+### [Harness design for long-running application development](https://www.anthropic.com/engineering/harness-design-long-running-apps)
+- Claim: Anthropic's production three-agent (planner/generator/evaluator) GAN-inspired harness — evaluator scoring generator outputs on design quality, originality, craft, and functionality across 5-15 iterations (up to ~4 hours) per generation — pushes Claude toward more distinctive, less generic full-stack app designs than direct single-pass generation.
+- Status: proposed — awaiting review
+- Why it matters: A real production counterpart to this repo's own tested structured-harness rows — but for a qualitative/creative-output task (design distinctiveness) rather than pure task-completion correctness, which is exactly the axis this repo hasn't tested yet; worth checking whether iterate-and-critique earns its cost when the metric isn't binary pass/fail.
+- Testability: Feasible on Apple Silicon/API only. Build a small toy UI/design task, run a scaled-down 3-5 iteration planner/generator/evaluator loop (Haiku 4.5 generator, Sonnet 4.6 evaluator) vs. a single-shot baseline, blind-score outputs for distinctiveness/craft. No GPU. Rough cost: $10-15.
+- Source: Anthropic Engineering blog, published 2026-03-24
