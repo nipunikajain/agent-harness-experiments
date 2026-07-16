@@ -197,3 +197,49 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-07-16 — proposed by research-scout
+
+### [Learning to Control LLM Agent Harnesses with Offline Reinforcement Learning](https://arxiv.org/abs/2607.05458)
+- Status: proposed — awaiting review
+- Claim: Formalizes harness operation as a finite-horizon "Harness MDP" where a lightweight controller (not the LLM itself, which stays frozen) selects structural execution actions (e.g. verify, retry, escalate); trained offline via advantage-weighted regression from rollouts with only terminal task-rubric rewards, it consistently improves verification behavior and selectively improves final task quality across 6 controlled domains + 2 public-benchmark adapters, beating behavior-cloning and a "Forced CHECK" (always-verify) ablation.
+- Why it matters: A genuinely new mechanism in the harness lane — treating the harness itself as a learnable control layer rather than a hand-designed or self-editing one (distinct from queued Self-Harness and Recursive Agent Harnesses) — and it directly targets this repo's open question of whether *any* harness structure can earn back its overhead.
+- Testability: Feasible on Apple Silicon. The controller is a small, cheap-to-train policy (e.g. logistic regression/tiny MLP trained on CPU), not the LLM; collect rollouts on a toy multi-step task via Haiku 4.5 API calls with a few structural harness actions, train the controller offline, compare vs. naive/heuristic control and a behavior-cloning baseline. No GPU needed. Rough cost: $10-15 in API calls for rollout collection; won't match the 6-domain/2-benchmark scope, only the directional "does a learned controller beat naive control" effect.
+- Source: arXiv cs.AI (2607.05458), submitted 2026-07-05
+
+### [Towards a Science of Scaling Agent Systems](https://arxiv.org/abs/2512.08296)
+- Status: proposed — awaiting review
+- Claim: Controlled evaluation of 180 agent-architecture configurations (5 canonical architectures × 3 LLM families × 4 benchmarks) finds independent multi-agent systems (parallel, no cross-checking) amplify errors 17.2×, vs. 4.4× for centralized (orchestrator-mediated) systems; more agents alone hits a ceiling or degrades performance, and a predictive model (R²=0.513, using task properties like tool count/decomposability) picks the best architecture 87% of the time on held-out tasks.
+- Why it matters: A large-scale, quantitative version of exactly what this repo's scoreboard has been probing informally (does more harness/orchestration structure help or just add overhead) — but on the multi-agent-topology axis rather than session-structuring. Surfaced via a 2026 Google Research blog post; the paper itself is from December 2025 but is not close to anything already queued or tested here.
+- Testability: Feasible small-scale, API only. Build a small toy task set at 2-3 decomposability levels, implement 2-3 of their architectures (single, independent-parallel, centralized-orchestrator) with Haiku 4.5/Sonnet 4.6, measure error-amplification factor and cost per architecture. No GPU. Rough cost: $10-20; won't match the 180-config/4-benchmark scale, only a directional check of "does centralized orchestration contain errors better than independent parallel agents."
+- Source: arXiv cs.AI (2512.08296), submitted 2025-12; surfaced via Google Research blog, July 2026
+
+### [The Illusion of Multi-Agent Advantage](https://arxiv.org/abs/2606.13003)
+- Claim: A rigorous audit of 6 automatic multi-agent-system (MAS) design frameworks (DyLAN, MAS-Zero, AFlow, ADAS, MaAS, MAS-Orchestra) finds they consistently underperform a plain single-agent Chain-of-Thought-with-Self-Consistency (CoT-SC) baseline on both traditional reasoning benchmarks and interactive multi-step tasks (e.g. BrowseComp-Plus), despite costing up to 10× more.
+- Status: proposed — awaiting review
+- Why it matters: A direct, model-agnostic parallel to this repo's own findings that structured harnesses cost more for no quality gain — but on the multi-agent axis instead of session-structuring, and complements (rather than duplicates) the queued/scoreboard results and the "Scaling Agent Systems" candidate above.
+- Testability: Very feasible, API only. Implement 1-2 simple auto-MAS patterns (e.g. debate/vote, planner-worker) vs. plain CoT-SC single-agent using Haiku 4.5 and/or Sonnet 4.6 on a toy reasoning benchmark, compare accuracy and cost. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI/cs.CL (2606.13003), submitted 2026-06-15
+
+### [The Harness Effect: How Orchestration Design Sets the Token Economics of Enterprise Agentic AI](https://arxiv.org/abs/2607.06906)
+- Status: proposed — awaiting review
+- Claim: A controlled swap of only the orchestration layer (frozen conventional production loop vs. the "Writer Agent Harness") across 22 locked tasks and 6 foundation models (including Claude Sonnet 4.6) cuts blended cost/task 41% ($0.21→$0.12), median wall-clock 44% (48s→27s), and tokens/task 38% (14.2k→8.8k), at parity task-completion quality — every model tested improved 33-61% in cost.
+- Why it matters: A rare *positive* harness-benefit claim (vendor-authored, Writer AI) directly opposed to this repo's own 3 scoreboard rows, which all found structured harnesses costing more for no quality gain. A natural adversarial check: does a differently-designed orchestration layer actually achieve what this repo's tested harnesses did not, or does it not replicate outside the vendor's own eval set?
+- Testability: Feasible, API only. Build a small locked task set (~10-15 tasks), implement a simplified version of the claimed orchestration improvements (turn/tool-payload/context trimming) vs. a naive frozen-loop baseline, using Sonnet 4.6 and/or Haiku 4.5, measure cost/latency/quality. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI (2607.06906), submitted 2026-07-08
+
+### [MemSyco-Bench: Benchmarking Sycophancy in Agent Memory](https://arxiv.org/abs/2607.01071)
+- Status: proposed — awaiting review
+- Claim: New 5-task benchmark for memory-induced sycophancy finds existing agent-memory systems often cause agents to over-align with retrieved memory at the cost of factual/objective accuracy — failing to reject invalid memory as evidence, respect its applicable scope, or correctly resolve conflicts between memory and fresh objective evidence.
+- Why it matters: A distinct memory-failure mode from anything already queued — not an adversarial poisoning attack (FARMA/SENTINEL, already queued) and not a quality/efficiency claim (TencentDB-Agent-Memory, already queued), but a systemic bias where *legitimate* retrieved memory degrades correctness. Directly relevant to any future harness experiment here that adds persistent memory.
+- Testability: Very feasible, API only. Build a small toy memory store seeded with deliberately stale/incorrect entries plus fresh contradicting evidence, run Haiku 4.5/Sonnet 4.6 with a simple memory-retrieval harness, measure how often the agent follows memory over correct fresh evidence. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.CL/cs.AI (2607.01071), submitted 2026-07-01
+
+### [VeriCache: Turning Lossy KV Cache into Lossless LLM Inference](https://arxiv.org/abs/2605.17613)
+- Status: proposed — awaiting review
+- Claim: Uses a compressed KV cache to speculatively draft tokens, then verifies them against the full KV cache (kept off-GPU until verification) — guaranteeing output identical to full-KV decoding while achieving up to 4× higher throughput on long-context decoding and 2× on remote prefix caching, addressing the finding that lossy KV compression causes catastrophic failures in code generation and tool calling as generation lengthens.
+- Why it matters: A distinct KV-cache mechanism from the two already queued (reuse across calls in "Can I Buy Your KV Cache?"; sliding-window decode-time compression in KARA) — this specifically targets the failure mode of lossy KV compression breaking tool-calling/code-gen correctness, directly relevant to any agent harness relying on KV compression for cost savings.
+- Testability: Needs raw KV-cache access on an open-weight model — not reproducible via the Claude API, out of scope for CPU-only Apple Silicon. A small open model (e.g. 1-4B) on a Modal A10G GPU could verify the core draft-then-verify mechanism (token-exact match) and measure throughput on a handful of long-context/tool-calling prompts. Rough Modal cost: $15-25 for a few hours of A10G time — near/at the top of the per-experiment budget; would need tight scoping (small model, small prompt set) to fit.
+- Source: arXiv cs.DC/cs.LG (2605.17613), submitted 2026-05-17
