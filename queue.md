@@ -197,3 +197,56 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-07-20 — proposed by research-scout
+
+### [AgentAbstain: Do LLM Agents Know When Not to Act?](https://arxiv.org/abs/2607.10059)
+- Status: proposed — awaiting review
+- Claim: First systematic benchmark for agentic abstention — 263 paired should-act/should-abstain tasks across 42 executable sandbox environments (8 abstention-scenario types). Across 17 frontier LLMs in 4 agent harnesses, the best agent (Gemini 3.1 Pro) reaches only 59.5% paired accuracy; abstention capability is largely independent of general task-solving capability, and a "post-hoc abstention" failure mode is common (agent executes an irreversible action, then only afterward recognizes it should have abstained).
+- Why it matters: A harness-level safety/reliability axis distinct from every cost/quality-overhead result already on the scoreboard — this is about whether a harness lets the agent recognize when *not* to act (under ambiguity, conflicting constraints, or tool failure), directly relevant to any future harness here with tool calls, and a natural pairing with the already-queued MCP tool-failure candidates.
+- Testability: Feasible on Haiku 4.5 / Sonnet 4.6 via API, no GPU. Build a small (10-20 pair) should-act/should-abstain toy suite over 1-2 sandboxed tool environments, measure paired accuracy and check for post-hoc-abstention failures across both models with 1-2 harness variants. Rough cost: $10-15; the full 263-task/42-env/17-model sweep is out of budget — this would be a small directional check.
+- Source: arXiv cs.AI (2607.10059), submitted 2026-07-10
+
+### [Set-shifting Behavioral Test for Harnessed Agents](https://arxiv.org/abs/2607.13396)
+- Status: proposed — awaiting review
+- Claim: Borrows "set-shifting" from cognitive psychology to test what happens when the reliable tool in a redundant tool-skill library silently changes mid-session (branched reliability schedule with hidden boundaries, paired with no-shift controls). Finds agents default to a small recurring tool-selection routine within a few turns of each boundary and often fail to fully re-adapt after a silent reliability shift, measured via a "set-shifting accuracy" score.
+- Why it matters: A different tool-reliability robustness angle from the already-queued PlanBench-XL (which announces tool failure via blocking/errors) — here nothing signals the change, so it tests whether agents get stuck in a routine rather than whether they can react to an explicit error. Complements the queued AgentCheck/Bridging-Protocol/MCP-DPT tool-failure thread from a behavioral-inertia angle.
+- Testability: Very feasible on Haiku 4.5 / Sonnet 4.6, API-only. Build 3-5 redundant toy tools with swappable hidden reliability, run a small task loop with a couple of silent reliability-shift boundaries plus no-shift controls, measure set-shifting accuracy. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.AI (2607.13396), submitted 2026-07-15
+
+### [Self-Evolving Agent Harnesses via Gated Semantic Quality-Diversity](https://arxiv.org/abs/2607.13683)
+- Status: proposed — awaiting review
+- Claim: Proposes GSME, a self-evolving-harness framework that separates *proposing* edits (an LLM diagnoses failures and drafts patches) from *crediting* them (deterministic sampling, measurement, and paired significance testing on a sealed held-out test, gated by a validity gate and an activation gate), organizing credited edits into a categorical MAP-Elites quality-diversity archive — aimed squarely at preventing noisy self-generated feedback or overfitting from being mistaken for a real harness improvement.
+- Why it matters: Lines up almost exactly with this repo's own experience — all 3 scoreboard rows show a "designed to help" structured harness costing more tokens for zero or negative measured benefit. GSME's validity-gating machinery is precisely the statistical discipline that could tell a real self-evolution gain from a measurement artifact, and could be applied to sanity-check the already-queued Self-Harness (07-07) candidate before it's ever run.
+- Testability: Feasible small-scale, API-only. Implement just the validity-gate + paired-significance-testing core (skip the full MAP-Elites archive) on a toy multi-task suite, comparing "credited" vs. "raw" self-proposed edits, using Haiku 4.5 as proposer and a held-out seed split for sealed-test crediting. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI (2607.13683), submitted 2026-07-15
+
+### [AgentCheck: A Reproduce-Intervene-Mitigate Workbench for LLM Agents over MCP](https://arxiv.org/abs/2607.11098)
+- Claim: Open-source browser workbench that turns an MCP server into a controlled fault-injection surface — runs an agent against real tools, records every tool response, then replays with a perturbed fault (12 fault types: timeouts, stale data, poisoned descriptions, etc.) from cache while later calls go live once the agent's behavior diverges, giving a reproduce → toggle-mitigation → confirm loop. Across 120 scenarios and 5 agents, silent data-quality failures are the dominant failure category.
+- Status: proposed — awaiting review
+- Why it matters: A concrete, reusable fault-injection *methodology* (not just a benchmark number) for the MCP tool-failure-robustness thread already building in this queue (PlanBench-XL, Bridging Protocol's CABP/ATBA/SERF, MCP-DPT) — offers an actual harness design this repo could adapt rather than build a fault injector from scratch.
+- Testability: Feasible, API-only, GPU-free — the tool itself is open-source and free to run. Point a scaled-down version at a mock MCP server with a handful of the 12 fault types, run Haiku 4.5/Sonnet 4.6 through the reproduce-intervene-confirm loop on ~10-20 scenarios. Rough cost: $5-10; the full 120-scenario/5-agent sweep is optional beyond that.
+- Source: arXiv cs.AI/cs.SE (2607.11098), submitted 2026-07-11
+
+### [Remember When It Matters: Proactive Memory Agent for Long-Horizon Agents](https://arxiv.org/abs/2607.08716)
+- Status: proposed — awaiting review
+- Claim: A separate memory agent runs alongside an unmodified action agent, watching for "behavioral state decay" (decision-relevant state buried in or pushed out of the context window) and deciding whether to proactively inject a memory-grounded reminder or stay silent — rather than passive retrieval-on-demand. Improves pass@1 for both weaker and stronger action agents: +8.3pp on Terminal-Bench, +6.8pp on τ²-Bench.
+- Why it matters: A different memory-intervention mechanism from the already-queued TencentDB-Agent-Memory (persistent symbolic store) and ARC (reflection-driven context reorganization) — this is about *when* to actively intervene rather than *what* to store, complementary to this repo's long-horizon-agent/context-management thread without duplicating it.
+- Testability: Feasible on Haiku 4.5 / Sonnet 4.6, API-only. Build a toy long-horizon multi-step task with induced "state decay" (relevant facts pushed out of the window), compare action-agent-alone vs. action+proactive-memory-agent pair on pass@1. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI/cs.CL (2607.08716), submitted 2026-07-09
+
+### [Measuring Harness-Induced Belief Divergence in Multi-Step LLM Agents](https://arxiv.org/abs/2607.04528)
+- Status: proposed — awaiting review
+- Claim: Introduces a belief-rollout diagnostic (structured K-step beliefs over progress, risk, recoverability, constraints, failure mode, uncertainty, future success, repair cost, next action) and a cross-harness belief-divergence metric, decomposed into an "arrival" term (immediate interface shifts) and a "growth" term (horizon-dependent change). Shows harness variations (blocked actions, compressed repairs, selective verification, cost-aware evidence pruning) often preserve terminal task success while quietly changing the beliefs driving later decisions — i.e. harness design is an experimental variable, not an implementation detail. Open-source code provided.
+- Why it matters: A concrete, open-source measurement tool for exactly the phenomenon the already-queued "Stop Comparing LLM Agents Without Disclosing the Harness" position paper argues for in the abstract — this gives an actual diagnostic (belief-rollout + a "Belief-Invariant World-Modeling" protocol) that could be applied to re-analyze this repo's own 3 scoreboard harness comparisons for *belief* divergence, not just outcome variance.
+- Testability: Very cheap. Reuse this repo's own already-collected harness-comparison setups (naive vs. structured × Haiku vs. Sonnet); implement a scaled-down belief-rollout probe (a handful of belief dimensions, not all 9) at a few checkpoints per trajectory. No GPU. Rough cost: $5-10 for one small fresh run; much of the interesting analysis could reuse existing logs. Note: submitted 2026-07-04, slightly before the usual cutoff for this sweep but not previously surfaced or queued.
+- Source: arXiv cs.AI/cs.CL (2607.04528), submitted 2026-07-04; code at github.com/Hik289/Harness-induce-bias
+
+### [code-review-graph](https://github.com/tirth8205/code-review-graph)
+- Status: proposed — awaiting review
+- Claim: Local-first code-intelligence graph (Tree-sitter AST parsing + SQLite storage) exposed to AI coding tools via 30+ MCP tools; reports a median per-question token reduction of ~82x (range 38x-528x) across 6 real repos for code-review-relevant context retrieval vs. full-file context, with sub-2-second incremental re-indexing on repos up to ~2,900 files. The project's own docs flag some of its metrics as weak or circular (impact-analysis F1 of 0.71 is "circular by construction"; flow-detection recall only 33%).
+- Why it matters: A concrete, self-reported MCP context-reduction tool with real (if self-reported and partly self-caveated) numbers — tests the context-engineering thread already in this queue (TokenPilot, GenericAgent, "Less Context, Better Agents") from a code-graph-retrieval angle rather than pruning/summarization; the tool's own honesty about weak metrics makes an independent check of its actual claims worthwhile.
+- Testability: Very feasible on Apple Silicon, no GPU — it's a local SQLite-based tool; only LLM-judging calls hit the API. Index 1-2 small real repos, compare MCP-served graph context vs. naive full-file context on a handful of code-review Q&A tasks with Haiku 4.5/Sonnet 4.6, measuring both token count and answer quality (the paper's own F1 metric is circular, so an independent quality check matters). Rough cost: $5-10.
+- Source: GitHub trending (topics: mcp, agents), week of 2026-07-20
