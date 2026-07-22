@@ -197,3 +197,49 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-07-22 — proposed by research-scout
+
+### [Learning to Control LLM Agent Harnesses with Offline Reinforcement Learning](https://arxiv.org/abs/2607.05458)
+- Status: proposed — awaiting review
+- Claim: Formalizes the harness itself as a "Harness MDP" and trains a lightweight controller via offline advantage-weighted regression (terminal task-rubric rewards only, LLM executor frozen) to select structural execution actions; across six controlled domains plus two public-benchmark adapters (adapted τ-bench retail, adapted AgentBench DB-Bench, coding), the learned controller consistently improves verification behavior and selectively improves final task quality, measured separately via a post-hoc "Harness Maturity Score" vs. raw task correctness.
+- Why it matters: The most direct match yet to this repo's core question — whether structured harness behavior is worth its cost. Rather than a hand-designed structured harness (already tested here, found costly with no quality gain) or a self-editing harness (queued Self-Harness), this treats harness control as a *learned policy* over structural actions — a distinct mechanism worth checking against the repo's existing null/negative results.
+- Testability: Feasible small-scale, API-only. Build a toy Harness MDP with a handful of discrete structural actions (retry, verify-before-answer, request-more-context, escalate) on a toy tool-use task; collect offline rollouts with Haiku 4.5 as the frozen executor, fit a simple AWR-style controller (a small logistic/tabular policy is enough to test the mechanism, not a full deep-RL stack), and compare against this repo's already-tested naive/structured baselines, judged by Sonnet 4.6. No GPU. Rough cost: $10-20 for enough rollouts to fit and evaluate a controller.
+- Source: arXiv cs.AI/cs.LG (2607.05458), submitted 2026-07-05
+
+### [Model Context Protocol (MCP) Tool Descriptions Are Smelly! Towards Improving AI Agent Efficiency with Augmented MCP Tool Descriptions](https://arxiv.org/abs/2602.14878)
+- Status: proposed — awaiting review
+- Claim: Across 856 tools from 103 real-world MCP servers, 97% of tool descriptions contain at least one quality defect (56% don't clearly state what the tool does, 89% fail to say when it should/shouldn't be used); a follow-up finding cited alongside it reports well-written descriptions get selected 260% more often than poorly-written ones in competitive multi-server settings offering overlapping functionality.
+- Why it matters: A concrete, MCP-specific *input-quality* claim distinct from the already-queued MCP security/production-pattern/collaboration candidates — this is about whether ordinary tool-description quality (not protocol architecture) drives agent tool-selection errors, directly testable with the same toy multi-MCP-server harnesses already proposed for other queued MCP candidates.
+- Testability: Very cheap, API-only. Build 5-10 mock MCP tools with deliberately "smelly" descriptions (following the paper's defect taxonomy: missing purpose, missing usage guidance) vs. rewritten "clean" versions, run Haiku 4.5/Sonnet 4.6 on a tool-selection task where the correct tool is ambiguous without a good description, and measure selection accuracy and wasted steps. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.SE/cs.AI (2602.14878), submitted 2026-02-16
+
+### [From Prompts to Contracts: Harness Engineering for Auditable Enterprise LLM Agents](https://arxiv.org/abs/2607.08028)
+- Status: proposed — awaiting review
+- Claim: Reconstructing a prototype LLM-agent pattern into a harness-engineered architecture — deterministic behavior moved into code, manifests, schemas, and validation artifacts around a replaceable composition boundary — preserves source-grounding, entity-routing, trace, output-hygiene, and recommendation-language contracts across fixed validation scenarios, and a fault-injection control confirms the validators correctly flag deliberately broken contracts (evaluated on a public-data slice of 5 Korean corporate groups, 25 listed companies).
+- Why it matters: A production/enterprise "harness as contract enforcement" angle, adjacent to the already-queued CAAF (invariant-registry determinism) and Life-Harness (frozen post-training harness) candidates — worth checking whether contract validators actually catch injected failures reliably, or just add overhead the way the repo's tested structured harness did.
+- Testability: Feasible, API-only. Build a small toy RAG/agent pipeline with 3-4 output "contracts" (e.g. source-grounding, entity-routing, output format) enforced by simple validators, run fixed scenarios plus a fault-injection set (deliberately broken contracts) against Haiku 4.5/Sonnet 4.6, and measure validator catch-rate and overhead vs. a no-validator baseline. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.CL/cs.AI (2607.08028), submitted 2026-07-09
+
+### [Long-Horizon-Terminal-Bench: Testing the Limits of Agents on Long-Horizon Terminal Tasks with Dense Reward-Based Grading](https://arxiv.org/abs/2607.08964)
+- Status: proposed — awaiting review
+- Claim: A new 46-task, 9-category long-horizon terminal benchmark that decomposes each task into fine-grained graded subtasks for dense intermediate rewards and partial credit, arguing existing terminal benchmarks (e.g. Terminal-Bench-style final-outcome-only grading) give an incomplete picture of agent progress on long, multi-hundred-step workflows.
+- Why it matters: A grading-methodology complement to the already-queued Self-Harness paper (which used Terminal-Bench-2.0's sparse pass-rate grading) — if this repo tests any harness-improvement claim on a terminal-style task, dense subtask grading could reveal whether "no measurable quality gain" verdicts (as already found for the repo's tested harness) are partly an artifact of sparse, final-outcome-only grading.
+- Testability: Feasible at small scale. Pick a handful of the released tasks (or build 2-3 similar toy long-horizon terminal tasks) with dense subtask checkpoints, run naive vs. one of this repo's already-tested structured harnesses under both sparse (final-only) and dense grading, using Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $10-15; the full 46-task benchmark is out of budget — this would be a directional grading-methodology check reusing the repo's existing harness code.
+- Source: arXiv cs.AI/cs.SE (2607.08964), submitted 2026-07-09, v2 2026-07-13
+
+### [Towards Load-Aware Prefill Deflection for Disaggregated LLM Serving](https://arxiv.org/abs/2607.02043)
+- Status: proposed — awaiting review
+- Claim: On a production-style A100 cluster (2 prefill / 2 decode nodes), prefill compute accounts for only 2-23% of P95 Time-to-First-Token — queuing and inter-node KV-cache transfer dominate the rest; a proactive scheduler that lets decode nodes serve chunked-prefill steps interleaved with in-flight decode batches (within the decode SLO) cuts P95 TTFT by up to 81% and raises SLO attainment by up to 79% vs. state-of-the-art disaggregated schedulers, on DeepSeek-V2-Lite production-style traces.
+- Why it matters: A scheduling/queueing-level serving-infra claim, distinct from the already-queued KV-cache-reuse/compression and speculative-decoding candidates — this is about request scheduling across disaggregated prefill/decode pools rather than cache or decode-algorithm changes.
+- Testability: The full claim needs a real multi-GPU 2P2D cluster, out of budget for a personal setup. But the scheduling algorithm itself is testable as a CPU-only discrete-event simulation: synthesize a bursty, heavy-tailed request trace, model prefill/decode/KV-transfer costs analytically (calibrated to the paper's own numbers), and compare P95 TTFT/SLO attainment of baseline disaggregated scheduling vs. the deflection policy. No GPU, no API cost — effectively free. A real small-scale vLLM verification (2 small Modal GPU nodes for a few hours) would run roughly $15-25 and is a stretch on the budget; the simulation is the realistic first step.
+- Source: arXiv cs.DC (2607.02043), submitted 2026-07-02 (Microsoft Azure Research)
+
+### [jcode](https://github.com/1jehuang/jcode)
+- Status: proposed — awaiting review
+- Claim: GitHub-trending Rust project self-described as "the most intelligent agent harness for code" — 10,607 stars, +1,769 this week; no published benchmark numbers accompany the trending listing itself, so the claim is currently unverified marketing framing rather than a citable result.
+- Why it matters: A fast-moving, real-world agent-harness implementation worth watching as a comparison point — if it documents a concrete session/context-structuring design, it would be a natural "does a popular real harness actually reduce cost or improve quality vs. naive" companion to this repo's own tested harnesses. Right now it's speculative.
+- Testability: Low priority until it publishes concrete benchmark numbers or a design doc with a falsifiable claim — flagging only. If pursued later, would mean reading its source/docs to pin down an actual claim, then instrumenting it on a toy task vs. this repo's naive baseline, API-only, no GPU, rough cost $5-10 — but the claim needs to be identified first before a `/test-paper` run makes sense.
+- Source: GitHub trending (rust/agent-framework), accessed 2026-07-22
