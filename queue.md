@@ -197,3 +197,49 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-07-23 — proposed by research-scout
+
+### [Rethinking the Evaluation of Harness Evolution for Agents](https://arxiv.org/abs/2607.12227)
+- Status: proposed — awaiting review
+- Claim: On Terminal-Bench 2.1 with GPT-5.4 and Claude Opus 4.6, automatic harness-evolution methods (which search/edit the harness using the agent's own execution traces) do not consistently beat a simple test-time-scaling baseline (e.g. repeated sampling) under matched feedback/inference budget, and the harness improvements they do find generalize poorly to held-out tasks not seen during the evolution search.
+- Why it matters: This is close to a direct, controlled meta-validation of this repo's own recurring finding (self-editing/self-evolving harnesses in the queue — Self-Harness, Harness Updating vs. Harness Benefit — keep getting proposed, but this repo's own scoreboard shows structured harnesses repeatedly cost more without earning it back). It gives a concrete control condition (test-time scaling) to run any future harness-evolution test against, rather than comparing evolved-harness vs. naive-harness alone.
+- Testability: Feasible small-scale, API only. Build a toy multi-task suite with a held-out split, run a harness-evolution loop (reusing the pattern already scoped for the queued Self-Harness candidate) against a simple best-of-N/repeated-sampling test-time-scaling baseline under matched call budget, using Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI (2607.12227), submitted 2026-07-14
+
+### [Unicode TAG-Block Concealment of Tool-Metadata Payloads in the Model Context Protocol](https://arxiv.org/abs/2607.05744)
+- Status: proposed — awaiting review
+- Claim: MCP's `tools/list` handshake lets a server's rendered approval-dialog view and the bytes actually delivered to the model diverge — payloads hidden in Unicode's TAG block (U+E0000–U+E007F, invisible in every mainstream terminal/chat/IDE renderer) survive byte-for-byte into the model's tokenizer while being absent from what a human reviewer approves; demonstrated across 8 techniques on 3 independent MCP server implementations (32/32 cross-library outcomes agree, 0/25 false positives on benign inputs).
+- Why it matters: A new, structurally distinct MCP security angle from the already-queued papers (those measure prompt-injection success rates and defense-placement taxonomy) — this is a concrete "approval view ≠ model view" concealment channel, cheap to reproduce with a mock MCP server and directly relevant to this repo's MCP lane.
+- Testability: Very cheap and GPU-free. Build one minimal mock MCP server, encode a benign-looking tool description with a hidden TAG-block instruction, and check whether Haiku 4.5/Sonnet 4.6 acts on the concealed payload despite it being invisible in a rendered approval view. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.CR (2607.05744), submitted 2026-07-07
+
+### [Measuring Harness-Induced Belief Divergence in Multi-Step LLM Agents](https://arxiv.org/abs/2607.04528)
+- Status: proposed — awaiting review
+- Claim: Introduces a belief-rollout diagnostic (structured K-step trajectories over progress, risk, recoverability, uncertainty, etc.) and shows that harness changes — blocked actions, compressed repairs, selective verification, cost-aware evidence pruning — can preserve terminal task success while substantially changing the agent's intermediate beliefs that drive later decisions; proposes Belief-Invariant World-Modeling (BIWM) as a no-training protocol to align belief trajectories across harness variants.
+- Why it matters: A new measurement axis (belief divergence, not just pass/fail) that directly complements the already-queued "Stop Comparing LLM Agents Without Disclosing the Harness" — instead of asking whether harness choice changes final scores, this asks whether it silently changes what the agent *believes* mid-task, which is exactly the kind of hidden effect this repo's harness experiments haven't measured yet.
+- Testability: Feasible small-scale, API only. Take one of this repo's own already-tested harness pairs (e.g. naive vs. structured DB harness) or a fresh toy task, elicit the K-step belief rollout at each step under both harnesses with Sonnet 4.6, and compute a simple belief-divergence score even when terminal success is identical. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI (2607.04528), submitted 2026-07-05
+
+### [Self-Evolving Agent Harnesses via Gated Semantic Quality-Diversity](https://arxiv.org/abs/2607.13683)
+- Status: proposed — awaiting review
+- Claim: Separates *proposing* harness edits (LLM diagnoses failures, proposes patches) from *crediting* them (deterministic code owns sampling, measurement, and significance testing), organizing candidate edits in a "Gated Semantic MAP-Elites" archive keyed on (where × why) failure pathology; across terminal-bench-2, EvoAgentBench, and AppWorld, sealed-test gains of +9 to +15.5pp retain 86-147% of the training-set gain (i.e. largely not overfit).
+- Why it matters: Offers a concrete train/held-out-split + significance-testing methodology for telling a *real* harness-evolution gain from an overfit/measurement artifact — directly useful as a rigor check for the several other self-evolving-harness candidates already in this queue (Self-Harness, Harness Updating vs. Harness Benefit) and pairs naturally with the "Rethinking the Evaluation of Harness Evolution" critique above.
+- Testability: Feasible small-scale, API only. Implement a simplified propose/credit split with a held-out task set on a toy multi-task suite — Haiku 4.5 as the edit-proposer, a scripted/deterministic checker (optionally Sonnet 4.6 as judge) owning credit assignment. No GPU. Rough cost: $10-20; full 3-benchmark/7-domain scale is out of budget, this is a directional overfitting check.
+- Source: arXiv cs.AI (2607.13683), submitted 2026-07-15
+
+### [Mitigating Taint-Style Vulnerabilities in MCP Servers via Security-Aware Tool Descriptions](https://arxiv.org/abs/2607.07461)
+- Status: proposed — awaiting review
+- Claim: Systematic analysis finds taint-style vulnerabilities (untrusted tool-call arguments flowing into dangerous sinks like shell/file/DB calls) make up a substantial fraction of real MCP server CVEs, require significant code changes to fix, and get slow community responses; proposes SPELLSMITH, which mitigates exploitation by rewriting tool descriptions to be security-aware (steering the calling model away from dangerous argument patterns) rather than patching server code.
+- Why it matters: A code-level MCP vulnerability class distinct from the already-queued protocol/prompt-injection security papers and the Unicode-concealment candidate above — this is about whether *tool-description wording alone* can suppress a model from generating dangerous tool-call arguments, a cheap and very on-lane thing to check directly against Claude models.
+- Testability: Feasible and GPU-free. Build one mock MCP server tool with an obvious taint-style sink (e.g. a "run shell command" or "write file" tool), craft prompts that would normally induce a dangerous call, compare exploit-trigger rate with a naive tool description vs. a SPELLSMITH-style security-aware description, using Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.CR (2607.07461), submitted 2026-07-08
+
+### [code-review-graph](https://github.com/tirth8205/code-review-graph)
+- Status: proposed — awaiting review
+- Claim: A local-first, Tree-sitter-based code knowledge graph (SQLite-backed, exposed as 30 MCP tools) computes "blast-radius" queries so an AI code-review assistant reads only contextually-relevant files instead of the whole repo; reports a median ~82x per-question token reduction (range 38x-528x) across 6 real repositories vs. full-corpus context, with an Impact F1 of 0.71 against ground truth, and acknowledges the 528x figure is a best case, not typical.
+- Why it matters: A concrete, structurally different context-reduction mechanism (static-analysis blast-radius graph, not summarization/pruning) from the already-queued context-engineering candidates (Less Context Better Agents, GenericAgent, TokenPilot) — directly testable as an MCP tool in this repo's own lane, with the author's own repo already including reproduction instructions and honest limitations.
+- Testability: Very feasible on Apple Silicon. The graph-construction and query steps run entirely locally (Tree-sitter + SQLite, no GPU, no API cost); only the downstream code-review LLM calls (Haiku 4.5/Sonnet 4.6) cost anything. Clone the repo, run its own reproduction steps on 1-2 small local repos, and independently check token reduction and answer quality vs. full-file-context baseline. Rough cost: $5-10 in API calls.
+- Source: GitHub trending (python, topics: mcp, llm-agents)
