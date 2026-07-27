@@ -197,3 +197,63 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-07-27 — proposed by research-scout
+
+### [Rethinking the Evaluation of Harness Evolution for Agents](https://arxiv.org/abs/2607.12227)
+- Status: proposed — awaiting review
+- Claim: On Terminal-Bench 2.1 with GPT-5.4 and Claude Opus 4.6, automatic harness-evolution methods (which search/revise harness configs using task feedback) do not consistently beat simple test-time-scaling/discovery baselines under matched feedback and inference budgets, and evolved harnesses generalize poorly to held-out tasks — much of the reported "harness evolution" gain looks like search-budget leakage, not a real harness effect.
+- Why it matters: A direct, high-value skeptical check on the whole cluster of self-evolving-harness candidates already queued here (Self-Harness, GenericAgent, Harness Updating Is Not Harness Benefit, Recursive Agent Harnesses) — if this holds up, it predicts several of those candidates will show the same "gain vanishes under a matched-budget baseline" pattern this repo's own scoreboard already documents for hand-designed harnesses.
+- Testability: Very feasible, API only. Reuse whatever toy harness-evolution loop gets built for the already-queued Self-Harness candidate; add a matched-budget "simple test-time scaling" baseline (e.g. best-of-N or plain retry) and a held-out task split, using Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $10-15, well within the $25 budget.
+- Source: arXiv cs.AI (2607.12227), submitted 2026-07-16
+
+### [Harness-Bench: Measuring Harness Effects across Models in Realistic Agent Workflows](https://arxiv.org/abs/2605.27922)
+- Status: proposed — awaiting review
+- Claim: Introduces a diagnostic benchmark that holds tasks, budgets, and evaluation protocol fixed while varying only harness configuration (context/tool/state/permission/tracing/recovery management) across multiple model backends, to isolate how much of agent performance is attributable to the harness layer vs. the base model — where prior benchmarks conflate the two by comparing complete, differently-harnessed systems.
+- Why it matters: This is an actual benchmark implementation of the exact methodological point the already-queued position paper "Stop Comparing LLM Agents Without Disclosing the Harness" argues for — a natural pairing, and this repo's own scoreboard (naive vs. structured harness × Haiku vs. Sonnet) is already a small instance of the same design, so this gives a cleaner protocol to fold that data into.
+- Testability: Very feasible, API only. Apply a scaled-down version of their protocol directly to this repo's existing naive/structured harness code, fixed tasks and budgets, across Haiku 4.5 and Sonnet 4.6; largely a re-analysis with a small confirmatory run. No GPU. Rough cost: $5-10 for the new run.
+- Source: arXiv cs.AI (2605.27922), submitted 2026-05-27
+
+### [Measuring Harness-Induced Belief Divergence in Multi-Step LLM Agents](https://arxiv.org/abs/2607.04528)
+- Status: proposed — awaiting review
+- Claim: Introduces a belief-rollout diagnostic that elicits structured K-step trajectories of an agent's self-reported beliefs (progress, risk, recoverability, constraints, uncertainty, expected success, repair cost, next action) under different harnesses, and shows the harness alone can shift these beliefs even when task, environment, and base LLM are held fixed — decomposed into an immediate "arrival" shift and a horizon-dependent "growth" divergence.
+- Why it matters: A different, mechanism-level lens on the same phenomenon this repo's scoreboard already surfaces behaviorally (harness changing outcomes without model changes) — instead of measuring task success, it measures whether the harness silently changes what the agent *believes* is happening, which could explain some of the cost-without-quality-gain pattern already found here.
+- Testability: Feasible, API only. Implement a simplified version of the belief-rollout elicitation (ask the agent to self-report the same structured belief fields at each step) on top of the existing naive vs. structured harness code, across Haiku 4.5/Sonnet 4.6, and compute a basic divergence metric between conditions. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.CL/cs.AI (2607.04528), submitted 2026-07-05
+
+### [Where Does Agent Reliability Come From? A Cross-Benchmark Decomposition of Verification Loops, Specialist Models, and Scaffolding in a Production Enterprise Agent](https://arxiv.org/abs/2607.17044)
+- Status: proposed — awaiting review
+- Claim: A production enterprise agent (Leni) that adds verification-loop checkpoints (execute, observe, compare, correct) staffed by lightweight task-specialized models improves over its frontier base model by +11.0pp on SpreadsheetBench Verified (91.25% vs 80.25%, n=400, p<0.001), +7-10pp on BullshitBench v2 (98% vs 91%, n=100), and ~+15pp on GAIA validation (75.2% pass@1, n=165), attributing most of the gain to scaffolding/verification rather than the base model.
+- Why it matters: A rare *positive* scaffolding result with real numbers and significance testing, sitting in direct tension with this repo's own scoreboard (three rows showing structured harnesses cost more for zero or negative gain) — worth checking whether the specific mechanism (execute→observe→compare→correct checkpoints) is what makes the difference vs. the already-tested "1-feature/session" structuring.
+- Testability: Feasible small-scale, API only. Build a toy verification-loop harness (execute/observe/compare/correct with a lightweight verifier step) vs. a single-pass baseline on a small task set with objectively checkable answers (spreadsheet-style computation or similar), using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $10-15; won't match GAIA/SpreadsheetBench scale, only the directional "does the verification loop earn its keep" check.
+- Source: arXiv cs.AI (2607.17044), submitted 2026-07-17
+
+### [Keeping the Cache Warm Pays: Keepalive Economics for Agentic Workloads](https://arxiv.org/abs/2607.19214)
+- Status: proposed — awaiting review
+- Claim: Agentic workloads (request → tool call/approval wait of minutes → follow-up) routinely let the provider's prompt-prefix cache expire before the follow-up request, forcing a full-price prefill; a client-side keepalive that replays the prefix on a timer during the pause keeps it warm across Anthropic, OpenAI, Google, and DeepSeek, cutting post-pause request cost by up to 12.5x.
+- Why it matters: A direct, cheap follow-on to this repo's own tested TokenPilot result, where ~⅘ of the measured savings turned out to be from enabling prompt caching in the first place — this tests whether a simple keepalive captures *additional* savings specifically during the idle/tool-wait gaps that TokenPilot's setup didn't isolate.
+- Testability: Very feasible, API only, directly measurable via Anthropic's own billed cache-hit/miss pricing. Build a small toy agent task with an artificial multi-minute pause (simulating a tool call/approval wait) using Haiku 4.5 and/or Sonnet 4.6 with prompt caching enabled, compare billed cost with vs. without a periodic keepalive ping during the pause. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.DC (2607.19214), submitted 2026-07-21
+
+### [VeriCache: Turning Lossy KV Cache into Lossless LLM Inference](https://arxiv.org/abs/2605.17613)
+- Status: proposed — awaiting review
+- Claim: KV-cache compression (token dropping, quantization) is inherently lossy and diverges further from full-KV outputs the more tokens are decoded, causing catastrophic failures in code generation/tool calling; VeriCache uses the compressed cache to draft tokens and verifies them against the (swapped-in) full KV cache, delivering up to 4x higher throughput than full-KV decoding while producing byte-identical outputs.
+- Why it matters: A distinct KV-cache angle from the already-queued cache-reuse ("Can I Buy Your KV Cache?") and sliding-window-compression (KARA) candidates — this is specifically about recovering losslessness from a lossy compression method via speculative-style verification, directly relevant to any future harness/agent work here that hits KV-cache-bound tool-calling failures.
+- Testability: Needs a GPU and an open-weight model to inspect/manipulate raw KV tensors — not reproducible via the Claude API or on CPU-only Apple Silicon. A small open model (1-4B class) on a Modal A10G could verify the directional throughput/correctness tradeoff (compressed-draft + full-KV-verify vs. plain lossy decoding) on a small code-gen/tool-calling eval. Rough Modal cost: $15-25 for a few hours of A10G time — near the top of the per-experiment budget; needs tight scoping to fit.
+- Source: arXiv cs.LG/cs.DC (2605.17613), submitted 2026-05-25
+
+### [CacheWise: Understanding Workloads and Optimizing KVCache Management for Efficiently Serving LLM Coding Agents](https://arxiv.org/abs/2606.16824)
+- Status: proposed — awaiting review
+- Claim: Real-world coding-agent traces show sessions repeatedly reuse large prompt prefixes, creating sustained KV-cache pressure that conventional vLLM eviction policies handle poorly; CacheWise (prefix-aware scheduling + reuse-aware eviction guided by tool-call-metadata predictions) reduces KV-cache evictions by up to 2-2.6x and improves total agent session completion time by up to ~3.5x.
+- Why it matters: A serving-infra claim specifically about coding-agent workloads (not generic chat), complementing this repo's own harness experiments (one of which is a mini SQL-engine coding task) — tests whether reuse-aware eviction actually beats default vLLM policy on agent-shaped traffic patterns.
+- Testability: Needs vLLM and a GPU — not feasible on CPU-only Apple Silicon. A small open model on a Modal A10G/T4 running vLLM, with a synthetic coding-agent-shaped trace (repeated prefix reuse + tool-call interleaving), comparing default vLLM eviction vs. a simplified prefix/reuse-aware policy. Rough Modal cost: $15-25 for a few hours of GPU time — near the top of the per-experiment budget; needs a small model and short trace set to fit.
+- Source: arXiv cs.DC (2606.16824), submitted 2026-06-15
+
+### [Give Them an Inch and They Will Take a Mile: Understanding and Measuring Caller Identity Confusion in MCP-Based AI Systems](https://arxiv.org/abs/2603.07473)
+- Status: proposed — awaiting review
+- Claim: MCP servers implicitly assume all tool invocations come from a single trusted caller, but in practice are frequently reused across multiple agents/scripts/applications on the same host; an authorization decision granted during one legitimate interaction can silently govern subsequent tool invocations from an entirely different caller ("caller identity confusion"), which a large-scale analysis of real MCP clients/servers shows is a widespread, previously underexplored vulnerability.
+- Why it matters: A distinct, concrete MCP vulnerability class from the already-queued prompt-injection-focused security papers ("Breaking the Protocol," MCP-DPT) — this is about session/authorization boundary confusion between callers sharing one MCP server, not injected instructions, and is a natural fit alongside the other mock-MCP-server security candidates already queued.
+- Testability: Cheap and GPU-free. Build one minimal mock MCP server shared by 2+ simulated callers/sessions, grant an authorization decision under one caller, and measure how often it silently carries over to a different caller's subsequent invocation, with and without a simple caller-identity-binding fix, using Haiku 4.5/Sonnet 4.6 as the driving agents. Rough cost: $5-10 in API calls.
+- Source: arXiv cs.CR/cs.AI (2603.07473), submitted 2026-03-07
