@@ -197,3 +197,56 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-07-28 — proposed by research-scout
+
+### [HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry](https://arxiv.org/abs/2606.14249)
+- Status: proposed — awaiting review
+- Claim: Assembles typed harness primitives (prompts, tools, memory, control flow) via a substitution algebra, adapts them with AEGIS — a trace-driven multi-agent evolution engine — and closes the harness-model loop by turning trajectories into both harness updates and model training signal; across 5 benchmarks (ALFWorld, GAIA, WebShop, τ³-Bench, SWE-bench Verified) it yields an average gain of +14.5% (up to +44.0%) over the base harness.
+- Why it matters: Extends the already-queued self-evolving-harness line (Self-Harness, Harness Updating Is Not Harness Benefit) with a more structural mechanism — principled algebraic composition of typed primitives, not just ad hoc weakness-mining edits — a natural next test of whether *how* a harness self-evolves changes whether it earns back its overhead, the question this repo's scoreboard keeps answering "no" to.
+- Testability: Feasible small-scale, API only. Implement a handful of typed harness primitives (tool-selection, memory, verification) on a toy multi-task suite, run a simplified trace-driven adaptation loop (skip the RL training-signal half) with Haiku 4.5 as agent and Sonnet 4.6 as evolution engine/judge. No GPU. Rough cost: $10-20; won't match the 5-benchmark scale or the RL-training component, only the directional "does algebraic composition beat ad hoc patching" check.
+- Source: arXiv cs.AI (2606.14249), submitted 2026-06-12 (revised)
+
+### [The Interplay of Harness Design and Post-Training in LLM Agents](https://arxiv.org/abs/2606.25447)
+- Status: proposed — awaiting review
+- Claim: Extending ALFWorld to treat harness design (tool exposure, descriptions, per-step observation richness) as a controllable variable, performance improves monotonically with harness informativeness; under tool/task distribution shift, harness-aware post-training stays robust while post-training under a low-design-effort harness suffers drastic OOD collapse — i.e. harness design and post-training are not separable choices.
+- Why it matters: A more fundamental claim than the already-queued harness-benefit papers — this says harness quality doesn't just affect zero-shot scores but determines whether post-training itself generalizes, relevant to any future experiment here that fine-tunes or RL-trains against a fixed harness rather than just prompting against one.
+- Testability: Partially feasible without real training. Test the "informativeness → performance" and "OOD robustness" claims directionally using in-context few-shot conditioning as a stand-in for post-training, comparing 2-3 harness informativeness tiers under in-distribution vs. shifted tools on a toy ALFWorld-style task, with Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $10-15. The paper's actual RL post-training component is out of budget for this repo (would need real fine-tuning); this replicates only the harness-informativeness/OOD-robustness pattern.
+- Source: arXiv cs.AI (2606.25447), submitted 2026-06-24
+
+### [Self-Evolving Agent Harnesses via Gated Semantic Quality-Diversity](https://arxiv.org/abs/2607.13683)
+- Status: proposed — awaiting review
+- Claim: Separates edit-proposing (an LM diagnosing failures) from edit-crediting (deterministic sampling/measurement/significance testing), organizing edits in a Gated Semantic MAP-Elites archive keyed on the (where × why) failure pathology rather than the task it fixes, to resist overfitting; across 7 domains (terminal-bench-2, EvoAgentBench, AppWorld) the train-selected harness's sealed-test gains are +9 to +15.5pp, retaining 86-147% of the training-set gain.
+- Why it matters: The most direct answer yet to a question implicit across this queue (Self-Harness, HarnessX above, Harness Updating Is Not Harness Benefit): does self-evolved harness benefit survive a real train/held-out-test split, or is it overfitting to the tasks it was tuned on? Measuring a generalization *ratio*, not just raw gain, is exactly the rigor this repo already applies to other papers' overhead claims.
+- Testability: Feasible small-scale, API only. Build a toy multi-task suite with a train/sealed-test split, implement a simplified gated pathology-keyed archive (one elite per failure-cell + held-out validation, skip full MAP-Elites machinery) with Sonnet 4.6 as proposer and deterministic code for crediting, evaluate Haiku 4.5 and Sonnet 4.6 on sealed test. No GPU. Rough cost: $10-20.
+- Source: arXiv cs.AI (2607.13683), submitted 2026-07-15
+
+### [Speculate with Memory: Lossless Acceleration for LLM Agents](https://arxiv.org/abs/2607.12236)
+- Status: proposed — awaiting review
+- Claim: Equips agent-level speculative execution (a smaller model predicting/pre-launching the next action while the environment is idle) with three online memory systems — a contrastive transition table, episodic memory, and a confusion tracker; memory-augmented speculation improves action-prediction accuracy 19-39% relative and up to 2.5x on observation-prediction with repetitive action spaces, rising from ~28% to over 50% accuracy as experience accumulates, versus a flat stateless baseline.
+- Why it matters: A different speculative-decoding angle from the queued token-level DSpark — this speculates at the agent-action level (which tool/action comes next), directly testable through the Claude API (small model predicts, large model verifies) rather than needing raw logits/KV access like every other speculative-decoding/KV-cache candidate already queued.
+- Testability: Very feasible, API only, no GPU. Build a toy repetitive-task agent loop, use Haiku 4.5 as the memory-augmented speculator (predicting Sonnet 4.6's next tool call) with a simple transition-table + episodic-memory implementation, measure prediction accuracy with vs. without memory as trials accumulate. Rough cost: $5-15 — genuinely cheaper than the other serving-lane candidates already queued since it needs no GPU at all.
+- Source: arXiv cs.CL/cs.AI (2607.12236), submitted 2026-07-14
+
+### [Agentic Context Management: Solving Agent Memory and Cost by Treating Them as Lifecycle and Architecture Problems](https://arxiv.org/abs/2607.21503)
+- Status: proposed — awaiting review
+- Claim: Frames agent context management as five primitives (architecting, ingesting, scoping, anticipating, compacting & consolidation), arguing naive context accumulation grows token cost quadratically in conversation length, crude summarization buys linear cost at an accuracy cliff, and only validated compaction achieves linear cost with preserved fidelity; a reference implementation (Maximem Synap) reports 92% on LongMemEval and 93.2% on LoCoMo.
+- Why it matters: The newest and most structurally complete entry in the context-management line already well-represented in this queue (Less Context Better Agents, ARC, GenericAgent, TokenPilot) — its distinct contribution is the quadratic-vs-linear cost argument and "validated compaction" as a named third option between raw accumulation and lossy summarization, worth checking against the already-queued candidates' pruning/summarization approaches directly rather than in isolation.
+- Testability: Feasible, API only. Build a toy long-conversation task, measure actual token cost growth (quadratic vs. linear) across naive accumulation, plain summarization, and a simplified "validated compaction" (compact + a cheap consistency check before discarding) using Haiku 4.5/Sonnet 4.6 on a small LongMemEval-style QA subset. No GPU. Rough cost: $10-15; full LongMemEval/LoCoMo scale and the Maximem Synap implementation are out of scope — this is a directional cost-curve + accuracy check.
+- Source: arXiv cs.AI/cs.CL (2607.21503), submitted 2026-07-23
+
+### [MCPEvol-Bench: Benchmarking LLM Agent Performance Across Dynamic Evolutions of MCP Servers](https://arxiv.org/abs/2607.14642)
+- Status: proposed — awaiting review
+- Claim: New benchmark applying 11 mutation operators to simulate realistic tool-interface evolution across 123 real MCP servers, benchmarking 12 SOTA LLMs on multiple mutated versions of the same servers to measure how much task performance degrades when tool schemas/behavior drift after an agent has learned to use them.
+- Why it matters: A distinct MCP-lane angle from every MCP paper already queued (prompt-injection security, production design patterns, defense-placement taxonomy, server-collaboration efficiency) — this is about robustness to tool *drift*, a realistic production failure mode for any long-lived MCP-based harness this repo might build.
+- Testability: Feasible, API only. Build 2-3 mock MCP-style tools, apply a handful of the paper's mutation operator types (renamed params, changed return schema, added required field) mid-task, measure Haiku 4.5/Sonnet 4.6 task completion before vs. after mutation. No GPU. Rough cost: $5-10; won't replicate the 123-server/12-model scale, only the directional "does tool drift break agents mid-task" check.
+- Source: arXiv cs.AI/cs.SE (2607.14642), submitted 2026-07-16
+
+### [vLLM Semantic Router](https://github.com/vllm-project/semantic-router)
+- Status: proposed — awaiting review
+- Claim: An intelligent mixture-of-models router that classifies query complexity/intent and routes between small and large models plus a semantic cache layer; reports 10.2% accuracy improvement, 47.1% latency reduction, and 48.5% token-usage reduction on MMLU-Pro vs. always using the larger model, and separately claims a lightweight 8B model can recover most of a 235B model's performance on persistent user-specific queries via conversational-memory-grounded routing, cutting effective inference cost ~96%.
+- Why it matters: A serving-infra technique squarely in the LLM-serving lane that's directly testable with the Claude API (route between Haiku and Sonnet) rather than needing raw model weights — distinct from every KV-cache/speculative-decoding candidate already queued, all of which need GPU/open-weight access; this one doesn't.
+- Testability: Very feasible, API only, no GPU. Build a small mixed-difficulty eval set (easy factual + hard multi-step reasoning), implement a simple complexity classifier routing easy queries to Haiku 4.5 and hard ones to Sonnet 4.6, compare cost/latency/accuracy vs. an always-Sonnet baseline. Rough cost: $5-10 — one of the cheapest candidates in this batch, since routing itself saves money.
+- Source: GitHub trending (python) / vLLM blog, project active as of blog post 2026-07-21 ("Beyond a Single Model: Building Mixture-of-Models Systems with vLLM Semantic Router")
