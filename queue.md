@@ -197,3 +197,49 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-07-29 — proposed by research-scout
+
+### [The new rules of context engineering for Claude 5 generation models](https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models)
+- Status: proposed — awaiting review
+- Claim: Anthropic removed over 80% of Claude Code's system prompt for Claude 5-generation models (Opus 5, Fable 5) — replacing hard-coded rules/examples/always-on playbooks with judgment, interface-encoded constraints, and on-demand skills — with "no measurable loss" on internal coding evaluations.
+- Why it matters: A direct, numbers-adjacent claim about harness/prompt overhead from the same lab whose models this repo already tests — squarely extends the scoreboard's own finding that structured/verbose harnesses often cost tokens for no quality gain, but here the claimed direction is reversed (less structure, same quality) rather than harness structure being neutral-to-harmful.
+- Testability: Very feasible on Apple Silicon/API only. Build two system-prompt variants (a verbose rule-heavy one vs. a pruned/skill-based one) for a toy coding-agent task, run both against Haiku 4.5 and Sonnet 4.6 on a small held-out task set, and compare pass rate and token cost. No GPU. Rough cost: $5-10 in API calls; won't replicate Anthropic's internal eval suite, only the directional "does trimming the system prompt cost accuracy" check.
+- Source: Anthropic Engineering blog (claude.com/blog), published 2026-07-24
+
+### [Rethinking the Evaluation of Harness Evolution for Agents](https://arxiv.org/abs/2607.12227)
+- Status: proposed — awaiting review
+- Claim: Automatic harness-evolution methods are typically evaluated by searching harness configurations against unit-test feedback and reporting final performance on the same benchmark used for search; when compared fairly against simple test-time-scaling baselines under matched feedback/inference budgets on Terminal-Bench 2.1 (GPT-5.4, Claude Opus 4.6), harness evolution does not consistently outperform the simple baseline and generalizes poorly to held-out tasks.
+- Why it matters: A direct meta-critique of the exact mechanism behind the already-queued Self-Harness (07-07) and Harness Updating Is Not Harness Benefit (07-09/07-10) — this repo's scoreboard already shows structured harnesses losing to naive ones; this paper argues the wider self-evolving-harness literature may be measuring search-budget effects, not real harness-design gains. A natural companion/skeptic-check alongside those two queued candidates.
+- Testability: Feasible small-scale, API only. Reuse a toy multi-task suite (as already proposed for Self-Harness), run a harness-evolution loop vs. a matched-budget simple test-time-scaling baseline (e.g. best-of-n resampling) with Haiku 4.5/Sonnet 4.6, and check whether the harness-evolution arm actually beats the matched-budget baseline on held-out tasks. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI (2607.12227), submitted 2026-07-14
+
+### [Remember When It Matters: Proactive Memory Agent for Long-Horizon Agents](https://arxiv.org/abs/2607.08716)
+- Status: proposed — awaiting review
+- Claim: Identifies "behavioral state decay" — decision-relevant state getting buried or pushed out of context on long trajectories — and fixes it with a separate memory agent running alongside an unmodified action agent, which updates a structured memory bank and decides whether to inject a memory-grounded reminder or stay silent; improves pass@1 by +8.3pp on Terminal-Bench 2.0 and +6.8pp on τ²-Bench for both weaker and stronger action agents.
+- Why it matters: A distinct memory-intervention mechanism (a separate agent deciding *when* to speak up, not passive storage/retrieval or reflection-driven reorganization) versus the already-queued TencentDB-Agent-Memory (symbolic condensation) and ARC (reflection-driven context reorg) — worth checking whether the "silent unless needed" reminder-injection design is what actually earns its keep.
+- Testability: Feasible small-scale, API only. Build a toy long-horizon tool-use task, run an unmodified Haiku 4.5/Sonnet 4.6 action agent with vs. without a lightweight memory-agent sidecar that injects occasional reminders, measure pass rate and token overhead vs. a naive full-history baseline. No GPU. Rough cost: $10-15; won't match Terminal-Bench/τ²-Bench scale, only the directional effect.
+- Source: arXiv cs.AI/cs.CL (2607.08716), submitted 2026-07-09 (Meta AI)
+
+### [A-TMA: Decoupling State-Aware Memory Failures in Long-Term Agent Memory](https://arxiv.org/abs/2607.01935)
+- Claim: Identifies "ghost memory" — a state-coordination failure where old, current, and transition facts coexist and get mixed during retrieval, misleading the answer model; a state-aware overlay (A-TMA) that separates current/historical/transition evidence improves conflict accuracy by +0.240 absolute over Graphiti/Zep and raises temporal F1 on LoCoMo from 0.0295 to 0.1705.
+- Status: proposed — awaiting review
+- Why it matters: A different, sharply-quantified memory failure mode (temporal/state conflict, not verbosity or missed reminders) from the other memory candidates already queued or above — directly testable since it's an overlay on existing memory systems rather than a full redesign.
+- Testability: Feasible small-scale, API only. Build a small conflict-heavy multi-session QA set (à la LoCoMo-Temporal-Plus but ~10-20 conversations), run a simple memory store with vs. without a state-aware overlay tagging current/historical/transition facts, using Haiku 4.5/Sonnet 4.6 as the answer model. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.CL/cs.AI (2607.01935), submitted 2026-07-01
+
+### [SkillCorpus: Consolidating and Evaluating the Open Skill Ecosystem for Real-World LLM Agents](https://arxiv.org/abs/2607.15557)
+- Status: proposed — awaiting review
+- Claim: Filters ~821,000 crawled community agent skills (SKILL.md-style reusable procedural knowledge) through a multi-stage pipeline into a curated, taxonomy-organized corpus of 96,401 skills with quality scoring, paired with a fine-tuned retrieval/selection stack; integrating SkillCorpus yields consistent gains across three benchmarks, largest on SkillsBench (+7.5pp).
+- Why it matters: A "does external community skill reuse actually help" claim distinct from the already-queued GenericAgent (self-generated SOPs from an agent's own trajectories) — this is about retrieval quality from a large curated third-party corpus, directly relevant if this repo ever builds on Claude Skills.
+- Testability: Feasible small-scale, API only. Curate a small (~50-100) subset of publicly available skills, build a simple retrieval-and-selection step, and compare a toy agent task's pass rate with vs. without skill retrieval using Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $5-10; won't replicate the 821K-skill corpus scale, only the directional "does curated retrieval help" effect.
+- Source: arXiv cs.AI/cs.CL (2607.15557), submitted 2026-07-17, revised 2026-07-20
+
+### [AgentRedBench: Dynamic Redteaming and Integration-Aware Defense for LLM Agents over SaaS Integrations](https://arxiv.org/abs/2606.02240)
+- Status: proposed — awaiting review
+- Claim: A dynamic-redteaming benchmark of 215 subtle underspecified-authorization attack scenarios across 24 enterprise SaaS integrations (Gmail, Salesforce, Jira, etc.) finds no-guard attack success rates ranging 32% (Claude Sonnet 4.6) to 81% (Gemini 3 Flash) across an 8-model panel; a deployable guard (AGENTREDGUARD) cuts online attack success by ~75-77pp with near-zero benign false positives.
+- Why it matters: A different attack surface than the already-queued MCP-specific security candidates (Breaking the Protocol, MCP-DPT, FARMA/SENTINEL) — this targets indirect prompt injection via third-party SaaS tool responses the user doesn't control, a distinct and concrete production threat class worth a directional check.
+- Testability: Feasible small-scale, API only. Build a handful of mock SaaS-style tool integrations with injectable underspecified-authorization attack payloads (~20-30 scenarios, not 215), run Haiku 4.5/Sonnet 4.6 with vs. without a simplified guard filter, measure attack success rate reduction. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.CR/cs.AI (2606.02240), submitted 2026-06-02
