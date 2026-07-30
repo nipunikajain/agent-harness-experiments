@@ -197,3 +197,42 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-07-30 — proposed by research-scout
+
+### [Don't Blame the Large Language Model: How Agent Harness Evolution Shapes Coding Agent Quality](https://arxiv.org/abs/2607.03691)
+- Status: proposed — awaiting review
+- Claim: First controlled longitudinal study that fixes the model and varies only the agent harness (35 sequential real-world harness releases), measuring effect on SWE-bench effectiveness/efficiency — finds no statistically significant quality improvement across releases for a given fixed LLM despite continuous development and growing harness complexity.
+- Why it matters: A near-exact, observational validation target for this repo's own thesis — all three scoreboard rows already show hand-designed harness structure costing tokens without earning quality back. This is the same question from a different angle: does real-world harness *evolution over time* (not a single naive-vs-structured comparison) actually pay off, or is it flat/negative like this repo already found.
+- Testability: Feasible on Apple Silicon/API only. Pick an accessible open-source agent harness with git history (or construct a toy harness with a handful of synthetic "versions") and run a fixed model (Haiku 4.5 or Sonnet 4.6) against a small fixed task set (10-20 tasks) across several harness versions, checking whether pass rate trends up. No GPU. Rough cost: $10-20; won't match the 35-release/SWE-bench scale, only the directional "does harness evolution correlate with quality" check.
+- Source: arXiv cs.SE (2607.03691), submitted 2026-07-04 — slightly outside the usual 3-week window but included as a clear, direct hit on this repo's own thesis, likely missed by earlier scouting passes.
+
+### [Learning to Control LLM Agent Harnesses with Offline Reinforcement Learning](https://arxiv.org/abs/2607.05458)
+- Status: proposed — awaiting review
+- Claim: Formalizes harness operation as a finite-horizon "Harness MDP" and trains a lightweight controller via offline RL (advantage-weighted regression on terminal task-rubric rewards) to select structural execution actions while the LLM executor itself stays frozen; across 6 controlled domains plus adapted τ-bench retail and AgentBench DB-Bench, the learned controller improves verification behavior and selectively improves final task quality.
+- Why it matters: A genuinely different self-improving-harness mechanism from the LLM-self-editing approaches already queued (Self-Harness, Harness Updating Is Not Harness Benefit) — here a small *trained policy*, not the LLM itself, decides harness actions, which changes both the cost profile and the failure modes worth testing.
+- Testability: Partially feasible on Apple Silicon — the controller (advantage-weighted regression over a handful of discrete structural actions) is cheap to train on CPU once rollouts exist; the API cost is in collecting enough labeled rollouts (Haiku 4.5/Sonnet 4.6) on a toy adapted-τ-bench-style task. Rough cost: $10-20 for rollout collection at small scale; won't match the full 6-domain/2-benchmark study, only a directional "does a trained controller beat naive/fixed harness logic" check.
+- Source: arXiv cs.AI (2607.05458), submitted 2026-07-05 — slightly outside the usual 3-week window, included for its mechanism being distinct from already-queued self-editing-harness candidates.
+
+### [Agentic Context Management: Solving Agent Memory and Cost by Treating Them as Lifecycle and Architecture Problems](https://arxiv.org/abs/2607.21503)
+- Status: proposed — awaiting review
+- Claim: Reframes context management as a 5-stage lifecycle (architect, ingest, scope, anticipate, compact/consolidate) rather than storage-and-retrieval; argues naive context accumulation grows token cost quadratically with conversation length, crude summarization buys linear cost but hits an accuracy cliff, and only fidelity-validated compaction achieves linear cost without losing what matters — reference implementation reports 92% on LongMemEval and 93.2% on LoCoMo.
+- Why it matters: The queue already has several context-management candidates (Less Context Better Agents, ARC, GenericAgent, TokenPilot), but this one targets different benchmarks (LongMemEval/LoCoMo) with a specific, falsifiable ordering claim (compaction > summarization > naive accumulation) that none of those directly test — worth a cheap check only if that ordering isn't already implied by existing/tested results.
+- Testability: Very feasible on Apple Silicon/API only. Build a small multi-session long-horizon toy task, compare naive accumulation vs. summarization vs. a simple fidelity-checked compaction scheme using Haiku 4.5/Sonnet 4.6, tracking token cost scaling and accuracy. No GPU. Rough cost: $10-15; full LongMemEval/LoCoMo scale is out of budget, this would be a small directional check of the cost-scaling/accuracy-cliff claims.
+- Source: arXiv cs.CL/cs.AI (2607.21503), submitted 2026-07-23
+
+### [Agent Governance Toolkit](https://github.com/microsoft/agent-governance-toolkit)
+- Status: proposed — awaiting review
+- Claim: A policy-enforcement/sandboxing layer wrapping arbitrary agent tools that makes action-level policy violations "structurally impossible" (deterministic application-layer authorization, per-agent identity/audit trails, tamper-evident decision records) rather than merely prompt-discouraged; claims coverage of all 10 OWASP Agentic Top 10 risk categories, backed by 992 conformance tests and ~5.5k GitHub stars.
+- Why it matters: A harness-level authorization angle distinct from the already-queued MCP-protocol-level security papers (Breaking the Protocol, MCP-DPT) — this wraps arbitrary tools regardless of transport, and it's a real installable library rather than only a paper, directly testable against this repo's own toy harnesses.
+- Testability: Very feasible on Apple Silicon — pure Python, no GPU, install locally. Wrap a handful of toy tools with policy.yaml rules, have Haiku 4.5/Sonnet 4.6 attempt both benign and adversarial/destructive actions with and without the governance wrapper, measure block rate and false-positive rate on legitimate actions. Rough cost: $5-10 in API calls for the agent's own actions.
+- Source: GitHub trending (python, agent-framework/security topics)
+
+### [MCPEvol-Bench: Benchmarking LLM Agent Performance Across Dynamic Evolutions of MCP Servers](https://arxiv.org/abs/2607.14642)
+- Status: proposed — awaiting review
+- Claim: New benchmark with 11 mutation operators simulating realistic MCP tool/schema evolution (renamed params, changed return formats, deprecated tools, etc.) across 123 MCP servers; benchmarking 12 frontier LLMs shows even strong models struggle to adapt — GPT-5.4 and Claude Sonnet 4.6 drop 13.7% and 14.4% respectively on evolved vs. static MCP servers, with a marked rise in planning/reasoning errors.
+- Why it matters: A concrete, falsifiable MCP-tool-drift claim distinct from the already-queued MCP security/production-pattern papers — this tests whether agents survive routine tool versioning/schema churn, directly relevant to any harness here wrapping MCP-style tools.
+- Testability: Feasible on API only. Build a small mock MCP server (~5-10 tools) with a handful of injected "evolution" mutations, run Haiku 4.5 and Sonnet 4.6 on a small task set before/after mutation, measure the performance drop. No GPU. Rough cost: $5-10; full 123-server/11-operator scale is out of budget, this would be a small directional check of the same degradation pattern.
+- Source: arXiv cs.AI/cs.CL (2607.14642), submitted 2026-07-14
