@@ -197,3 +197,49 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-08-03 — proposed by research-scout
+
+### [Don't Blame the Large Language Model: How Agent Harness Evolution Shapes Coding Agent Quality](https://arxiv.org/abs/2607.03691)
+- Status: proposed — awaiting review
+- Claim: The first controlled longitudinal study isolating harness contribution — 35 sequential releases of the Qwen Code CLI, each evaluated on the same 50 stratified SWE-bench Verified tasks with the underlying LLM held constant — finds no statistically significant improvement in benchmark score across harness releases, despite continuous development and growing harness-codebase complexity; practitioners routinely blame the model for regressions that are actually harness-caused.
+- Why it matters: A real-world, production-scale field study that lands almost exactly on this repo's own three scoreboard findings (structured harness costs more tokens/turns for zero quality gain) — but replicated across 35 shipped releases of a real coding-agent harness rather than a toy task, making it a strong independent corroboration (or falsification) target.
+- Testability: Feasible on Apple Silicon/API only. Can't replicate 35 real CLI releases, but can pick a small SWE-bench-lite-style subset (10-15 tasks) and run it against the repo's own existing naive vs. structured harness configs (already built) plus one or two new harness variants, holding Haiku 4.5/Sonnet 4.6 constant, to check whether harness variant moves score independent of model. No GPU. Rough cost: $15-20.
+- Source: arXiv cs.SE/cs.AI (2607.03691), submitted 2026-07-04
+
+### [Rethinking the Evaluation of Harness Evolution for Agents](https://arxiv.org/abs/2607.12227)
+- Status: proposed — awaiting review
+- Claim: Argues automatic harness-evolution methods must be compared against simple test-time-scaling baselines (e.g. best-of-N/repeated retries) under matched inference budget, since harness evolution is itself an iterative search procedure — on Terminal-Bench 2.1 with GPT-5.4 and Claude Opus 4.6, automatic harness evolution does not consistently outperform simple test-time scaling and generalizes poorly beyond the benchmark it was evolved on.
+- Why it matters: A methodological critique that directly undercuts several already-queued self-evolving-harness papers (Self-Harness, GenericAgent, Harness Updating Is Not Harness Benefit, Life-Harness) by proposing exactly the matched-budget control this repo hasn't yet applied to any of them — a cheap, high-leverage check to run before or alongside those candidates.
+- Testability: Very feasible, API only. Build a toy multi-task suite; compare (a) a self-evolving harness loop and (b) a simple matched-budget test-time-scaling baseline (best-of-N/retries), using Haiku 4.5 and Sonnet 4.6, at equal total inference calls. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI (2607.12227), submitted 2026-07-14
+
+### [The new rules of context engineering for Claude 5 generation models](https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models)
+- Claim: Anthropic engineers removed over 80% of Claude Code's system prompt for Claude 5-generation models with no measurable loss on internal coding evaluations — arguing that guardrail-heavy instructions and exhaustive few-shots, useful for older models, now mostly create conflicting instructions and wasted tokens ("unhobbling" rather than better prompting).
+- Status: proposed — awaiting review
+- Why it matters: A first-party vendor claim that is almost a direct inversion test of this repo's own scoreboard (structured/guardrail-heavy harnesses cost more for zero quality gain) — worth checking whether trimming the repo's own already-tested structured harness prompt down (Claude-5-style) recovers the lost token budget without losing task performance, on the exact Haiku/Sonnet pairing already used.
+- Testability: Very cheap, API only. Take the repo's existing structured-harness config and build one more "trimmed" variant (guardrails removed per the blog's guidance), compare all three arms (naive / structured / trimmed-structured) on the existing toy multi-feature task with Haiku 4.5 and Sonnet 4.6. No GPU. Rough cost: $10-15, largely reusing existing harness code.
+- Source: Blog — Anthropic Engineering (claude.com/blog), published 2026-07-24
+
+### [Stateless MCP has recaptured my interest (and inspired mcp-explorer and datasette-mcp)](https://simonwillison.net/2026/Jul/31/stateless-mcp/)
+- Status: proposed — awaiting review
+- Claim: Covers the 2026-07-28 Model Context Protocol spec revision — the largest change since MCP's launch — which removes the stateful initialize handshake and Mcp-Session-Id requirement, replaces server-initiated requests with a retry pattern, deprecates Roots/Sampling/Logging, and adds a versioned extensions framework, turning MCP servers into plain stateless HTTP endpoints; Simon Willison built new tooling (mcp-explorer, datasette-mcp) against it immediately.
+- Why it matters: A structural protocol change to the exact spec this repo's already-queued MCP papers (MCPSec, CA-MCP, MCP-DPT, "Bridging Protocol and Production") were written against — some of their proposed fixes (e.g. session-based identity propagation) may not transfer cleanly to a stateless core, worth a quick compatibility check before running those.
+- Testability: Cheap and GPU-free. Stand up one minimal MCP server against the new stateless 2026-07-28 spec (official SDK) alongside the old stateful spec, and re-run a small version of the already-queued MCP attack/timeout scenarios to see if going stateless changes results. No GPU. Rough cost: $5-10 in API calls; most effort is protocol/plumbing rather than model calls.
+- Source: Blog — Simon Willison's Weblog, published 2026-07-31
+
+### [OpenSpace: The Skill Management Layer for AI Agents](https://github.com/HKUDS/OpenSpace)
+- Status: proposed — awaiting review
+- Claim: A skill-management layer (retrieve/evaluate/share/evolve loop, with FIX/DERIVED/CAPTURED skill-evolution modes and a local-first execution harness that captures quality evidence from real task outcomes) reports, with the same frozen backbone model on Terminal-Bench 2.1: 65.2% cold-run to 78.7% warm-run as its trusted skill library evolves (+13.5 points).
+- Why it matters: A concrete, large-effect-size self-evolving-skill/harness claim, pairing naturally with the queued "Rethinking the Evaluation of Harness Evolution" critique above — does the cold→warm gain survive a matched-budget test-time-scaling baseline, or is it mostly extra search/retries in disguise, the same question this repo's scoreboard has repeatedly asked of structured harnesses?
+- Testability: Feasible on Apple Silicon/API. Local-first architecture — skills run locally, only LLM calls hit the API. Build a small toy task suite, run OpenSpace's cold vs. warm skill-evolution loop with Haiku 4.5/Sonnet 4.6, and compare against a matched-budget best-of-N baseline. No GPU. Rough cost: $10-15.
+- Source: GitHub trending (python, topics: agents/llm)
+
+### [An Empirical Study of Model Context Protocol Applications](https://arxiv.org/abs/2607.25635)
+- Status: proposed — awaiting review
+- Claim: Large-scale mining study of 1,723 real-world MCP applications from GitHub (via an LLM-assisted classification pipeline and a new MCPAppTax taxonomy) finds the ecosystem has converged on some integration practices (85.2% configure servers via files, 81.1% use an official SDK) but not others (no shared naming convention for configuration).
+- Why it matters: A descriptive/empirical grounding for the MCP lane rather than a benchmark claim — useful for judging how representative this repo's already-queued mock-MCP-server experiments (MCPSec, CA-MCP, MCP-DPT) are of real-world MCP deployments; lowest priority of this batch since it's not itself an agent/harness performance claim to reproduce.
+- Testability: Not a typical harness experiment — it's a measurement/survey paper. If tested at all, would mean auditing a small sample (~20-30) of real public MCP server repos against the paper's own taxonomy categories to sanity-check the reported percentages. No GPU; minimal or no LLM calls needed. Rough cost: under $5, mostly manual/read-only work.
+- Source: arXiv cs.SE (2607.25635), submitted 2026-07-28, revised 2026-07-29
