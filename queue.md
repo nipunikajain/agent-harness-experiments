@@ -197,3 +197,56 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-08-04 — proposed by research-scout
+
+### [Rethinking the Evaluation of Harness Evolution for Agents](https://arxiv.org/abs/2607.12227)
+- Status: proposed — awaiting review
+- Claim: Automatic harness-evolution methods are themselves an iterative search procedure that should be compared against simple test-time-scaling/discovery baselines under matched feedback and inference budget, not left uncompared; on Terminal-Bench 2.1 with GPT-5.4 and Claude Opus 4.6, harness evolution does not consistently beat simple test-time scaling and shows limited generalization to held-out tasks.
+- Why it matters: This is the most direct meta-validation yet of this repo's own thesis, and a natural adjudicator for the large cluster of self-evolving-harness papers already sitting in this queue (Self-Harness, Harness Updating Is Not Harness Benefit, Recursive Agent Harnesses, Adapting the Interface, CAAF) — before testing any one of them individually, this checks whether the entire genre's gains are a mirage of extra search/budget rather than better harness design.
+- Testability: Feasible small-scale, API only. Implement one simple self-evolving-harness loop (reuse the design sketched for the already-queued Self-Harness) on a toy multi-task suite, compare against a matched-budget test-time-scaling baseline (e.g. best-of-n / majority vote) with Haiku 4.5 and Sonnet 4.6, and check whether gains hold on held-out tasks. No GPU. Rough cost: $10-20.
+- Source: arXiv cs.AI (2607.12227), submitted 2026-07-16
+
+### [The Harness Effect: How Orchestration Design Sets the Token Economics of Enterprise Agentic AI](https://arxiv.org/abs/2607.06906)
+- Status: proposed — awaiting review
+- Claim: A 32-author, Writer-led study across 22 locked enterprise tasks and 6 foundation models finds a well-designed orchestration harness (vs. a naive baseline) cuts blended cost per task 41% ($0.21→$0.12), median wall-clock 44%, and tokens per task 38%, at parity task quality; every model gets cheaper (33-61%), but quality gains are capability-dependent (r=0.99 with baseline model strength) — dubbed "harness leverage."
+- Why it matters: This is the mirror-image, positive claim to what 3 of the 4 existing scoreboard rows found (structured harnesses cost more for zero/negative quality gain) — a large, well-resourced study reaching the opposite conclusion is exactly the kind of tension this repo exists to adjudicate.
+- Testability: Feasible small-scale, API only. Build a small (~10-15 task) locked task set, compare a naive baseline vs. a well-designed orchestration harness (can reuse this repo's own tested structured-harness code) on cost/tokens/wall-clock/quality across Haiku 4.5 and Sonnet 4.6 to check the directional "harness leverage" trend. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI/cs.DC (2607.06906), submitted 2026-07-08 (Writer)
+
+### [The new rules of context engineering for Claude 5 generation models](https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models)
+- Claim: Anthropic's Claude Code team removed over 80% of Claude Code's system prompt for Claude 5-generation models (Opus 5, Fable 5) — replacing exhaustive rules with concise judgment-based guidance and progressive disclosure (skills/tools loaded when relevant instead of upfront) — with no measurable loss on their internal coding evals; diagnosis is that the old prompt was "overconstraining" the model.
+- Status: proposed — awaiting review
+- Why it matters: A direct, falsifiable "less prompt is more" claim from Anthropic's own agent-harness team, squarely in this repo's lane — worth checking whether an 80%-trimmed system prompt really holds up on smaller/different models (Haiku 4.5), not just frontier Opus/Fable-class models the post was written for.
+- Testability: Very cheap, API only. Take a verbose system prompt (e.g. from this repo's own harness experiments or a public Claude Code prompt), build an ~80%-trimmed version following the stated principles (judgment over rules, progressive disclosure), run both on a toy coding benchmark with Haiku 4.5 and Sonnet 4.6, compare pass rate and cost. No GPU. Rough cost: $5-10.
+- Source: Anthropic Engineering (claude.com/blog), by Thariq Shihipar, published 2026-07-24
+
+### [Model or Harness? An Interaction-Centric Taxonomy for Localizing Agent Failures](https://arxiv.org/abs/2607.28802)
+- Status: proposed — awaiting review
+- Claim: Introduces an interaction-centric taxonomy of 41 agent failure modes, each assigned to the specific interaction edge (model↔harness↔tool↔environment↔user) where it originates and a "fault side" indicating which component repair belongs to — arguing outcome-level benchmark labels can't resolve the "repair-assignment problem" (does a visible failure need post-training, harness engineering, environment redesign, or benchmark repair?).
+- Why it matters: A principled lens, not a benchmark number — directly applicable to re-analyzing this repo's own 3 existing scoreboard rows (all of which found structured-harness cost without quality gain) to categorize *why*, using a shared taxonomy instead of ad hoc notes.
+- Testability: Essentially free. No new experiment strictly required — apply the taxonomy to re-analyze already-collected trajectories/failure logs from the existing harness and DB-harness experiments. Optionally, run a handful of new toy failures through the taxonomy with Haiku 4.5/Sonnet 4.6 to sanity-check consistency. No GPU. Rough cost: $0-5.
+- Source: arXiv cs.AI (2607.28802), submitted 2026-07-30
+
+### [Distributing Security Controls Through Harness Engineering](https://arxiv.org/abs/2607.25890)
+- Status: proposed — awaiting review
+- Claim: Off-the-shelf security controls for AI coding agents can be systematically implemented and scaled to a distributed user base via a custom agent harness rather than relying on vendor-native solutions; tested across 4 configurations (2 commercial agents with/without controls, baseline harness, security-hardened harness) against a 23-test suite derived from the OWASP Top 10 for Agentic Applications.
+- Why it matters: A concrete, benchmark-style security claim in the harness-engineering lane, distinct from the already-queued MCP-protocol-security papers — this is about agent/coding-harness-level controls (prompt injection, excessive agency, insecure output handling, etc.), not MCP transport security.
+- Testability: Feasible, API only. Build a small toy coding-agent harness, implement a handful of OWASP Agentic Top 10 test cases, compare baseline vs. security-hardened harness pass/block rate using Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $10-15; won't replicate the full 23-test/4-config matrix, but can directionally check whether hardening actually blocks more attacks.
+- Source: arXiv cs.SE/cs.CR (2607.25890), submitted 2026-07-28
+
+### [Model Context Protocol (MCP) Tool Descriptions Are Smelly! Towards Improving AI Agent Efficiency with Augmented MCP Tool Descriptions](https://arxiv.org/abs/2602.14878)
+- Status: proposed — awaiting review
+- Claim: Across 856 tools from 103 real-world MCP servers, 97% of tool descriptions have at least one quality defect (56% don't clearly state what the tool does, 89% don't say when to/not to use it); augmenting descriptions to fix these "smells" is proposed to improve downstream agent tool-selection accuracy.
+- Why it matters: A cheap, concrete, MCP-specific claim about a mundane but directly actionable lever — distinct from the already-queued MCP security/architecture papers, and directly applicable to any future MCP-tool experiment in this repo.
+- Testability: Very feasible, API only. Build ~10-15 deliberately "smelly" vs. augmented/fixed tool descriptions for a toy MCP-style tool set, measure tool-selection accuracy and argument-passing correctness with Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.AI/cs.SE (2602.14878), submitted 2026-02-14
+
+### [VeriCache: Turning Lossy KV Cache into Lossless LLM Inference](https://arxiv.org/abs/2605.17613)
+- Status: proposed — awaiting review
+- Claim: VeriCache is presented as the first inference framework that guarantees output identical to full-KV-cache decoding while largely preserving the throughput gains of lossy KV-cache compression methods (token dropping, quantization) — by using the compressed cache to draft tokens and verifying against the full cache (kept off-GPU, swapped in for verification), avoiding the accuracy cliff lossy methods hit on long generations.
+- Why it matters: A third, distinct KV-cache-lane claim (verified-lossless-via-drafting) alongside the already-queued KV-cache-reuse ("Can I Buy Your KV Cache?") and sliding-window-compression (KARA) candidates — tests whether a "free lunch" lossless guarantee actually holds up on long code/tool-calling generations where lossy methods are known to diverge.
+- Testability: Needs a GPU + open-weight model — not feasible on CPU-only Apple Silicon. A small open model (1-4B class) on a Modal A10G could compare vanilla lossy KV compression vs. a simplified VeriCache-style draft+verify on a long-generation code/tool-calling task, checking exact output match and throughput overhead. Rough Modal cost: $15-25 for a few hours of A10G time — near the top of the per-experiment budget, needs tight scoping to fit.
+- Source: arXiv cs.DC/cs.LG (2605.17613), submitted 2026-05-17
