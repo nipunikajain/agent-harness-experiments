@@ -197,3 +197,56 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-08-05 — proposed by research-scout
+
+### [Rethinking the Evaluation of Harness Evolution for Agents](https://arxiv.org/abs/2607.12227)
+- Status: proposed — awaiting review
+- Claim: On Terminal-Bench 2.1 with GPT-5.4 and Claude Opus 4.6, automatic harness-evolution methods (search over harness configs using task feedback) do not consistently beat simple test-time-scaling/discovery baselines under matched feedback and inference budgets, and evolved harnesses generalize poorly to held-out tasks beyond the benchmark they were evolved on.
+- Why it matters: A direct, skeptical meta-check on the entire self-evolving-harness cluster already queued (Self-Harness, MemoHarness below, HarnessBank below) — asks whether the field's harness-evolution gains are actually harness-attributable or just repackaged search/compute, which is exactly the question this repo's scoreboard keeps landing on for hand-designed harnesses.
+- Testability: Very feasible small-scale, API only. Reuse a toy multi-task suite, run a simple harness-evolution loop vs. a matched-budget test-time-scaling baseline (e.g. best-of-N/majority vote) with Haiku 4.5 and Sonnet 4.6, and check held-out generalization. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI (2607.12227), submitted 2026-07-12
+
+### [HarnessBank: Semantic Gene-Bank Search with Gated Verification for Agent-Harness Self-Evolution](https://arxiv.org/abs/2607.13683)
+- Status: proposed — awaiting review
+- Claim: A "Harness Gene Bank" (Gated Semantic MAP-Elites over harness variants) plus a paired train/sealed-test verification gate yields sealed-test gains of +9 to +15.5pp (retaining 86-147% of the training-set gain) across terminal-bench-2, EvoAgentBench, and AppWorld — and the same gate flags/rejects harmful evolved candidates, addressing the overfitting/search-collapse failure mode that greedy self-evolution suffers from.
+- Why it matters: A specific mechanism (diversity-preserving gene bank + gated held-out verification) aimed at exactly the overfitting problem the "Rethinking Evaluation" paper above diagnoses — worth checking whether gating actually prevents the harness-evolution overfitting this repo would otherwise expect to see.
+- Testability: Feasible small-scale, API only. Build a toy multi-task suite with a train/held-out split, implement a simplified gene-bank-style diverse-candidate search with a held-out verification gate vs. a naive greedy self-evolution baseline, using Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $15-20 — needs enough iterations to populate a small "gene bank," near the top of a typical run here but within the $25 budget.
+- Source: arXiv cs.AI (2607.13683), submitted 2026-07-15
+
+### [MemoHarness: Agent Harnesses That Learn from Experience](https://arxiv.org/abs/2607.14159)
+- Status: proposed — awaiting review
+- Claim: Decomposes an agent harness into six editable control dimensions (context, tools, orchestration, memory, decoding, output handling), stores per-case diagnoses and distilled global patterns in a dual-layer experience bank, and adapts the harness per test case via retrieved experience — with no test-time labels, feedback, or additional search — reportedly beating a single fixed global harness.
+- Why it matters: A concrete "per-case adaptive harness" mechanism, distinct from this repo's own "1-feature/session" structuring (which used one fixed structured harness for every task) — tests whether adapting harness config per-instance, rather than per-project, changes the cost/benefit tradeoff already found to be negative here.
+- Testability: Feasible small-scale, API only. Simplify to 2-3 of the six control dimensions, build a small experience bank from a handful of toy tasks, compare per-case adaptive harness selection vs. one fixed harness on held-out tasks with Haiku 4.5. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI (2607.14159), submitted 2026-07-14
+
+### [Addressable Recall Compaction for Long Context-Window Control in AI Agents](https://arxiv.org/abs/2607.25066)
+- Status: proposed — awaiting review
+- Claim: ARC (Addressable Recall Compaction) separates archival storage from active-context presentation — tool observations go into an append-only, ID-addressable log, older observations are replaced in-context with compact citations, and the agent can request stored content by ID later without re-executing tools or relying solely on similarity-based retrieval.
+- Why it matters: A different context-compaction mechanism (citation/ID-addressable recall) than the already-queued pruning (Less Context, Better Agents), reflection-driven reorganization (ARC — Active and Reflection-driven, a different paper despite the same acronym), or cache-aware eviction (TokenPilot) — worth checking whether ID-addressable recall actually recovers task-critical details that summarization drops, which is the specific failure mode it targets.
+- Testability: Feasible on Apple Silicon/API only. Build a small long-horizon tool-use task with verbose tool outputs, implement a citation/ID-log compaction scheme vs. a summarize-and-discard baseline, measure recovery of task-critical details and token cost with Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.CL (2607.25066), submitted 2026-07-25
+
+### [Agent Harness Distillation: Inference-Time Harness Extraction and Exploitation in Autonomous Multi-Agent Systems](https://arxiv.org/abs/2607.28147)
+- Status: proposed — awaiting review
+- Claim: Studies the security risk of "harness distillation" — extracting an autonomous multi-agent system's internal harness structure/control logic purely from inference-time interaction (black-box), then exploiting the extracted harness to manipulate or degrade the target system.
+- Why it matters: A distinct security angle from the already-queued MCP-protocol and memory-poisoning candidates — this targets the harness itself (orchestration/control logic) as an extractable, exploitable asset, directly relevant to any harness this repo builds and might expose to untrusted callers.
+- Testability: Feasible without GPU. Build a small toy multi-agent harness, attempt black-box extraction of its routing/control logic via crafted queries, measure extraction fidelity and downstream exploit success with and without a simple countermeasure (e.g. response randomization/rate-limiting), using Haiku 4.5/Sonnet 4.6. Rough cost: $10-15; won't replicate their full attack suite, only a directional "can the harness be extracted and exploited" check.
+- Source: arXiv cs.CR/cs.AI (2607.28147), submitted 2026-07-28
+
+### [MemHarness: Memory Is Reconstructed, Not Replayed](https://arxiv.org/abs/2607.28272)
+- Status: proposed — awaiting review
+- Claim: Most memory-augmented agents replay retrieved past experiences verbatim regardless of fit with the current state, causing negative transfer; MemHarness instead has a policy critique-and-reconstruct retrieved experience conditioned on the present state before acting (trained end-to-end with GRPO), beating pure-RL and static-memory baselines with stronger out-of-distribution robustness.
+- Why it matters: A different memory mechanism than the already-queued TencentDB-Agent-Memory (layered symbolic memory) — this specifically targets stale/mismatched retrieved-memory injection, a plausible failure mode for any long-horizon harness this repo tests with persistent memory.
+- Testability: Partially feasible without GPU. The full GRPO-trained policy is out of budget/needs a GPU + training pipeline; a directional check is feasible by prompting a "critique-and-reconstruct retrieved memory before using it" step vs. verbatim replay on a toy multi-episode task with deliberate state drift, using Haiku 4.5/Sonnet 4.6, no training. No GPU for the directional version. Rough cost: $10-15; the trained-policy claim itself would need Modal GPU time (likely $20-30+) and is a stretch for the budget.
+- Source: arXiv cs.AI (2607.28272), submitted 2026-07-30
+
+### [LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks](https://arxiv.org/abs/2608.01964)
+- Claim: A Manage-Execute-Audit (MEA) loop — a manager maintaining task state externally, a fresh-context executor performing each subtask, and a read-only auditor independently verifying environment state before the next round — improves Qwen 3.7-Plus from 51.8%→80.7% on WeaveBench, 69.7%→77.2% on Terminal-Bench 2.1, 2.8%→8.3% on OSWorld 2.0, and Claude Opus 4.7 from 20.0%→34.3% on an OSWorld 2.0 subset.
+- Status: proposed — awaiting review
+- Why it matters: An externalized-and-independently-verified task-state design that closely parallels this repo's own DB-harness result ("0 regressions in all 12 runs" but zero measured quality benefit) — the auditor role is a similar verification mechanism; worth checking whether independent environment-verification (not just internal self-checks) is the missing ingredient, or another overhead-only pillar.
+- Testability: Feasible small-scale, API only. Build a toy long-horizon multi-step task (e.g. a small file-editing or mini computer-use task) with environment state an auditor can check independently, implement a simplified MEA loop (Haiku 4.5 executor, Sonnet 4.6 manager/auditor) vs. a single-agent baseline. No GPU. Rough cost: $15-20; won't match WeaveBench/OSWorld scale, only the directional "does externalized verified state help" effect.
+- Source: arXiv cs.AI (2608.01964), submitted 2026-08-01
