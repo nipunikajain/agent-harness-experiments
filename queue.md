@@ -197,3 +197,56 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-08-06 — proposed by research-scout
+
+### [LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks](https://arxiv.org/abs/2608.01964)
+- Status: proposed — awaiting review
+- Claim: Reformulates long-horizon execution as a task-state management problem instead of growing-context accumulation; a Manage-Execute-Audit (MEA) loop — a manager that maintains task state and picks the next subtask, a fresh-context executor per subtask, and a read-only auditor that independently verifies environment state before the next round — aims to stop incorrect self-assessments from propagating into later decisions on long-horizon computer-use/CLI tasks.
+- Why it matters: This is the closest new paper to the repo's own thesis — every scoreboard row already shows growing/accumulated session context as the harness failure mode (token-starvation, no quality gain). MEA's "fresh-context executor + independent auditor" is a direct, falsifiable alternative mechanism to the already-tested "1-feature/session" structuring, worth checking whether audit-verified state actually prevents the regressions the tested harness failed to catch.
+- Testability: Feasible on Apple Silicon/API only. Build a small multi-step toy task (the repo already has a mini-SQL-engine-style harness to reuse) and implement a minimal MEA loop (manager/executor/auditor as 3 API roles) vs. the existing naive/structured baselines, Haiku 4.5 + Sonnet 4.6. No GPU. Rough cost: $10-15; full real-world desktop/CLI task suite is out of scope, this would be a directional check on a toy task.
+- Source: arXiv cs.AI (2608.01964), submitted 2026-08-03; code at [github.com/AMAP-ML/LongHorizon-Harness](https://github.com/AMAP-ML/LongHorizon-Harness)
+
+### [Harness Handbook: Making Evolving Agent Harnesses Readable, Navigable, and Editable](https://arxiv.org/abs/2607.13285)
+- Status: proposed — awaiting review
+- Claim: Argues that "behavior localization" — finding all the code locations that implement a targeted behavior in a large, tightly-coupled, behaviorally-distributed harness codebase — is the central bottleneck in harness evolution, distinct from actually writing the edit; proposes a handbook/index structure to make evolving harnesses navigable for a developer or coding agent making the change.
+- Why it matters: A different angle from the already-queued Self-Harness/GenericAgent/Harness-Updating papers (which focus on *deciding what edit to make* and *whether the edit helps*) — this is about whether the agent (or human) can even *find* where to make the edit in a real, growing harness codebase. Directly relevant since this repo's own harness code will need to evolve as new candidates get tested.
+- Testability: Feasible on Apple Silicon/API only. Take this repo's own `shared/` + a couple of `experiments/` folders as a stand-in "evolving harness codebase," give an agent (Haiku 4.5 or Sonnet 4.6) a plain-English change request, and compare localization accuracy/time with vs. without a handbook-style index. No GPU, no repo-code changes needed (read-only exercise). Rough cost: $5-10.
+- Source: arXiv cs.SE/cs.AI (2607.13285), submitted 2026-07-13; code at [github.com/Ruhan-Wang/Harness_Handbook](https://github.com/Ruhan-Wang/Harness_Handbook)
+
+### [ACM: Agentic Context Management for Long Horizon Tasks](https://arxiv.org/abs/2607.23809)
+- Status: proposed — awaiting review
+- Claim: (Meta + CMU) Gives agents purpose-built context-editing tools instead of rigid heuristic-triggered compression: the agent autonomously decides when to compress, offloads discarded content to an external memory store, and queries that store on demand later — aiming for lossless context management (vs. lossy compression) on long-horizon agentic search and coding tasks; also proposes a post-training pipeline built on demonstrations of good context management.
+- Why it matters: A newer, more mechanistically distinct context-management claim than the already-queued GenericAgent/ARC/TokenPilot — the "agent decides its own compress/offload/retrieve policy via tool calls" framing is directly testable against this repo's context-engineering findings without needing the paper's post-training step.
+- Testability: Feasible on Apple Silicon/API only for the tool-use mechanism (skip post-training, which is out of budget). Give Haiku 4.5/Sonnet 4.6 explicit compress/offload/retrieve tools on a toy long-horizon search or coding task, compare token cost and task success vs. a naive-accumulation baseline and vs. a fixed-threshold-compression baseline. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.CL/cs.AI (2607.23809), submitted 2026-07-26
+
+### [StructAgent: Harness Long-horizon Digital Agents with Unified Causal Structure](https://arxiv.org/abs/2607.11388)
+- Status: proposed — awaiting review
+- Claim: Long-horizon digital agents operating over raw interaction history make task progress hard to interpret, verify, and recover; StructAgent introduces a compact, verifiable unified state (a causal structure of task progress) plus a workflow that gates progress through verifier-backed state transitions, aiming to improve reliability on long-horizon computer-use tasks.
+- Why it matters: A different structuring mechanism than LongHorizon-Harness (queued above) — explicit causal/verifier-gated state vs. manager/executor/auditor roles — worth checking whether either, both, or neither actually earns back the overhead this repo's scoreboard has repeatedly found for structured harnesses.
+- Testability: Feasible on Apple Silicon/API only. Implement a lightweight causal-state tracker + verifier gate on a toy multi-step task, compare recovery-from-failure rate and cost vs. naive raw-history accumulation, Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $10-15; won't match their computer-use benchmark scale, directional only.
+- Source: arXiv cs.AI (2607.11388), submitted 2026-07-11
+
+### [Stateless MCP: the 2026-07-28 Model Context Protocol specification](https://simonwillison.net/2026/Jul/31/stateless-mcp/)
+- Status: proposed — awaiting review
+- Claim: The new MCP spec (release 2026-07-28) removes protocol-level statefulness entirely — no more `initialize`/`initialized` handshake, no `Mcp-Session-Id` header, no GET stream endpoint; every request becomes a single, fully self-contained HTTP POST with client info/capabilities now traveling inline on every request via a `_meta` field, so any server instance can serve any request behind a plain round-robin load balancer with no sticky sessions or shared session store.
+- Why it matters: The most significant MCP protocol change since launch, and squarely in this repo's MCP lane — moving handshake/capability info into every request trades an infra simplification for a likely per-request token/latency tax on multi-turn tool-use agents, which is exactly the kind of overhead-vs-benefit tradeoff this repo's harness experiments already test.
+- Testability: Very feasible on Apple Silicon/API only. Build a small mock MCP-style tool server, run the same multi-turn tool-use task under a simulated old-style session (handshake once) vs. the new stateless (client info repeated per request) protocol, measure token/cost delta with Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $5-10.
+- Source: Blog — Simon Willison's Weblog, published 2026-07-31; spec at [blog.modelcontextprotocol.io/posts/2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/)
+
+### [Hybrid Analysis for Secure MCP Tool Use in LLM Agents](https://arxiv.org/abs/2607.25297)
+- Status: proposed — awaiting review
+- Claim: Introduces MTGuard, a hybrid static + dynamic analysis defense framework for MCP tool use, arguing prior defenses that rely only on static inspection of prompts/generated outputs have limited effectiveness and robustness against agents induced to perform malicious or unauthorized MCP tool actions.
+- Why it matters: A specific defense mechanism distinct from the already-queued MCP security candidates ("Breaking the Protocol" measures raw attack success rates; "MCP-DPT" is a defense-placement taxonomy) — this proposes and (presumably) measures a concrete hybrid static+dynamic detector, directly comparable using the mock-MCP-server setup already proposed for those other candidates.
+- Testability: Cheap and GPU-free. Reuse a minimal mock MCP server + a reduced malicious-tool-call attack set, implement a simplified static-only filter vs. a hybrid static+dynamic (runtime-behavior-checking) filter, compare detection/false-positive rates with Haiku 4.5/Sonnet 4.6. Rough cost: $5-10.
+- Source: arXiv cs.CR/cs.AI (2607.25297), submitted 2026-07-28
+
+### [MemDecay: Region-Aware KV Cache Eviction for Efficient LLM Agent Inference](https://arxiv.org/abs/2607.10582)
+- Status: proposed — awaiting review
+- Claim: A training-free KV-cache eviction policy for long-horizon LLM agents that assigns region-specific base priorities and decay rates (rather than one attention/recency rule for every token), refreshing scores on attention and evicting lowest-scoring pages under a fixed budget while pinning critical regions (e.g. system prompt); evaluated on Qwen2.5-1.5B/3B at ~450-1,700 token contexts, showing region lifetimes differ by an order of magnitude across agent-trace components — though the paper itself reports plain attention-based retention still beats MemDecay on unpinned content.
+- Why it matters: A serving/infra KV-cache claim distinct from the already-queued "Can I Buy Your KV Cache?" (cross-call reuse) and "KARA" (sliding-window compression for reasoning models) — this is agent-trace-aware eviction, and notably the paper's own reported result (attention-based beats MemDecay on unpinned content) is a built-in null-result flag worth verifying independently.
+- Testability: Needs a GPU and open-weight model internals (not available via the Claude API) — out of scope for CPU-only Apple Silicon. A small open model (Qwen2.5-1.5B or 3B, matching the paper's own setup) on a Modal A10G/T4 could directly reproduce the region-aware vs. attention-based eviction comparison on a small agent-trace eval. Rough Modal cost: $10-20 for a few hours of small-GPU time — fits the $25 budget if scoped tightly to one model size and a handful of traces.
+- Source: arXiv cs.CL/cs.DC (2607.10582), submitted 2026-07-14
