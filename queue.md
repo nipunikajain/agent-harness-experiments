@@ -197,3 +197,49 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-08-07 — proposed by research-scout
+
+### [LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks](https://arxiv.org/abs/2608.01964)
+- Status: proposed — awaiting review
+- Claim: Reformulates long-horizon agent execution as a task-state management problem via a Manage-Execute-Audit (MEA) loop — a manager that holds task state and picks the next subtask, a fresh-context executor per subtask, and a read-only auditor that verifies against the environment (not the executor's self-report). Reports Qwen 3.7-Plus 51.8%→80.7% on WeaveBench, 69.7%→77.2% on Terminal-Bench 2.1, 2.8%→8.3% on OSWorld 2.0, and Claude Opus 4.7 20.0%→34.3% on an OSWorld 2.0 subset.
+- Why it matters: Squarely in the repo's harness lane and structurally close to the tested "1-feature/session, clean state" harness (fresh-context execution) — but adds an independent read-only auditor as the key new ingredient the tested harness lacked, worth checking whether that specifically is what earns the gain rather than fresh-context alone.
+- Testability: Feasible on Apple Silicon/API only. Build a small multi-step toy task (e.g. a longer version of the existing DB-harness task) with an injectable "self-report vs. actual state" gap, run naive vs. MEA-loop (Sonnet 4.6 manager/auditor, Haiku 4.5 executor) and compare completion rate and whether the auditor catches false self-reports. No GPU. Rough cost: $10-20; won't match WeaveBench/OSWorld scale, only the directional effect of adding independent verification.
+- Source: arXiv cs.AI (2608.01964), submitted 2026-08-03
+
+### [AI Agents Do Not Fail Alone: The Context Fails First](https://arxiv.org/abs/2607.14275)
+- Status: proposed — awaiting review
+- Claim: Validates context-engineering quality (role clarity, guardrail coverage, instruction consistency, tool-schema quality, grounding sufficiency, injection hardening, +1 more) as an independent leading indicator of agent reliability, measured via a multi-juror consensus-scoring harness (ProofAgent-Harness); specific criteria predict specific failure modes (e.g. grounding sufficiency → hallucination resistance, tool-schema quality → tool-use correctness).
+- Why it matters: A measurement framework, not just a fix — offers a way to score *why* a harness helps or hurts before running the task, which could sharpen every context-management candidate already in this queue (TokenPilot, GenericAgent, ARC, etc.) with a diagnostic layer instead of only an outcome number.
+- Testability: Feasible on Apple Silicon/API only. Implement a reduced 3-4 criterion version of the juror-scoring rubric, apply it to the harness configs already tested in this repo's scoreboard (naive vs. structured), and check whether the score predicts which arm wins before re-running the task. Sonnet 4.6 as juror, Haiku 4.5 as scored agent. No GPU. Rough cost: $5-15.
+- Source: arXiv cs.AI (2607.14275), submitted 2026-07-15
+
+### [A Frozen 12B Beats Frontier Models on Verified Work: 100% Accuracy, 0 Tokens, Bit-Exact, Forever](https://arxiv.org/abs/2607.23806)
+- Status: proposed — awaiting review
+- Claim: Instead of retraining, keep the model frozen and grow a persistent memory of independently-verified solutions beside it; once a problem family is solved and verified (verification never consults the answer key), every new instance of that family is answered at zero generation tokens, bit-exact, deterministically. Across 180 fresh instances spanning 9 problem families and 4 architectures/vendors, scores 180/180 at 0 generation tokens; an emptied-memory negative control solves nothing.
+- Why it matters: A blunt, falsifiable "does verified-answer caching actually beat regeneration" claim, directly adjacent to this repo's TokenPilot result (most of the win there was just prompt caching) — this asks whether caching *answers* rather than *prefixes* is a cheaper, more defensible source of savings, and is almost free to test since it needs no GPU or raw KV access at all.
+- Testability: Very feasible on Apple Silicon/API only. Pick a small set of parametrized problem families (e.g. templated math/code tasks) solvable by Haiku 4.5/Sonnet 4.6, build a tiny local verified-solution store (SQLite), and compare token cost + accuracy of memory-lookup vs. fresh generation on held-out instances of the same families, including an emptied-memory control. No GPU. Rough cost: $5-10 — one of the cheapest candidates in this queue.
+- Source: arXiv cs.AI/cs.CL (2607.23806), submitted 2026-07-31
+
+### [code-review-graph](https://github.com/tirth8205/code-review-graph)
+- Status: proposed — awaiting review
+- Claim: Local-first Tree-sitter-based knowledge graph of a codebase, exposed as 30 MCP tools, claims ~65x median per-question token reduction across six real repos (max 376x on fastapi) vs. naive full-file/repo reading, e.g. Flask review drops from 143,594 to 2,196 tokens; also reports 0.69 F1 on blast-radius (change-impact) analysis.
+- Why it matters: A concrete, numbers-attached MCP-tool-context claim in the repo's MCP lane, complementary to the already-tested/queued context-pruning papers (TokenPilot, "Less Context Better Agents") but about *structural* (graph-based) context reduction for coding agents rather than pruning conversation/tool-output text.
+- Testability: Very feasible on Apple Silicon. Fully local (Tree-sitter parsing, SQLite/graph backend, zero telemety) — only the LLM calls hit the API. Clone a small-to-medium open-source repo, run a handful of code-review/impact-analysis questions with vs. without the MCP tool via Haiku 4.5/Sonnet 4.6, measure actual token cost and answer quality. No GPU. Rough cost: $5-10; won't replicate the 6-repo benchmark, only a directional check on 1-2 repos.
+- Source: GitHub trending (python, topic: mcp)
+
+### [A Sparse Glimpse of the Whole: Train-Free Self-Speculative Decoding](https://arxiv.org/abs/2607.27735)
+- Status: proposed — awaiting review
+- Claim: Unified efficiency analysis shows extending the speculation horizon in speculative decoding can *reduce* speedup once marginal acceptance probability falls below relative drafting cost; introduces SparseSpec-L, a training-free self-speculative decoding framework that drafts directly from the target model using a dynamically sparsified, recallable KV cache for long-context inference — no separate draft model or drafter training needed.
+- Why it matters: A serving/inference-optimization claim in the KV-cache/speculative-decoding lane, distinct from the queued DSpark (needs a trained semi-autoregressive drafter) and BudgetDraft-style methods — "train-free" makes it meaningfully cheaper to actually reproduce than the other speculative-decoding candidates already in this queue.
+- Testability: Needs a GPU and an open-weight model (not reproducible through the Claude API) — out of scope for CPU-only Apple Silicon. Since it requires no drafter training, a small open model (e.g. 3-7B class) on a Modal A10G could directly compare vanilla autoregressive decoding vs. SparseSpec-L's self-speculative sparse-KV drafting on a small long-context eval set. Rough Modal cost: $10-20 for a few hours of A10G time — more tractable than the trained-drafter alternatives already queued, fits the $25 budget with tight scoping.
+- Source: arXiv cs.CL (2607.27735), submitted 2026-07-30
+
+### [VeriCache: Turning Lossy KV Cache into Lossless LLM Inference](https://arxiv.org/abs/2605.17613)
+- Status: proposed — awaiting review
+- Claim: Compressed-KV decoding (token-dropping/quantization) can be parallelized with a full-KV swap because one is HBM-bandwidth-bound and the other is PCIe/network-bound; the compressed KV cache's output is usually similar enough to full-KV to amortize each swap over a long drafting horizon. Composes with existing compression methods and traditional speculative decoding; reports up to 4x higher throughput than full-KV inference while producing bit-identical outputs.
+- Why it matters: A "have it both ways" serving claim — the accuracy guarantees of full-KV decoding at (most of) the speed of lossy compression — distinct from the queued KARA (accepts some accuracy loss for compression) and "Can I Buy Your KV Cache?" (cross-call reuse, not intra-generation compression+correction).
+- Testability: Needs a GPU and vLLM-class serving infra — not feasible on CPU-only Apple Silicon. A small open model on a Modal A10G/T4 could verify the core claim (bit-identical output vs. a naive lossy-compression baseline) on a small eval set, though replicating the full HBM/PCIe-bound parallel-swap engineering is a stretch for a single experiment. Rough Modal cost: $15-25 — near the top of the budget; would need to scope down to just checking output-identity + a directional throughput number, not the full serving-system implementation.
+- Source: arXiv cs.DC/cs.CL (2605.17613), submitted 2026-05-17
