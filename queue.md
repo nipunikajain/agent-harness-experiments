@@ -197,3 +197,49 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-08-10 — proposed by research-scout
+
+### [LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks](https://arxiv.org/abs/2608.01964)
+- Status: proposed — awaiting review
+- Claim: Reformulates long-horizon execution as explicit task-state management (state lives outside the growing conversation context, updated only from independently-verified environment facts) via a Manage-Execute-Audit loop; lifts Qwen3.7-Plus from 51.8%→80.7% on WeaveBench, 69.7%→77.2% on Terminal-Bench 2.1, and 2.8%→8.3% on OSWorld 2.0, and raises Claude Opus 4.7 from 20.0%→34.3% on an OSWorld 2.0 subset.
+- Why it matters: The single largest claimed effect size yet for "structure the harness, don't just accumulate context" — directly tests this repo's own DB-harness/stress-config finding (structured harness cost more for zero gain) against a mechanism specifically designed to avoid the failure mode blamed for those nulls (context accumulation + self-assessment drift), on real non-one-shot tasks similar in spirit to the SQL-engine experiment already on the scoreboard.
+- Testability: Feasible small-scale on Apple Silicon/API only. Build a toy multi-step task with an external, verifiable state store (not the model's running context) and a lightweight manager/executor/auditor split, using Haiku 4.5 as executor and Sonnet 4.6 as manager/auditor; compare against the existing naive and structured-1-feature/session harnesses already in `experiments/`. No GPU. Rough cost: $10-20; full 3-benchmark, frontier-model scale is out of budget, this would be a directional replication on a toy task.
+- Source: arXiv cs.AI (2608.01964), submitted 2026-08-02
+
+### [PRO-LONG: Programmatic Memory Enables Long-Horizon Reasoning](https://arxiv.org/abs/2607.20064)
+- Status: proposed — awaiting review
+- Claim: Counter-narrative to compression-based context management — instead of pruning/summarizing, the harness appends the *entire* interaction log to a durable store and gives the agent coding-agent tooling (grep/search-style) to query it on demand. On the full ARC-AGI-3 public game set this improves over a base coding agent by +18.0 points average across frontier models, and matches or exceeds specialized memory harnesses at up to 76.1% pass@1 while using 4.2-5.8x fewer tokens than passing full context.
+- Why it matters: Directly contradicts the premise of every context-*pruning* candidate already queued (Less Context Better Agents, TokenPilot, ARC, GenericAgent) — worth checking head-to-head whether "keep everything, search with code" beats "prune/summarize" on a shared toy task, since this repo's own scoreboard has consistently found structured/pruned harnesses underperform naive ones.
+- Testability: Very feasible on Apple Silicon/API only. Give a toy long-horizon agent a local append-only log file plus a grep-like search tool (no vector DB needed) and compare token usage/task success against the already-implemented naive and pruned-context configs, using Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.CL/cs.AI (2607.20064v2), submitted 2026-07-20
+
+### [EvolveNet: Collaborative Harness Evolution for Agent Self-Improvement](https://arxiv.org/abs/2608.04968)
+- Status: proposed — awaiting review
+- Claim: Argues that pooling all execution experience into one sequential harness-optimizer (the assumption behind prior self-evolving-harness work) breaks down in real deployments where users/orgs/environments generate isolated, unpoolable experience streams; proposes broadcasting a shared harness to data-local deployments that each evolve it independently on their own workload, then reconciling the divergent versions.
+- Why it matters: A federated/multi-tenant angle distinct from the already-queued Self-Harness, Harness Updating Is Not Harness Benefit, and Recursive Agent Harnesses — those all assume one optimizer with pooled traces; this specifically tests what happens when harness evolution has to work *without* pooling, which is closer to how this repo's own harness experiments are run in isolated batches.
+- Testability: Feasible small-scale, API only. Run 2-3 isolated toy-task streams (e.g. different feature sets on the existing SQL-engine harness), let each evolve its own harness copy independently with Haiku 4.5 as evolver, then compare a naive pooled-optimizer baseline vs. the federated-then-reconciled variant on a held-out task. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI (2608.04968), submitted 2026-08-04
+
+### [ACM: Agentic Context Management for Long Horizon Tasks](https://arxiv.org/abs/2607.23809)
+- Status: proposed — awaiting review
+- Claim: Gives the agent purpose-built context-editing tools (rather than a rigid token-threshold trigger) so it autonomously decides when to compress, offloads discarded content to an external memory store, and queries it back on demand; a post-training pipeline builds high-quality demonstrations of this behavior, improving performance on agentic search and coding tasks (Meta/CMU).
+- Why it matters: The compress-and-offload counterpart to PRO-LONG's keep-everything approach above — both are fresh (late July 2026) answers to the same context-management question this repo has already tested three ways (TokenPilot tested, ARC/GenericAgent/Less-Context-Better-Agents queued); running ACM and PRO-LONG on the same toy task would give a genuinely new head-to-head on this repo's own scoreboard.
+- Testability: Feasible without GPU, though the post-training-demonstration component doesn't fit an API-only budget — a directional check would give the agent explicit compress/offload/query tools (skipping the post-training pipeline) and measure whether autonomous compression timing beats a fixed-threshold baseline, using Haiku 4.5/Sonnet 4.6. Rough cost: $10-15; the post-training claim itself is out of budget (would need weight updates).
+- Source: arXiv cs.CL/cs.AI (2607.23809), submitted 2026-07-26 (Meta/CMU)
+
+### [Spend Bits Where Queries Look: KV Cache Vector Quantization with Attention-Preserving Transforms](https://arxiv.org/abs/2608.04074)
+- Status: proposed — awaiting review
+- Claim: Formulates KV cache quantization as a transform-coding problem where distortion is measured as error in the *attention products* (not raw K/V error); derives a closed-form, non-orthogonal optimal key transform and MSE-optimal vector quantizers in the transform domain. At 2 bits/element, the resulting method (NOVA-KV) recovers most of the long-context retrieval accuracy lost by scalar quantization baselines at comparable throughput.
+- Why it matters: A different serving-lane mechanism from the already-queued KV-cache candidates (Can I Buy Your KV Cache = reuse across calls; KARA = sliding-window eviction) — this is compression via a smarter transform/quantizer, testable on the same small-open-model setup already scoped for those.
+- Testability: Needs a GPU and an open-weight model — not feasible on CPU-only Apple Silicon. A small open model (1-4B class) on a Modal A10G could compare vanilla FP16 KV cache vs. scalar quantization vs. a simplified attention-aware transform quantizer at 2-bit on a small long-context retrieval eval. Rough Modal cost: $15-25 for a few hours of A10G time — near the top of the per-experiment budget, needs tight scoping (small model, small eval set).
+- Source: arXiv cs.LG/cs.DC (2608.04074), submitted 2026-08-04
+
+### [MCP goes stateless: the 2026-07-28 specification](https://blog.modelcontextprotocol.io/posts/2026-07-28/)
+- Claim: The biggest MCP spec revision since launch removes protocol-level sessions entirely (no more initialize handshake, no `Mcp-Session-Id` header, no GET stream) — every request becomes a single self-contained HTTP POST. Servers that need cross-call state must mint explicit, opaque handles (e.g. a `basket_id`) passed back as ordinary tool arguments instead of relying on an implicit session.
+- Status: proposed — awaiting review
+- Why it matters: A live infrastructure change directly in this repo's MCP lane, and a natural extension of the already-queued "Bridging Protocol and Production" (ATBA/SERF for flaky multi-tool setups) and PlanBench-XL (flaky tool registry) candidates — worth checking whether the new server-minted-handle pattern actually degrades task completion less than session-based state under server restarts/load-balancer failover, since that's the exact scenario the spec change is meant to fix.
+- Testability: Very feasible, API-free infra test. Build one minimal mock MCP server on the old session-based transport and one on the new stateless/handle-based transport, inject mid-task server restarts or round-robin routing across replicas, and compare task completion rates for a toy multi-step tool-use agent (Haiku 4.5/Sonnet 4.6) across the two transports. No GPU. Rough cost: $5-10 in API calls — most of the cost here is engineering the two mock transports, not model spend.
+- Source: Model Context Protocol Blog (official spec release), published 2026-07-28; also covered by Simon Willison's Weblog, 2026-07-31 ("Stateless MCP has recaptured my interest")
