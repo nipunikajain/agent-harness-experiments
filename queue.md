@@ -197,3 +197,49 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-08-11 — proposed by research-scout
+
+### [HarnessBridge: Learnable Bidirectional Controller for LLM Agent Harness](https://arxiv.org/abs/2606.12882)
+- Status: proposed — awaiting review
+- Claim: A lightweight, end-to-end trainable harness controller — an observation projection that distills raw trajectories into decision-relevant state, and an action projection that maps proposed actions to executable transitions or trajectory-grounded rejections — matches or surpasses strong manually-engineered harnesses on Terminal-Bench 2.0 and SWE-bench Verified while substantially cutting token usage and trajectory length, and generalizes from smaller training-time generators to larger commercial models.
+- Why it matters: Tests whether a *learned* harness controller can outperform this repo's hand-designed structured harnesses (all 3 scoreboard rows show hand-designed structuring losing to naive) — a different failure-avoidance strategy than the already-queued self-editing (Self-Harness) or freeze-after-training (Adapting the Interface) approaches.
+- Testability: Feasible without real GPU training — approximate the "learned" projections with a small prompted filter (or a trivial local logistic/embedding classifier trained on CPU) rather than full RL/SFT, and compare token usage/trajectory length vs. a naive baseline on a toy multi-step tool task using Haiku 4.5 as the base agent. Pure API + a CPU-only toy classifier, no GPU needed. Rough cost: $10-15; won't replicate real end-to-end training or Terminal-Bench/SWE-bench scale, only the directional "does a lightweight learned filter beat naive/manual harnessing" check.
+- Source: arXiv cs.AI (2606.12882), UCLA, submitted 2026-06-2026 (June)
+
+### [Self-GC: Self-Governing Context for Long-Horizon LLM Agents](https://arxiv.org/abs/2607.00692)
+- Status: proposed — awaiting review
+- Claim: Turns agent context (user turns, tool spans, skill state) into indexed objects, has a side-channel planner propose fold/mask/prune actions, and lets the harness enforce recoverable sidecars and cache-aware commits; on a 33-session hard set this prunes 43.95% of prefix tokens while leaving 84.85% of future continuations unaffected, three planner backbones reach 91.27%-94.58% "no-impact" rates on a 332-session production suite, and a production online A/B cuts daytime average input tokens 10-15% (peak ~20%).
+- Why it matters: A different context-lifecycle mechanism than the already-tested TokenPilot (compaction + eviction) and the queued ARC (reflection reorg) / GenericAgent (atomic tools + SOPs) — worth checking whether object-indexed governance with recoverable sidecars beats this repo's TokenPilot result (net ~28% context-mgmt win once caching itself is backed out).
+- Testability: Feasible on Apple Silicon/API only. Build a toy multi-session tool-use task, implement a simplified fold/mask/prune planner (Sonnet 4.6 as side-channel planner, Haiku 4.5 as agent), measure prefix tokens pruned vs. downstream task success ("no-impact rate"). No GPU. Rough cost: $10-15.
+- Source: arXiv cs.CL/cs.AI (2607.00692), Xiaohongshu, submitted 2026-07-01
+
+### [LLM Agents Are Latent Context Managers: Eliciting Self-Managed Context via State Proprioception (VISTA)](https://arxiv.org/abs/2606.30005)
+- Status: proposed — awaiting review
+- Claim: A training-free, model-agnostic "proprioceptive dashboard" (VISTA) that exposes per-context-block token cost, recency, and access history, with reversible full-fidelity archiving, lets frontier models self-manage working memory with no fine-tuning — the same untrained interface transfers across million-, 100K-, and 10K-token-scale trajectories on LOCA-Bench, BrowseComp-Plus, and GAIA.
+- Why it matters: A third context-management strategy alongside Self-GC (above) and the already-tested TokenPilot — instead of an external planner pruning for the agent (Self-GC) or cache-aware eviction (TokenPilot), VISTA just gives the model visibility and lets it decide; cheap to check whether visibility alone (no automated pruning) matches or beats automated approaches.
+- Testability: Very feasible, API only. Implement a simple dashboard (per-block token/recency counters surfaced in the system prompt) on a toy long-horizon tool task, compare Haiku 4.5/Sonnet 4.6 self-managed context vs. naive accumulation and vs. an automated pruning baseline. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.CL/cs.AI (2606.30005), Tencent, submitted 2026-06-30 (v4)
+
+### [Model Context Protocol (MCP) Tool Descriptions Are Smelly! Towards Improving AI Agent Efficiency with Augmented MCP Tool Descriptions](https://arxiv.org/abs/2602.14878)
+- Status: proposed — awaiting review
+- Claim: Auditing 856 tools across 103 real MCP servers finds 97.1% of tool descriptions contain at least one "smell" (56% fail to state purpose clearly); augmenting descriptions to fix these lifts median task success by 5.85 points and partial goal completion by 15.12%, but increases execution steps by 67.46% and regresses performance in 16.67% of cases — a real cost/benefit tradeoff, not a free win.
+- Why it matters: A concrete, measurable MCP-infrastructure claim distinct from the already-queued security/design-pattern MCP candidates (MCPSec, MCP-DPT, CA-MCP, Bridging Protocol) — this is about tool-description quality itself, directly actionable for any mock MCP server this repo builds for those other tests.
+- Testability: Cheap, API only. Take a handful of tool descriptions (real or synthetic), classify "smells" with an LLM judge, then A/B a naive vs. augmented description set on a small tool-use task with Haiku 4.5/Sonnet 4.6, measuring success rate and step count. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.AI/cs.SE (2602.14878), submitted 2026-02
+
+### [Benchmarking the Benchmarks: Evaluating Benchmarks for Conversational Agents](https://arxiv.org/abs/2608.06329)
+- Status: proposed — awaiting review
+- Claim: A reference-free LLM-judge framework scores conversational-agent benchmarks on consistency, complexity, and policy coverage; validated against independent human annotations and shown to reliably distinguish benchmark quality across LLM-generated benchmarks of varying capability and under controlled quality-degrading perturbations.
+- Why it matters: A meta-evaluation angle adjacent to the already-queued "Stop Comparing LLM Agents Without Disclosing the Harness" — that paper argues harness variance is under-disclosed; this one argues benchmark quality itself is unmeasured. Relevant because every experiment in this repo builds a small toy benchmark, and this offers a cheap sanity check for whether those toy benchmarks are any good.
+- Testability: Very cheap, API only. Apply the framework's consistency/complexity/coverage scoring (via an LLM judge, e.g. Sonnet 4.6) to one of this repo's own existing toy benchmarks (e.g. the DB-harness task) plus a deliberately degraded variant, and check if it detects the quality difference. No GPU. Rough cost: ~$5.
+- Source: arXiv cs.CL/cs.AI (2608.06329), submitted 2026-08-06
+
+### [Natural-Language Agent Harnesses](https://arxiv.org/abs/2603.25723)
+- Status: proposed — awaiting review
+- Claim: Proposes representing an agent harness's high-level control logic as a portable, human-editable natural-language document (NLAH) interpreted at runtime by a shared "Intelligent Harness Runtime" (IHR), rather than hardcoding it in controller code; across coding, terminal-use, and computer-use benchmarks, IHR-executed NLAHs achieve task outcomes comparable to code- and prompt-based harness realizations.
+- Why it matters: Speaks directly to this repo's own methodology — every scoreboard row hand-codes a structured harness in Python; this asks whether an equally effective harness could instead be a portable, inspectable natural-language spec, which would make harness iteration and comparison (the exact disclosure problem "Stop Comparing LLM Agents..." queued 2026-07-10 raises) far cheaper.
+- Testability: Feasible, API only. Take one of the repo's already-tested structured harnesses (e.g. the 1-feature/session harness) and re-express its control logic as an NLAH document interpreted by a thin runtime prompt, compare task outcome/cost parity against the original coded version using Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI/cs.SE (2603.25723), submitted 2026-03-26
