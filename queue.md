@@ -197,3 +197,56 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-08-12 — proposed by research-scout
+
+### [LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks](https://arxiv.org/abs/2608.01964)
+- Status: proposed — awaiting review
+- Claim: Reframes long-horizon agent execution as task-*state* management via a Manage-Execute-Audit (MEA) loop — a manager that maintains verified task state, a fresh-context executor that discards its raw trajectory each round, and a read-only auditor that verifies environment state before the next round — lifting Qwen3.7-Plus from 51.8%→80.7% on WeaveBench, 69.7%→77.2% on Terminal-Bench 2.1, 2.8%→8.3% on OSWorld 2.0, and Claude Opus 4.7 from 20.0%→34.3% on an OSWorld 2.0 subset.
+- Why it matters: Nearly a direct rebuttal-in-waiting to this repo's own three tested harness rows (all three show structured/session-based harnesses losing to naive on cost with no quality gain) — MEA's specific bet is that *discarding* executor context each round plus independent read-only auditing (not accumulating more structure) is what earns the win. Open-source implementation available, so the exact mechanism is inspectable, not just described.
+- Testability: Feasible small-scale, API-only. Build a toy multi-step CLI/file-editing task (not full OSWorld/Terminal-Bench), implement a minimal MEA loop (Haiku 4.5 as executor, Sonnet 4.6 as manager/auditor) vs. a naive single-agent baseline, measure task success and token/turn cost. No GPU. Rough cost: $10-20; full benchmark scale is out of budget, this would test the directional claim only.
+- Source: arXiv cs.AI (2608.01964), submitted 2026-08-01; code: [AMAP-ML/LongHorizon-Harness](https://github.com/AMAP-ML/LongHorizon-Harness)
+
+### [LLM Agents Are Latent Context Managers: Eliciting Self-Managed Context via State Proprioception](https://arxiv.org/abs/2606.30005)
+- Status: proposed — awaiting review
+- Claim: VISTA, a training-free, model-agnostic context layer, represents working memory as typed/addressable blocks and surfaces a runtime "dashboard" (per-block token usage, recency, access history) so the model itself can make informed keep/drop decisions instead of a hidden system managing context for it; solves 38/75 tasks on LOCA-Bench vs. 17 for ReAct and 32 for Claude Code, and 58.0% vs. 52.0% (strongest baseline) on BrowseComp-Plus, with the advantage growing on longer trajectories.
+- Why it matters: A distinct mechanism from the other context-management candidates already queued (ARC's reflection, GenericAgent's density maximization, Less-Context's pruning) — the specific claim is that models are "proprioceptively blind" to their own context and that just *exposing* state (no compression/summarization) is enough to unlock self-management. Cheap, sharp hypothesis to isolate.
+- Testability: Very feasible, API only. Implement a minimal typed-block context store + text-rendered dashboard for a toy long-horizon tool-use task, compare Haiku 4.5/Sonnet 4.6 with vs. without dashboard visibility (same underlying context, only the dashboard toggled). No GPU. Rough cost: $10-15.
+- Source: arXiv cs.CL/cs.AI (2606.30005), submitted 2026-06-30
+
+### [Self-GC: Self-Governing Context for Long-Horizon LLM Agents](https://arxiv.org/abs/2607.00692)
+- Status: proposed — awaiting review
+- Claim: Treats agent context as typed, indexed objects (user turns, tool spans, skill state) rather than a disposable text suffix; a side-channel planner proposes fold/mask/prune actions per object, and the harness enforces recoverable sidecars, safe commit boundaries, and cache-aware commits — aiming to beat chronological-pruning and final-summarization baselines on long-horizon tasks (specific benchmark numbers not surfaced in the abstract/secondary sources found; would need to pull the full PDF before committing to exact figures).
+- Why it matters: A third, structurally distinct context-management mechanism (object lifecycle governance, explicitly named after garbage collection) alongside the newly found VISTA (proprioception) and the queued ARC (reflection) — good for triangulating which context-management *mechanism*, if any, actually earns its overhead, echoing this repo's harness-overhead thread.
+- Testability: Feasible small-scale, API only. Implement a simplified fold/mask/prune object-lifecycle manager on a toy long-horizon task, compare token cost and task success vs. naive chronological pruning and vs. plain summarization, using Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $10-15. Note: verify the paper's actual headline numbers by reading the full text before treating this as a tight replication rather than a directional check.
+- Source: arXiv cs.CL/cs.AI (2607.00692), submitted 2026-07-01
+
+### [CacheWise: Understanding Workloads and Optimizing KVCache Management for Efficiently Serving LLM Coding Agents](https://arxiv.org/abs/2606.16824)
+- Status: proposed — awaiting review
+- Claim: Real-world coding-agent traces repeatedly reuse large prefixes and create sustained KV-cache pressure that conventional serving policies (e.g. vanilla vLLM) handle poorly; CacheWise (prefix-aware scheduling + reuse-aware eviction guided by lightweight tool-call-metadata predictions) reduces KV-cache evictions by up to 2-2.6x and improves total agent-session completion time by up to ~3.5x when implemented in vLLM.
+- Why it matters: A serving-infra claim specifically about *coding-agent* workloads (repeated-prefix, tool-call-heavy) rather than generic chat — squarely in the LLM-serving lane and distinct from the already-queued KV-cache candidates (reuse-across-agents, sliding-window compression); this one is about eviction policy under agentic access patterns.
+- Testability: Needs a GPU and vLLM control over KV-cache eviction — not reproducible via the Claude API or on CPU-only Apple Silicon. A small open model (e.g. 1.5B-7B class) on a Modal A10G running vLLM, with a synthetic coding-agent-style repeated-prefix workload, could directly compare default eviction vs. a simplified reuse-aware policy on eviction count and completion time. Rough Modal cost: $15-25 for a few hours of A10G time — near the top of the per-experiment budget; needs tight scoping (small model, short trace set).
+- Source: arXiv cs.DC/cs.CL (2606.16824), submitted 2026-06-19
+
+### [VeriCache: Turning Lossy KV Cache into Lossless LLM Inference](https://arxiv.org/abs/2605.17613)
+- Status: proposed — awaiting review
+- Claim: KV-cache compression methods (token dropping, quantization) are lossy and diverge further from full-KV-cache outputs the longer decoding runs, causing catastrophic failures in code generation and tool calling; VeriCache uses the compressed cache to draft tokens then verifies them against the full cache, keeping KL divergence under 0.01 nats while reaching up to 3.82x full-KV throughput on Llama-70B.
+- Why it matters: A falsifiable, mechanism-level serving claim (verify-against-full-cache pattern, speculative-decoding-flavored) distinct from CacheWise (eviction policy) and the queued KARA/"Can I Buy Your KV Cache?" candidates (compression, reuse) — this is specifically about recovering losslessness cheaply, testable by directly comparing compressed-vs-verified output tokens against full-cache output tokens.
+- Testability: Needs a GPU and an open-weight model with accessible KV-cache internals — not reproducible via the Claude API. A small open model (1-4B class, since Llama-70B is out of budget) on a Modal A10G/T4 could verify the token-exact draft-and-verify pattern and measure the throughput/divergence tradeoff on a small eval set. Rough Modal cost: $15-25 for a few hours — near the top of the budget; would need a much smaller model than the paper's 70B to fit.
+- Source: arXiv cs.CL/cs.DC (2605.17613), submitted 2026-05-17
+
+### [OrchBench: Evaluating Multi-Agent Orchestration Plans in Isolation via Deterministic Simulation](https://arxiv.org/abs/2607.25656)
+- Status: proposed — awaiting review
+- Claim: End-to-end multi-agent execution conflates orchestration-plan quality with worker capability, tool reliability, and noise, and is expensive to scale for evaluation; OrchBench instead builds DAGs of task dependencies (controlled size/parallelism) and simulates a planner's subtask assignment, cross-agent information transfer, and retention ratios given a per-agent context limit and budget — and reports that simulated results correlate with real multi-agent execution outcomes.
+- Why it matters: A cheap, decoupled way to screen orchestration-plan quality before spending on real multi-agent runs — directly relevant to any future multi-agent (not just single-agent-harness) experiment in this repo, and a natural complement to the queued "Recursive Agent Harnesses" and "When Agents Do Not Stop" candidates.
+- Testability: Feasible without GPU. Build a small set of toy DAG-structured tasks with controlled parallelism, have Haiku 4.5/Sonnet 4.6 act as the orchestration planner, run the lightweight simulator, and spot-check simulated vs. a handful of real multi-agent executions for correlation. Rough cost: $10-15; won't validate correlation at the paper's scale, only a small directional check.
+- Source: arXiv cs.AI/cs.MA (2607.25656), submitted 2026-07-28
+
+### [loopx](https://github.com/huangruiteng/loopx)
+- Status: proposed — awaiting review
+- Claim: A local-first "state kernel" for long-running agent work (goals, executable todos, human-in-the-loop gates, evidence logs, quota-aware wake scheduling) that lets agents (Claude Code, Codex, Cursor) hand off work across sessions without losing state or over-spending after progress stalls; README cites anecdotal cases (200+ hours elapsed, 4-day unattended runs, multi-PR merges) rather than a controlled benchmark.
+- Why it matters: A GitHub-trending tool making almost exactly the claim this repo's harness rows have been testing (does external state-structuring for long-running agent work pay for itself) — but with no controlled comparison yet, making it a good target for this repo's existing naive-vs-structured methodology rather than a paper to replicate.
+- Testability: Feasible, API only, no GPU. Because there are no benchmark numbers to replicate, this would be a fresh controlled comparison (naive long-running agent vs. loopx's goal/todo/gate/evidence kernel) on a toy multi-session task, reusing this repo's existing harness-comparison scaffolding. Rough cost: $10-15. Flag: claims are currently anecdotal/qualitative, so frame any result as this repo's own finding, not a replication.
+- Source: GitHub trending (python, agent-framework)
