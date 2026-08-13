@@ -197,3 +197,49 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-08-13 — proposed by research-scout
+
+### [Cache-Aware Prompt Compression: A Two-Tier Cost Model for LLM API Caching](https://arxiv.org/abs/2607.15516)
+- Status: proposed — awaiting review
+- Claim: Query-aware prompt compression (a different compressed prefix per call) breaks the prefix-match requirement that Anthropic/OpenAI/Google prompt caching depends on, turning every call into a cache miss and erasing the compression savings; the paper builds a two-tier cost model — characterized empirically on Anthropic's Sonnet 4.6 API — to determine when compression actually beats caching-only, and when it silently makes things worse.
+- Why it matters: A direct, sharpened follow-up to this repo's own TokenPilot result — the scoreboard already found that ~⅘ of TokenPilot's headline savings was just enabling prompt caching, with the pruning/compaction mechanism itself contributing only ~28% net (and reversing to *more* expensive below the cache threshold). This paper formalizes exactly that caching-vs-compression tradeoff, on the same model family already on the scoreboard.
+- Testability: Very feasible, API only. Reuse the existing TokenPilot experiment harness; add a query-aware-compression arm (compress differently per turn, deliberately breaking the cached prefix) alongside the already-built cache-enabled/disabled arms, and measure actual billed cost (cache hit/miss), same as the TokenPilot notes. No GPU. Rough cost: $5-10, largely reusing existing scaffolding.
+- Source: arXiv cs.CL/cs.DC (2607.15516), submitted 2026-07
+
+### [Semantic Tool Discovery for Large Language Models: A Vector-Based Approach to MCP Tool Selection](https://arxiv.org/abs/2603.20313)
+- Status: proposed — awaiting review
+- Claim: Indexing MCP tools with dense embeddings and retrieving only the top-K semantically relevant tools at call time (instead of exposing the full tool catalog in context) cuts tool-related token consumption by 99.6% while keeping a 97.1% hit rate at K=3.
+- Why it matters: A concrete, cheap efficiency claim in the MCP lane, distinct from the already-queued PlanBench-XL (tool-blocking robustness under a flaky registry) and CA-MCP (shared context store) candidates — this is about pre-filtering an oversized tool catalog before the agent ever sees it, directly relevant if any of this repo's mock-MCP-server setups (already queued for the security candidates) scale up tool count.
+- Testability: Very feasible on API only. Build a synthetic tool registry (50-200 mock tools), embed with a small embedding model (API-based or a local sentence-transformer on Apple Silicon CPU), compare full-catalog-in-context vs. top-K retrieval on task completion and token cost using Haiku 4.5/Sonnet 4.6. No GPU needed. Rough cost: $5-10.
+- Source: arXiv cs.AI/cs.CL (2603.20313), submitted 2026-03
+
+### [Model or Harness? An Interaction-Centric Taxonomy for Localizing Agent Failures](https://arxiv.org/abs/2607.28802)
+- Status: proposed — awaiting review
+- Claim: Introduces a taxonomy of 41 agent failure modes, each assigned to a specific interaction edge (model↔harness↔user↔tools↔memory) and a "fault side" indicating which component's repair is actually needed — arguing outcome-level pass/fail labels routinely misattribute failures to the wrong component (e.g. blaming the model for a harness bug, or vice versa).
+- Why it matters: A ready-made diagnostic lens for exactly the ambiguity this repo's scoreboard keeps running into — e.g. the DB-harness row attributes Haiku's structured-harness underperformance to being "token-starved" without a systematic breakdown of whether failures were model reasoning errors, harness scaffolding errors, or tool/environment errors. Applying the taxonomy to already-collected trajectories is nearly free and complements the already-queued "Stop Comparing LLM Agents Without Disclosing the Harness" (variance decomposition) with a failure-mode-level lens instead of an aggregate-variance one.
+- Testability: Very cheap. Re-classify a sample of failure trajectories already saved from the DB-harness/TokenPilot experiments using the paper's taxonomy (a Sonnet 4.6-as-classifier pass over the saved transcripts), optionally with one small fresh run to check inter-rater agreement. No GPU. Rough cost: $5 or less — mostly reuses existing data.
+- Source: arXiv cs.AI (2607.28802), submitted 2026-07-30
+
+### [Benchmarking the Benchmarks: A Validity Audit of Tool-Calling Evaluation](https://arxiv.org/abs/2607.02577)
+- Status: proposed — awaiting review
+- Claim: A validity audit of four tool-calling benchmark families (BFCL v4, τ²-Bench, LiveMCPBench, MCP-Atlas) finds an 18.5% evaluator-vs-human disagreement rate across 496 expert-reviewed tasks; repeated runs of the identical LiveMCPBench setup swing from 57.9% to 76.8% (an 18.9-point spread) — large enough to flip leaderboard rankings.
+- Why it matters: A meta-validity concern that bears directly on how much to trust this repo's own comparisons — several scoreboard rows report point estimates from small n (n=2-6 runs); if evaluation variance this large shows up even in established, widely-used benchmarks, it both validates the repo's existing seed-averaging practice and flags where a single-run "win" elsewhere in this lane might not replicate.
+- Testability: Cheap, API only. Re-run one of this repo's own existing eval configs (e.g. the DB-harness suite) an extra 5-10 times with fixed seeds/prompts to directly measure run-to-run variance the way the paper measured LiveMCPBench variance, and compare the spread. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.AI/cs.SE (2607.02577), submitted 2026-06-30
+
+### [One Recipe, Many Harnesses: What Self-Evolution Encodes Across Languages and Models](https://arxiv.org/abs/2608.10178)
+- Status: proposed — awaiting review
+- Claim: Holding a self-evolving-harness recipe fixed across 8 programming languages (Multi-SWE-Bench) and 3 base models, and routing every harness edit through a typed, falsifiable failure signal, the authors find evolved harness artifacts encode a mix of benchmark-specific, language-specific, and model-compensating adaptations rather than one generalizable improvement — the same recipe behaves very differently depending on what it's run against.
+- Why it matters: A meta-question none of this repo's already-queued self-evolving-harness candidates (Self-Harness, Harness Updating Is Not Harness Benefit) directly test: does a self-evolution *recipe* actually transfer, or does it just overfit to the specific benchmark/model pairing it happened to run on? Worth checking before trusting any positive self-evolution result produced in this repo.
+- Testability: Feasible small-scale, API only — the paper's self-evolution loop edits prompts/tools/memory via LLM calls, not weight training, so no GPU is required. Fix one self-evolution recipe, run it across 2-3 toy tasks that stand in for different "languages" (e.g. reuse the existing SQL-engine DB-harness task alongside a Python toy task) and 2 models (Haiku 4.5, Sonnet 4.6), and inspect whether the resulting harness edits transfer across the grid or overfit to one cell. Rough cost: $15-20; the full 8-language/3-model grid is out of budget — this would be a directional 2x2/2x3 check only.
+- Source: arXiv cs.SE (2608.10178), submitted 2026-08-10
+
+### [EvoHarness-RL: Learning Self-Evolving Runtime Harness for Long-Horizon LLM Agents](https://arxiv.org/abs/2608.05446)
+- Status: proposed — awaiting review
+- Claim: Agents learn a harness-coordination policy offline (supervised harness fine-tuning + cost-aware GRPO) that decides when to read, update, and consolidate external harness state at runtime; this produces "harness annealing" (recurring harness-use patterns get absorbed into the model's own policy, shifting it toward more selective harness access) and reaches 96.9% success on ALFWorld with Qwen3-8B.
+- Why it matters: A genuinely different mechanism from the prompt-only self-editing harnesses already queued/tested here — the model itself is trained (via RL) to decide *when* to touch harness state, rather than an external controller or fixed schedule deciding for it. A useful contrast to this repo's repeated finding that hand-designed structured harnesses cost tokens without earning back the benefit.
+- Testability: The literal claim requires GRPO fine-tuning on an open-weight model (Qwen3-8B) — not reproducible through the Claude API, out of scope for CPU-only Apple Silicon, and full replication would need real training infrastructure well beyond the $25 budget. A directional proxy is possible without training: hand-code a simple heuristic "when to touch harness state" policy (mimicking the paper's selective-access behavior) and compare it against always-on and never-on harness access on a toy long-horizon task with Haiku 4.5/Sonnet 4.6. No GPU for the proxy version. Rough cost: $10-15 for the heuristic proxy; full RL replication is out of budget (would need a Modal GPU plus a training loop, likely $50-100+).
+- Source: arXiv cs.AI/cs.LG (2608.05446), submitted 2026-08-05
