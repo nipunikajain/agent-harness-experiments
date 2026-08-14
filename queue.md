@@ -197,3 +197,49 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A distinct MCP-infrastructure angle from the already-queued MCPSec (protocol security) — this is about efficiency/coherence of multi-server MCP workflows, directly testable with a small toy multi-server setup and squarely in this repo's MCP lane.
 - Testability: Feasible, API only. Build 2-3 mock MCP servers with overlapping sub-tasks, compare token usage/redundant re-fetching and end-task coherence with vs. without a simple shared context store, using Haiku 4.5 and/or Sonnet 4.6. No GPU. Rough cost: $5-10.
 - Source: arXiv cs.AI/cs.DC (2601.11595), submitted 2026-01-06, revised 2026-01-22
+
+---
+
+## 2026-08-14 — proposed by research-scout
+
+### [Evo-Bench: Can Language Models Improve Agent Harness?](https://arxiv.org/abs/2608.09096)
+- Status: proposed — awaiting review
+- Claim: First benchmark designed to isolate an agent's intrinsic harness-evolving capability from base model strength (Search/Office/General domains, sensitivity-aware stratified splitting so gains can't be task-specific overfitting); across 9 frontier/open-weight models, top models gain up to +16.6 absolute points from autonomously evolving their own harness, closely approaching hand-engineered baselines — but autonomous evolution beats hand-engineering on Search/General while struggling on Office tasks needing highly specific workflows.
+- Why it matters: The closest thing yet to a direct, controlled meta-test of this repo's whole thesis (three scoreboard rows already show hand-designed structured harnesses losing to naive) — its isolate-harness-from-model-strength eval design is itself reusable for future scoreboard rows, and it directly complements the already-queued Self-Harness / Harness-Updating candidates with an actual benchmark rather than a single technique.
+- Testability: Feasible small-scale, API only. Skip the full 3-domain suite — build one toy domain (e.g. a small General-agent task set) using the same isolate-harness-effect logic (auxiliary-task evolution + stratified split), run Haiku 4.5 and Sonnet 4.6 each as their own harness-evolver, and compare gains. No GPU. Rough cost: $10-20.
+- Source: arXiv cs.AI (2608.09096), submitted 2026-08 (~1 week old)
+
+### [AgentMemBench: A Systematic Benchmark for Evaluating Long-Term Memory Management Strategies in Conversational AI Agents](https://arxiv.org/abs/2608.00009)
+- Status: proposed — awaiting review
+- Claim: Evaluates 5 memory strategies (in-context windowing, external key-value store, graph-based episodic memory, compression-based summarization, web-augmented memory) under identical conditions across 491 annotated multi-session QA turns (LoCoMo, MultiDoc2Dial, MSC); dense-embedding external KV retrieval (EKV) dominates every quality axis (macro Recall@5 0.354, best-in-class), while on the hardest long-range dataset all 5 strategies collapse to similarly poor recall (~0.573), suggesting the "fancy" graph/summarization approaches don't actually beat boring retrieval at small scale.
+- Why it matters: A concrete, falsifiable ranking of memory strategies squarely in this repo's context/memory lane (TokenPilot tested, GenericAgent and TencentDB-Agent-Memory already queued) — worth checking whether "dense retrieval beats graph memory" replicates directionally, since it's a skeptical finding (simple beats complex) matching this repo's track record.
+- Testability: Very feasible on Apple Silicon/API only. Implement 3-4 of the 5 strategies (graph-based episodic memory is the most complex, can be dropped) on a small multi-session QA task; use Haiku 4.5/Sonnet 4.6 for generation/judging and a local or API embedding model for EKV. No GPU needed. Rough cost: $5-15.
+- Source: arXiv cs.CL/cs.AI (2608.00009), submitted 2026-08
+
+### [Diagnosing Tool-Selection Reasoning in LLM Agents with Canary Tools](https://arxiv.org/abs/2608.04719)
+- Status: proposed — awaiting review
+- Claim: "Canary tools" — diagnostic probe tools planted in an agent's MCP tool set across a 6-type taxonomy (semantic decoys, parameter traps, capability mirages, prerequisite blindness, temporal decoys, granularity traps) — reveal, across 8,640 runs on 8 models, that capability tier does not predict tool-selection safety (a mid-tier hosted model is most susceptible; the cheaper model in a provider's lineup can be safer than the pricier one), and canary susceptibility predicts real downstream task failure.
+- Why it matters: A mechanism-level MCP tool-selection diagnostic (why the wrong tool gets picked, not just that it was) — distinct from the already-queued PlanBench-XL (tool-registry reliability under blocking) and the MCP security papers, and directly reusable as a diagnostic against any harness this repo builds.
+- Testability: Very feasible, API only. Build a small MCP-style tool set with 2-3 canary types planted, run Haiku 4.5 and Sonnet 4.6 across a reduced task set (~20-30 vs. their 120), check whether canary susceptibility predicts task failure directionally and whether it's capability-tier-independent. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.AI/cs.CL (2608.04719), submitted 2026-08-05
+
+### [The 2026-07-28 Model Context Protocol Specification ("Stateless MCP")](https://blog.modelcontextprotocol.io/posts/2026-07-28/)
+- Status: proposed — awaiting review
+- Claim: The biggest MCP spec change since launch — removes the initialize/initialized handshake and Mcp-Session-Id header entirely, making every request self-describing/stateless (protocol version, client info, capabilities travel inline per-request via `_meta`); adds cacheable list results (`ttlMs`/`cacheScope`), Multi Round-Trip Requests (server can request more input mid-call via an opaque state token), and auth hardening (RFC 9207, RFC 8707) — a scalability/statelessness tradeoff vs. the prior session-based protocol.
+- Why it matters: The single largest MCP architecture change to date, squarely in this repo's MCP lane — worth testing directly whether the per-request overhead of repeating capabilities/version on every call actually nets out cheaper than the old handshake-once-reuse-session model, and whether dropping session state changes multi-turn tool-use robustness.
+- Testability: Feasible, API/local only, no single paper number to replicate (it's a spec, not a benchmarked technique) — build two toy MCP-style harnesses (one session-based, one stateless-per-request) against the same small tool-use task with Haiku 4.5/Sonnet 4.6, measure token/cost overhead and any dropped-context robustness difference. No GPU. Rough cost: $5-10; this would be a directional "does the tradeoff hold up" check, not a replication.
+- Source: Model Context Protocol Blog (blog.modelcontextprotocol.io/posts/2026-07-28/), surfaced via [Simon Willison's Weblog](https://simonwillison.net/2026/Jul/31/stateless-mcp/), 2026-07-31
+
+### [SHE: Trajectory-driven Safety Harness Evolution for LLM Agents](https://arxiv.org/abs/2608.09885)
+- Status: proposed — awaiting review
+- Claim: Decomposes an agent harness into 4 safety-relevant artifacts (System Prompt, Rule Bank, Safety Memory, Tool Policy) with explicit safety responsibilities, then runs an attribution-guided evolution loop converting trajectory failures into localized, artifact-specific boundary refinements — achieving a 3.1x attack-success-rate reduction vs. a static "SafeHarness" baseline on Agent-SafetyBench, while also improving benign-task utility (not just becoming more restrictive).
+- Why it matters: A safety-specific variant of harness self-evolution, distinct from the capability-focused Self-Harness/Harness-Updating/Evo-Bench candidates — tests the stronger, more falsifiable claim that localized harness edits can improve safety AND utility together, worth checking against this repo's pattern of structured harnesses costing more for no measured gain.
+- Testability: Feasible small-scale, API only. Build a toy adversarial-prompt suite (jailbreak-style + benign look-alikes), implement a simplified 4-artifact harness decomposition, run one evolution iteration with Sonnet 4.6 as evolver and Haiku 4.5 as executor, measure attack-success-rate and benign-completion rate before/after. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI/cs.CR (2608.09885), submitted 2026-08-10
+
+### [Does Accuracy Equal Evidence? Reasoning Faithfulness under KV Cache Compression](https://arxiv.org/abs/2608.01631)
+- Status: proposed — awaiting review
+- Claim: Evaluating 10 token-eviction KV-cache-compression methods plus 1 quantization method across reasoning benchmarks, final-answer accuracy can look preserved while chain-of-thought faithfulness (whether the retained cache still actually supports the stated reasoning) substantially degrades — compressed models can land the right answer via unsupported/broken reasoning chains.
+- Why it matters: A skeptical "does the headline number hide a real cost" critique of KV-cache compression — the same shape of finding this repo already produced for context management (TokenPilot: real but smaller win than claimed) and harnesses (cost without quality gain), applied to the serving lane. Complements queued KARA / Can-I-Buy-Your-KV-Cache with a critique angle instead of another technique.
+- Testability: Needs a GPU + open-weight reasoning model (not reproducible via the Claude API) — out of scope for CPU-only Apple Silicon. A small open reasoning model (~1.5-7B) on a Modal A10G could test 2-3 eviction methods' accuracy-vs-faithfulness gap on a small reasoning-chain eval subset. Rough Modal cost: $15-25 for a few hours of A10G time — near the top of the per-experiment budget; needs tight scoping (2-3 methods, small eval set) to fit.
+- Source: arXiv cs.CL/cs.LG (2608.01631), submitted 2026-08-01
