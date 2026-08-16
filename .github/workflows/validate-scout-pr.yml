@@ -1,0 +1,39 @@
+name: Validate scout PR
+
+# Gate for auto-merge: a scout-run PR is only allowed to append new
+# proposals to queue.md. It must not touch any other file, and it must
+# not edit or remove a line that existed before the PR (only additions).
+# This keeps auto-merge safe under CLAUDE.md's rule that agents may
+# propose but never quietly change decided state.
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Only queue.md may change
+        run: |
+          changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          echo "Changed files:"
+          echo "$changed"
+          if [ "$changed" != "queue.md" ]; then
+            echo "::error::Scout PRs may only modify queue.md. Found: $changed"
+            exit 1
+          fi
+
+      - name: queue.md changes must be pure additions
+        run: |
+          removed=$(git diff --unified=0 origin/${{ github.base_ref }}...HEAD -- queue.md \
+            | grep -E '^-' | grep -vE '^(---|--- )' || true)
+          if [ -n "$removed" ]; then
+            echo "::error::Scout PRs may only add lines to queue.md, never edit or remove existing ones."
+            echo "$removed"
+            exit 1
+          fi
