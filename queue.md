@@ -658,3 +658,51 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A skeptical "does the headline number hide a real cost" critique of KV-cache compression — the same shape of finding this repo already produced for context management (TokenPilot: real but smaller win than claimed) and harnesses (cost without quality gain), applied to the serving lane. Complements queued KARA / Can-I-Buy-Your-KV-Cache with a critique angle instead of another technique.
 - Testability: Needs a GPU + open-weight reasoning model (not reproducible via the Claude API) — out of scope for CPU-only Apple Silicon. A small open reasoning model (~1.5-7B) on a Modal A10G could test 2-3 eviction methods' accuracy-vs-faithfulness gap on a small reasoning-chain eval subset. Rough Modal cost: $15-25 for a few hours of A10G time — near the top of the per-experiment budget; needs tight scoping (2-3 methods, small eval set) to fit.
 - Source: arXiv cs.CL/cs.LG (2608.01631), submitted 2026-08-01
+
+---
+
+## 2026-08-24 — proposed by research-scout
+
+### [omlx](https://github.com/jundot/omlx)
+- Status: proposed — awaiting review
+- Claim: A macOS-native LLM inference server (MLX-based) with continuous batching and a two-tier (hot RAM / cold SSD) block-based KV cache with prefix sharing and copy-on-write — inspired by vLLM's cache design — enables persistent context reuse across requests, even when prompts change mid-conversation, and is a drop-in OpenAI/Anthropic-API-compatible server.
+- Why it matters: A serving/KV-cache-management claim testable directly on this repo's own hardware (Apple Silicon) rather than needing Modal — distinct from every KV-cache candidate already queued (all of which require an open-weight model on a GPU); this is the first serving-lane candidate that runs natively, at zero marginal compute cost, on the exact machine this repo is built around.
+- Testability: Extremely feasible, no GPU/Modal needed — install and run locally via MLX on Apple Silicon. Build a small repeated-prefix toy agent workload (e.g. a multi-turn tool-use loop with a stable system/tool-schema prefix), compare latency and effective cache-hit behavior with vs. without the tiered KV cache using a small local open model. Rough cost: near $0 (local inference); at most a few dollars if Haiku 4.5/Sonnet 4.6 API calls are used for judging or as a reference baseline.
+- Source: GitHub trending (python, Apple Silicon/MLX topic), week of 2026-08-24
+
+### [OpenViking](https://github.com/volcengine/OpenViking)
+- Status: proposed — awaiting review
+- Claim: A self-evolving "context database" for AI agents that unifies memory, knowledge/RAG, and skills under a single virtual filesystem (`viking://` URIs), with content processed into three loading tiers (L0 abstract, L1 overview, L2 details) delivered on demand, plus automatic self-evolution that compresses conversations/tool calls into long-term memory over time.
+- Why it matters: A different context-management mechanism from every memory/context candidate already queued (TencentDB-Agent-Memory's symbolic SQLite store, ARC's reflection reorg, GenericAgent's atomic tools+SOPs, OpenSpace's skill-evolution loop) — this one is filesystem-paradigm-based and explicitly unifies memory+knowledge+skills into one addressable structure, worth a head-to-head on the same toy long-horizon task this repo already uses.
+- Testability: Very feasible on Apple Silicon, no GPU — `pip install openviking`, runs as a local server (default `127.0.0.1:1933`), only the driving agent's LLM calls hit the API. Build a small multi-session long-horizon task, compare token usage and task success with vs. without OpenViking's tiered context layer, using Haiku 4.5/Sonnet 4.6. Rough cost: $5-15.
+- Source: GitHub trending (python, topics: agents/llm), week of 2026-08-24
+
+### [ClawVM: Harness-Managed Virtual Memory for Stateful Tool-Using LLM Agents](https://arxiv.org/abs/2604.10352)
+- Status: proposed — awaiting review
+- Claim: Treats agent context as an OS-style virtual memory system — typed pages with minimum-fidelity invariants, multi-resolution representations under a token budget, and validated writeback enforced by the harness at every lifecycle boundary — and reports it eliminates all policy-controllable state-loss faults (lost state after compaction, bypassed flushes on reset, destructive writeback) whenever the minimum-fidelity set fits the token budget, at <50μs median per-turn overhead. Accepted at EuroMLSys '26.
+- Why it matters: A systems/OS-inspired framing of exactly the state-management failure modes this repo's own harness experiments have run into informally — distinct from the already-queued Self-GC (fold/mask/prune planner) and VISTA (visibility dashboard), this proposes a hard *contract* (validated writeback) rather than a policy or a UI, directly testable by deliberately injecting compaction/reset events into this repo's existing structured harness.
+- Testability: Feasible small-scale, API-only. Implement a toy typed-page/writeback-validation layer on top of the repo's existing naive/structured harness code, inject deliberate compaction and reset events mid-task, and measure state-loss fault rate with vs. without the ClawVM-style contract, using Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.SE/cs.DC (2604.10352), submitted 2026-04, EuroMLSys '26 (EuroSys workshop)
+
+### [Harness Handbook: Making Evolving Agent Harnesses Readable, Navigable, and Editable](https://arxiv.org/abs/2607.13285)
+- Status: proposed — awaiting review
+- Claim: Production agent harnesses are large, tightly coupled, and behaviorally distributed, making it hard for a developer or coding agent to locate every code site implementing a target behavior before modifying it; proposes a "behavior localization" approach/index to make evolving harnesses navigable and editable.
+- Why it matters: A meta/tooling angle on the large self-evolving-harness cluster already in this queue (Self-Harness, HarnessX, GSME, Evo-Bench, etc.) — those all assume an LLM (or the developer) can correctly locate what to change; this tests whether that assumption holds, i.e. whether harness-editing failures in the other queued candidates might actually be localization failures rather than editing failures.
+- Testability: Feasible, API-only. Build a small synthetic multi-file toy harness codebase (mirroring this repo's own `intervention.py`/config structure but with deliberately scattered behavior across files), compare naive grep/keyword search vs. a Harness-Handbook-style indexed localization approach (Sonnet 4.6) on localization accuracy for a handful of modification requests. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.SE/cs.AI (2607.13285), submitted 2026-07-14
+
+### [Agent Harness Distillation: Inference-Time Harness Extraction and Exploitation in Autonomous Multi-Agent Systems](https://arxiv.org/abs/2607.28147)
+- Status: proposed — awaiting review
+- Claim: Frames a well-engineered agent harness as valuable IP, and studies whether an attacker who can only observe an agent's outputs/trajectories (not its harness code) can distill an equivalent harness and exploit it — a new security/economic threat model distinct from prompt-injection or memory-poisoning attacks.
+- Why it matters: A genuinely new angle on this repo's harness-overhead thesis — if a competitor can cheaply reconstruct most of a harness's benefit just by observing its outputs, that changes the cost/benefit calculus of investing engineering effort in a structured harness in the first place, independent of whether it earns back its own token overhead (the question the scoreboard has focused on so far).
+- Testability: Feasible, API-only. Reuse this repo's own already-tested structured harness as the "proprietary" target; have an "attacker" agent (Haiku 4.5) observe only its outputs/trajectories on a task set and try to distill an equivalent harness, then measure how much of the performance gap vs. a naive baseline it recovers, compared to a "blind" attacker with no observation access, using Sonnet 4.6 as the target harness's driver. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.CR/cs.AI (2607.28147), submitted 2026-07-30, revised 2026-08-18
+
+### [Agent Lightning v1.0: Towards Harnessed Agentic RL](https://arxiv.org/abs/2608.17528)
+- Claim: In "harnessed agentic RL," the deploy-time harness (not the training engine) owns the environment-interaction loop while the trainer only observes LLM request/response pairs — introducing retokenization, sample-merging, advantage-calculation, and loss-normalization challenges; a ~3,500-line framework implementing this improves Qwen3.5-9B on SWE-bench Verified from 41.8% to 56.4% (+14.6 points absolute) using only 6K training examples.
+- Status: proposed — awaiting review
+- Why it matters: A structurally new question for this repo's harness lane — every scoreboard row and nearly every queued candidate tests a *frozen* harness at inference time; this asks what happens when the harness itself becomes part of the RL training loop, i.e. whether harness-awareness during post-training (not just prompting against a fixed harness) is what unlocks a real gain.
+- Testability: Mostly out of budget as a real replication — actual RL post-training (PPO/GRPO-style) of even a 9B model on SWE-bench-scale rollouts needs sustained multi-GPU training, well beyond a $25/experiment budget (likely hundreds of dollars on Modal for a scaled-down run, more for anything resembling the reported 6K-example/14.6-point result). A cheap, API-only, no-GPU directional check is possible but narrow: inspect/reproduce just the harness-as-environment-loop plumbing (retokenization + sample-merging bookkeeping) on a toy task without any actual weight updates (~$5) — this would validate the architecture, not the claimed accuracy gain.
+- Source: arXiv cs.AI/cs.LG (2608.17528), submitted 2026-08-18
+
+
