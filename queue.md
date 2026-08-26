@@ -661,6 +661,109 @@ done (in the README scoreboard) · rejected.
 
 ---
 
+## 2026-08-18 — proposed by research-scout
+
+### [The Bitter Lesson of Tool Calling](https://arxiv.org/abs/2608.06370)
+- Status: proposed — awaiting review
+- Claim: A generation-spanning comparison of programmatic tool calling (tools exposed as typed Python stubs invoked through code, execution+results handled in one agent turn) vs. native JSON tool calling across 14 LLMs on BFCL v4 — programmatic calling matches or beats JSON in 11/14 models, with the GPT-5.6 family gaining +10.6% over the JSON baseline; wins 13/14 under parallel fan-out; and under "context rot" it holds steady while the JSON baseline drops 2.3% on average. The advantage grows with a model's code ability.
+- Why it matters: A genuinely new angle not covered by anything already queued — every other tool-use candidate in this queue tests description quality, drift, blocking, or robustness of JSON-style calls; this tests the *interface paradigm itself* (code vs. JSON), directly actionable for how this repo's own `intervention.py` harnesses expose tools to agents.
+- Testability: Very feasible, API only. Claude models can be prompted into both styles (native JSON tool_use vs. writing code against typed stubs). Build a small (~20-30 call) BFCL-v4-style toy eval including a parallel-fan-out condition and a long-context "rot" condition, compare JSON vs. code-based invocation with Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.CL (2608.06370), submitted 2026-08-06
+
+### [Control Under Compression: Reliability Frontiers for Tool-Using Agents](https://arxiv.org/abs/2608.01056)
+- Status: proposed — awaiting review
+- Claim: Introduces CompressAgent, an environment-verified benchmark (9 agent control contexts, 3 task families, 3 Qwen models, 6 retained-context budgets, 15,525 runs) for compressing an agent's *control* context — the persistent system-side instructions specifying tools, arguments, policies, and recovery, not the conversation. Finds a nonlinear, method-dependent reliability frontier: at 75% retained context, generic/section-based compression stays near the 93.8% full-context baseline (92.7%/92.4%), but between 50% and 35% methods diverge sharply, collapsing to 47.0%/39.0%/19.9% success at 35% retention depending on method.
+- Why it matters: Distinct from every already-queued context-pruning candidate (all of which target conversational history or tool-output verbosity) — this compresses the harness's own control instructions, directly analogous to this repo's hand-written structured-harness prompts, and gives a concrete "how far can the harness prompt itself be trimmed before reliability collapses" number worth checking against this repo's own naive/structured configs.
+- Testability: Very feasible, API only. Take this repo's own structured-harness control instructions, build 2-3 compression variants at different retention levels, run against a small multi-step tool task with Haiku 4.5/Sonnet 4.6, and measure success rate vs. retention %. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.CL/cs.AI (2608.01056), submitted 2026-08-02
+
+### [Exposed by Design: A Dynamic Security Assessment of Internet-Facing MCP Servers at Scale](https://arxiv.org/abs/2608.00150)
+- Status: proposed — awaiting review
+- Claim: First dynamic behavioral security scan of real internet-facing MCP servers (passive discovery across 11 sources + Corvus, a purpose-built active-testing framework with 34 test modules covering 10 MCP-specific vulnerability classes). Across 4 measurement runs in July 2026: confirms 640 production MCP servers, dynamically audits 414, finds 68 reportable vulnerabilities (SQL injection, SSRF against cloud metadata services, prompt-template injection, path traversal via cursor manipulation); 91.8% of audited servers lack OAuth authentication; 687 tool instances expose shell execution with no access control; 41.6% of confirmed servers disappear within 3 days between runs.
+- Why it matters: Every MCP-security candidate already queued (Breaking the Protocol, MCP-DPT, caller-identity-confusion, MCPEvol-Bench) tests against a mock/theoretical MCP server or attack taxonomy — this is real production-MCP-server telemetry, putting hard numbers on how exposed the actual ecosystem is right now, a more empirical/skeptical check than any queued security paper.
+- Testability: Feasible without touching third-party infra. Reproduce directionally by running a handful of your own locally-hosted mock MCP servers through a reduced subset of simple checks inspired by Corvus's test modules (missing auth, unrestricted shell-exposed tools) — no scanning of real public servers without authorization. No GPU; a small amount of API budget if using Haiku 4.5/Sonnet 4.6 to help triage findings. Rough cost: under $5.
+- Source: arXiv cs.CR/cs.AI (2608.00150), submitted 2026-08-01
+
+### [When Memory Becomes Authority: Benchmarking Authority Collapse at the Memory Consolidation Boundary](https://arxiv.org/abs/2608.01679)
+- Status: proposed — awaiting review
+- Claim: Introduces AuthMem-Bench, a paired benchmark holding the focal claim and downstream task fixed while varying only the memory's *source authority* (e.g. user-stated fact vs. one-off agent observation vs. standing policy instruction). Finds "authority collapse" — consolidation preserves the claim but erases the source constraints on how it may be used, so the stored memory implies more authority than its origin permits — in 48 of 49 evaluated consolidator × LLM-backbone configurations.
+- Why it matters: A distinct, sharply-quantified memory failure mode from every memory candidate already queued (MemSyco-Bench = sycophancy toward retrieved memory; A-TMA = temporal/state conflict) — this is about the authorization boundary silently eroding during consolidation, e.g. a casual one-off observation later being treated as a standing instruction. Directly relevant to any future harness experiment here that adds persistent memory with any notion of trust tiers.
+- Testability: Very feasible, API only. Build a small (10-20) paired toy set where the same claim originates from different authority sources, run a simple consolidation step then a downstream task with Haiku 4.5/Sonnet 4.6, and measure how often a low-authority memory gets treated as high-authority downstream. No GPU. Rough cost: $5-10.
+- Source: arXiv cs.AI/cs.CL (2608.01679), submitted 2026-08-03
+
+### [AI Agents Do Not Fail Alone: The Context Fails First](https://arxiv.org/abs/2607.14275)
+- Status: proposed — awaiting review
+- Claim: Validates context-engineering quality (role clarity, guardrail coverage, instruction consistency, tool-schema quality, grounding sufficiency, injection hardening) as an independent leading indicator of agent reliability, measured via an open-source multi-juror consensus-scoring harness (ProofAgent-Harness) rather than task outcome alone.
+- Why it matters: A measurement-methodology angle distinct from every context-management technique already queued — instead of proposing another pruning/compaction mechanism, this proposes a diagnostic *score* for context quality itself, which could be applied to re-audit this repo's own existing naive vs. structured harness configs before running a new head-to-head comparison.
+- Testability: Very cheap, API only. Implement a scaled-down version of the scoring rubric as an LLM-judge pass (Sonnet 4.6) applied to this repo's own existing harness prompts (naive vs. structured, already on the scoreboard) plus a deliberately degraded variant, and check whether the score tracks the scoreboard's own measured outcomes. No GPU. Rough cost: under $5.
+- Source: arXiv cs.AI/cs.CL (2607.14275), submitted 2026-07-15 — slightly outside the usual 3-4 week window but not previously surfaced or queued, and squarely on this repo's own thesis.
+
+---
+
+## 2026-08-19 — proposed by research-scout
+
+### [oMLX: LLM inference server with continuous batching & SSD caching for Apple Silicon](https://github.com/jundot/omlx)
+- Status: proposed — awaiting review
+- Claim: A two-tier (RAM hot / SSD cold) KV-cache persistence layer lets local Apple Silicon inference reuse prefix KV cache across a session even after the conversation branches mid-stream, restoring cold-tier blocks from safetensors on a matching-prefix request instead of recomputing; separately reports ~30x speedup for GLM-5.2 (845 vs ~29 tok/s on M3 Ultra) with native Metal kernels vs. the generic fallback path.
+- Why it matters: Every KV-cache candidate already queued here (Can I Buy Your KV Cache, KARA, C²KV, VeriCache, NOVA-KV, CacheWise) needs raw open-weight KV access on a rented GPU via Modal — this is the one serving-infra candidate that runs natively and at $0 marginal cost on the test_context's own hardware (Apple Silicon), which sources.yaml explicitly names as the target machine.
+- Testability: Directly testable on Apple Silicon, no API and no Modal spend — install locally via mlx-lm, run a small open model (1-7B class), and compare latency/recompute with vs. without SSD-tier caching across a multi-turn session with mid-stream context edits. The headline 30x/GLM-5.2 claim needs a full Xcode build and a large model that may not fit a laptop; the core RAM/SSD-tiered persistence mechanism is testable regardless and is the cheapest candidate in this entire queue.
+- Source: GitHub trending (python), week of 2026-08-17
+
+### [EcoAgent-Bench: Evaluating Economic Decision-Making in Budget-Constrained LLM Agents](https://arxiv.org/abs/2608.05519)
+- Status: proposed — awaiting review
+- Claim: 304 tasks (adapted from GAIA/HotpotQA/MuSiQue) attach priced actions and an explicit budget to each task, testing 4 economic decisions (avoid unnecessary escalation, escalate when local evidence is insufficient, pick a model tier, stop on unsupported premises); across 7 LLM agents plus 4 oracle scripted controls, standard micro-averaged accuracy rewards one-sided policies — always-escalate scripts post high success while failing every budget-sensitive/save-oriented task — meaning current agents largely don't make context-sensitive cost/quality tradeoffs.
+- Why it matters: A different axis from every harness-cost candidate already in this queue — this repo's own scoreboard/queue mostly measures the *harness's* token/dollar cost, while EcoAgent-Bench asks whether the *agent* reasons well about cost when actions are explicitly priced and budgeted. Complements (does not duplicate) the already-queued vLLM Semantic Router, which routes cheap/expensive models at the infra layer rather than testing the agent's own decision quality.
+- Testability: Feasible, API only. Build a small (~15-20 task) priced-action toy suite covering 2 of the 4 economic-decision types, give Haiku 4.5/Sonnet 4.6 tools with attached costs and a fixed budget, and measure whether they trade off appropriately vs. always-escalate/always-cheap scripted baselines. No GPU. Rough cost: $10-15; won't match the 304-task/7-agent scale, directional check only.
+- Source: arXiv cs.AI (2608.05519), submitted 2026-08-05
+
+### [Efficient Decode Context Parallelism with vLLM for Long Context Workloads](https://vllm.ai/blog/2026-08-07-decode-context-parallelism)
+- Status: proposed — awaiting review
+- Claim: Decode Context Parallelism (DCP) shards the KV cache by sequence dimension across GPUs (each GPU holds only 1/N of every request's KV data) instead of partitioning by attention head; on an 8×B200 node serving Kimi K2.6, DCP reaches 6,091 tok/s/GPU at concurrency 512 (82% KV usage) vs. a standard tensor-parallelism baseline that maxes out memory at concurrency 64 (~1,863 tok/s/GPU) — roughly 3x higher throughput on long-context agentic workloads.
+- Why it matters: A multi-GPU horizontal-scaling serving mechanism distinct from every single-GPU KV-cache candidate already queued (reuse, sliding-window eviction, quantization, compression) — this is about scaling long-context concurrency across devices, not compressing/reusing cache on one device; squarely in the LLM-serving lane from the vLLM blog itself.
+- Testability: Needs multiple GPUs — not feasible on CPU-only Apple Silicon. A small directional check on 2 small GPUs via Modal (a small open model, comparing standard TP vs. sequence-sharded KV as concurrency/context length increases) could show the qualitative trend, but the effect is inherently about scale (many concurrent long-context requests on large multi-GPU nodes), so a toy repro is unlikely to reproduce the full 3x gap. Rough Modal cost: $20-25+ for multi-GPU coordination time — at or over the top of the $25 budget; best treated as a directional-only check, not a clean replication.
+- Source: vLLM blog, published 2026-08-07
+
+### [ClawVM: Harness-Managed Virtual Memory for Stateful Tool-Using LLM Agents](https://arxiv.org/abs/2604.10352)
+- Status: proposed — awaiting review
+- Claim: Frames agent context as OS-style virtual memory — typed pages with minimum-fidelity invariants, multi-resolution representations under a token budget, and validated writeback enforced at every lifecycle boundary (compaction, reset) — and reports this eliminates all policy-controllable context faults (lost state after compaction, bypassed flushes on reset, destructive writeback) whenever the minimum-fidelity set fits the token budget, across synthetic workloads, 12 real-session traces, and adversarial stress tests, at a median <50 microseconds of policy-engine overhead per turn.
+- Why it matters: Flagging clearly — this is adjacent to an already-crowded cluster (TokenPilot tested; ARC, GenericAgent, TencentDB-Agent-Memory, Self-GC, VISTA, PRO-LONG, ACM, AgentMemBench, A-TMA all queued), and every one of those is framed around token/cost savings or retrieval quality. ClawVM's distinct contribution is *correctness/determinism* — does compaction silently corrupt or drop state — a failure mode none of the already-queued candidates directly target, which is the only reason it clears the bar here despite the crowded space.
+- Testability: Feasible on Apple Silicon/API only. Implement a scaled-down typed-page/writeback-validation layer around a toy multi-turn tool-using session with induced compaction/reset events, compare fault rate (lost/corrupted state after compaction) with vs. without the ClawVM-style contract, using Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $10-15. Note: published April 2026 (EuroMLSys '26) — older than this run's usual window, included only because its mechanism doesn't overlap with any already-queued memory/context candidate.
+- Source: arXiv cs.DC/cs.AI (2604.10352), EuroMLSys '26, submitted 2026-04
+
+---
+
+## 2026-08-20 — proposed by research-scout
+
+### [Beyond Pass@k: Measuring Reliability and Security of Agentic Code Generation](https://arxiv.org/abs/2608.14711)
+- Status: proposed — awaiting review
+- Claim: Current agentic coding benchmarks misapply the pass@k reliability estimator by setting n to the number of unit tests instead of independent rollout attempts; on the authors' synthetic benchmark this inflates reported scores by 0.85–0.97 absolute (0.96–0.98 reported vs. 0.00–0.12 once corrected to their proposed reliability@k). They also propose security-adjusted reliability@k, which only counts rollouts that are both functionally correct and free of high-severity insecure code patterns.
+- Why it matters: A direct, quantified "the headline number is fake" methodology critique of coding-agent reliability metrics — squarely in this repo's DNA (three scoreboard rows already show structured harnesses losing to naive on close inspection) and not covered by any queued benchmark/eval-methodology entry, which target harness effects, memory, or orchestration plans rather than the reliability-metric definition itself.
+- Testability: Very feasible, API only, no GPU. Build a small coding-task suite (5-10 tasks with unit tests), run several independent rollouts per task with Haiku 4.5 and Sonnet 4.6, compute both the misapplied pass@k (n = unit-test count) and the corrected reliability@k, and check whether the inflation gap reproduces directionally at small scale. Rough cost: $5-15.
+- Source: arXiv cs.SE/cs.AI (2608.14711), submitted 2026-08-11
+
+### [Safety, or Just Capability? A Validity Audit of Agent-Safety Benchmarks](https://arxiv.org/abs/2607.28685)
+- Status: proposed — awaiting review
+- Claim: Audits four widely used agent-safety benchmarks (R-Judge, InjecAgent, AgentHarm, AgentDojo) across 21 models with a released API-only harness; finds capability predicts task success (ρ=+0.60) but correlates *negatively* with misalignment safety (ρ=-0.44); the three broad-coverage benchmarks rank the same 18 models inconsistently; and on R-Judge a trivial "always positive" policy scores F1=0.690 — beating 5 of the 21 real models that actually discriminate. Conclusion: a capability score is not a safety score, and no single benchmark stands in for "safety."
+- Why it matters: A statistically rigorous validity critique of the safety-benchmark ecosystem itself, distinct from queued harness-effect (SHE), memory-sycophancy (MemSyco-Bench), and behavioral-test (Set-shifting) entries — directly relevant if this repo ever reuses a safety eval for a harness or MCP-security experiment, and matches the repo's pattern of auditing whether a metric measures what it claims.
+- Testability: Feasible, API only, small scale. The paper's own audit harness is reproducible with API calls only; run 2-3 of the four benchmarks (a reduced task subset) with Haiku 4.5/Sonnet 4.6 substituting for a slice of the original 21-model panel, and check whether the trivial "always positive" baseline still beats real models and whether the capability/safety correlation sign reproduces. No GPU. Rough cost: $10-20.
+- Source: arXiv cs.AI/cs.CL (2607.28685), submitted 2026-07-31
+
+### [Agentic Coding in the Wild: Characterizing GitHub Copilot Traces at Production Scale](https://arxiv.org/abs/2608.00101)
+- Status: proposed — awaiting review
+- Claim: First production-scale characterization of AI coding-agent traffic (Microsoft Research + UIUC; 3.2M users, 13M sessions, 761M LLM calls, 95T tokens from GitHub Copilot, June 2026 sample). Sparse user-initiated turns unfold into autonomous agent loops with LLM calls coupled near-1:1 to tool execution; KV-cache hit rates average ~90% within a turn but fall to ~55% across turn boundaries and are drastically invalidated by model switches or context compaction; a lightweight idle-time predictor captures 86-90% of total inter-turn idle time, enabling proactive resource orchestration.
+- Why it matters: Large-scale empirical grounding for this repo's serving/cache lane, complementing the already-queued "Keeping the Cache Warm Pays" and "CacheWise" — but with a genuinely different angle (idle-time predictability for scheduling, and quantified within-turn-vs-across-turn cache decay specific to coding-agent traffic) rather than another cache-compression technique.
+- Testability: Directionally feasible without GPU/Modal; full production-scale replication (13M sessions) is out of budget. A small local repro: run a toy multi-turn coding-agent session against the Claude API with Haiku 4.5/Sonnet 4.6, log prompt-cache read/creation token fields per call, and check whether within-turn vs. across-turn cache-hit rates and idle-time gaps show the same qualitative shape (steep within-turn hit rate, sharp drop across turns). No GPU. Rough cost: $5-15; this only checks the shape of the finding, not the production-scale numbers.
+- Source: arXiv cs.OS/cs.AI/cs.DC/cs.MA (2608.00101), Microsoft Research + UIUC, submitted 2026-08-01
+
+### [Switchyard](https://github.com/NVIDIA-NeMo/Switchyard)
+- Status: proposed — awaiting review
+- Claim: A Rust proxy that routes LLM requests across models/providers (vLLM, NVIDIA NIM, Ollama, hosted APIs) while translating between OpenAI Chat, Anthropic Messages, and OpenAI Responses formats, with pluggable routing (random, LLM-as-classifier, signal-driven stage routing, custom) and built-in Prometheus metrics aimed at A/B benchmarking and cost/performance experiments. No published benchmark numbers; explicitly pre-alpha ("not for production use").
+- Why it matters: A distinct serving-infra mechanism from the already-queued vLLM Semantic Router — Switchyard is a general multi-provider, protocol-translating gateway built for routing experimentation rather than semantic-content-based routing specifically. NVIDIA-backed and GitHub-trending this week, worth tracking even pre-benchmark.
+- Testability: Feasible without GPU if scoped to hosted-API routing only (skip the vLLM/NIM/Ollama local-backend paths, which would need Modal or local GPU). Since there are no benchmark numbers to replicate, this would be a fresh controlled comparison (Switchyard's LLM-as-classifier routing vs. naive fixed-model routing) on a toy task mixing cheap/expensive queries, reusing this repo's harness-comparison scaffolding. Rough cost: $10-15. Flag: pre-alpha, unstable software per its own README — frame any result as a snapshot, not a validated claim.
+- Source: GitHub trending (Rust, llm-serving/agent-framework adjacent), week of 2026-08-20
+
+---
+
 ## 2026-08-25 — proposed by research-scout
 
 ### [Agent Lightning v1.0: Towards Harnessed Agentic RL](https://arxiv.org/abs/2608.17528)
