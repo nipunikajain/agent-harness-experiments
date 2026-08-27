@@ -37,7 +37,22 @@ instruction.
 - Invoke the scouts: `/scout-research`, `/scout-skills`
 - Experiment command: `/test-paper`  ·  Scoreboard: the table in `README.md`
 
-## Scheduling (later, not now)
+## Scheduled runs: queue.md commits auto-merge
 
-The research scout is manual on purpose. To automate it later, wrap `/scout-research` in a
-scheduled routine — no changes to the agent are needed. No scheduler is set up yet.
+A scheduled routine runs `/scout-research`, commits the `queue.md` additions to a `claude/`
+branch, opens a PR, and **merges it immediately** — no human look before it lands in `master`.
+This is a deliberate, narrow exception to the no-push/publish gate above, scoped to exactly
+one case: a PR whose only change is an append to `queue.md` from a scout run. It does not
+extend to any other PR (experiment code, harness changes, scoreboard edits) — those stay
+human-gated as usual.
+
+Rationale: merging doesn't skip the actual review step — the human still reads `queue.md` and
+picks an entry at step 2 of the pipeline, regardless of whether the file lives in `master` or
+an open PR. Since the repo has no CI gating merges, and GitHub's native auto-merge requires a
+repo setting ("Allow auto-merge") that isn't enabled, the merge is done directly
+(`merge_pull_request`) rather than via GitHub's auto-merge feature.
+
+To avoid conflicts (rather than resolving them after the fact): before pushing, rebase the
+`claude/` branch onto the latest `master`. Since `queue.md` is append-only, this should make
+conflicts structurally rare-to-impossible. If a real conflict still occurs, do not
+auto-resolve it — stop and leave the PR open for human review instead of guessing.
