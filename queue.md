@@ -885,3 +885,49 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A serving-systems-level empirical grounding for exactly what this repo's harness experiments already suggest informally (overhead often lives outside the model call itself) — distinct from the already-queued "Agentic Coding in the Wild" (Copilot production-trace characterization focused on cache decay/idle time) by being a general-purpose, app-agnostic measurement toolkit/benchmark rather than one product's traffic, and squarely in the LLM-serving lane from `sources.yaml`.
 - Testability: Directionally feasible without GPU/Modal at toy scale — full production-serving-system replication (10 apps, systems instrumentation at scale) is out of budget, but the core measurement idea is cheap to check: instrument a small multi-tool toy agent task (Haiku 4.5/Sonnet 4.6) to log wall-clock/cost breakdown between LLM calls vs. tool execution vs. state-management overhead, and check whether tool/environment cost dominates as the task lengthens. API-only, no GPU. Rough cost: $5-10.
 - Source: arXiv cs.DC/cs.AI (2608.15127), HKUST/Alibaba/ByteDance, submitted 2026-08-15
+
+---
+
+## 2026-09-02 — proposed by research-scout
+
+### [Governance Decay: How Context Compaction Silently Erases Safety Constraints in Long-Horizon LLM Agents](https://arxiv.org/abs/2606.22528)
+- Status: proposed — awaiting review
+- Claim: Across 1,323 episodes on 7 model families (ConstraintRot benchmark, deterministic tool-call grading), tool-call policy-violation rate rises from 0% with the governing constraint in full context to 30% average (up to 59% for some models) once context compaction/summarization silently drops the constraint; an adversarial "Compaction-Eviction Attack" that biases the summarizer to omit a legitimate policy defeats every evaluated model, while a training-free "Constraint Pinning" mitigation (quarantining governance constraints from lossy compaction) restores violations to 0%.
+- Why it matters: The sharpest, most quantified safety failure mode yet in this repo's crowded compaction/context-management thread — distinct from queued AuthMem-Bench (authority collapse of factual claims during memory consolidation) and MemSyco-Bench (sycophancy toward retrieved memory) — this is specifically about compaction erasing safety/policy instructions, directly relevant to the tested TokenPilot result and every queued compaction mechanism (Self-GC, ACM, PRO-LONG, etc.), none of which measure whether compaction drops safety-relevant instructions.
+- Testability: Very feasible, API-only, no GPU. Build a small toy long-horizon tool-use task with an explicit "don't do X" policy in context, trigger compaction/summarization partway through with Haiku 4.5/Sonnet 4.6, measure violation rate before/after compaction, then test whether a simple constraint-pinning mitigation (exempting the policy text from summarization) restores it to 0%. Rough cost: $5-10.
+- Source: arXiv cs.AI/cs.CL (2606.22528), submitted 2026-06-21, v2 revised
+
+### [Is Grep All You Need? How Agent Harnesses Reshape Agentic Search](https://arxiv.org/abs/2605.15184)
+- Status: proposed — awaiting review
+- Claim: On a 116-question LongMemEval sample, grep-style text search wrapped in the right agent harness (varying inline vs. file-based tool-result presentation, across a custom harness and provider-native CLI harnesses — Claude Code, Codex, Gemini CLI) matches or beats embedding-based vector retrieval — retrieval-strategy effectiveness depends heavily on how the harness presents tool results, not just the retrieval method itself.
+- Why it matters: A distinct comparative-study contribution from the already-queued PRO-LONG (which proposes grep + append-only-log as one technique with its own ARC-AGI-3 numbers) — this systematically varies both retrieval strategy AND harness/presentation format, directly testing whether the harness variable dominates the retrieval-method variable, squarely matching this repo's own harness-comparison methodology.
+- Testability: Very feasible, API-only, no GPU. Build a small LongMemEval-style QA subset, implement grep and a simple embedding-based retrieval, test each under inline-results vs. file-based-results presentation with Haiku 4.5/Sonnet 4.6. Rough cost: $5-10.
+- Source: arXiv cs.AI/cs.CL (2605.15184), submitted 2026-05-14 (PricewaterhouseCoopers)
+
+### [Parallel Context Compaction for Long-Horizon LLM Agent Serving](https://arxiv.org/abs/2605.23296)
+- Status: proposed — awaiting review
+- Claim: Sequential, synchronous LLM-based context compaction blocks agent inference for tens of seconds and produces unpredictable summary volume/retained information run-to-run; parallelizing compaction across four backbones (8B-120B, dense and MoE) on HotpotQA and LoCoMo gives fine-grained, predictable control over summary volume and reduces end-to-end wall time at matched compaction decode volume vs. the sequential baseline.
+- Why it matters: A serving/throughput angle on compaction distinct from every queued context-management mechanism (which target *what* to keep/prune, not *how* compaction is scheduled/executed) — complements this repo's tested TokenPilot result by targeting the compaction call's own latency and predictability rather than its content.
+- Testability: Very feasible, API-only, no GPU. Build a toy long-horizon multi-turn task, trigger compaction at a few points, compare sequential vs. parallel (concurrent async) compaction calls using Haiku 4.5/Sonnet 4.6, measuring wall-clock time and summary-volume variance across repeated runs. Rough cost: $5-10.
+- Source: arXiv cs.DC/cs.CL (2605.23296), submitted 2026-05-22 (Penn State)
+
+### [Diagnosing and Mitigating Context Rot in Long-horizon Search](https://arxiv.org/abs/2606.29718)
+- Status: proposed — awaiting review
+- Claim: Evaluating 4 flagship open-source models across 3 deep-search benchmarks, as trajectory length grows the dominant agent error type shifts from confident-wrong answers to premature uncertainty/giving up — i.e. "context rot" in long-horizon search manifests primarily as loss of nerve, not loss of correctness, and the shift worsens as context grows.
+- Why it matters: A distinct empirical diagnostic from every queued context-management mechanism (all propose a fix; this characterizes *what specifically breaks* and how, in the deep-search setting) — directly useful for interpreting results in any future harness/context experiment here that includes a search or multi-hop QA task.
+- Testability: Very feasible, API-only, no GPU. Build a small multi-hop deep-search toy task with varying trajectory-length conditions, run Haiku 4.5/Sonnet 4.6, classify errors as confident-wrong vs. uncertain/give-up, and check whether the same shift appears as trajectory length grows. Rough cost: $5-10.
+- Source: arXiv cs.CL/cs.AI (2606.29718), submitted 2026-06-29; code at github.com/GAIR-NLP/ContextRot
+
+### [SafeHarness: Lifecycle-Integrated Security Architecture for LLM-based Agent Deployment](https://arxiv.org/abs/2604.13630)
+- Status: proposed — awaiting review
+- Claim: Integrates defense mechanisms directly into all four phases of agent execution (rather than bolting security onto individual layers), with cross-layer, inter-phase feedback enabling coordinated response to composite attacks; consistently reduces unsafe behaviors and attack success rate across harness configurations without compromising task utility.
+- Why it matters: A harness-level (not MCP-protocol-specific) security architecture, distinct from the queued MCP-protocol security cluster (Breaking the Protocol, MCP-DPT, caller-identity-confusion) and from safety-focused harness-evolution (SHE) — this targets the execution harness itself (tool use, context management, state persistence) as the security substrate, applicable to any harness this repo might build regardless of transport.
+- Testability: Feasible small-scale, API-only, no GPU. Implement a simplified 2-3-phase version of the lifecycle-integrated defense (e.g. input-phase + tool-call-phase + output-phase checks sharing state) on a toy adversarial-prompt suite, compare attack-success-rate and benign-task utility vs. a single-layer defense baseline, using Haiku 4.5/Sonnet 4.6. Rough cost: $10-15.
+- Source: arXiv cs.CR/cs.AI (2604.13630), submitted 2026-04-13
+
+### [The Y-Combinator for LLMs: Solving Long-Context Rot with λ-Calculus](https://arxiv.org/abs/2603.20105)
+- Status: proposed — awaiting review
+- Claim: λ-RLM replaces free-form recursive-LLM (RLM) REPL code generation with a typed functional runtime grounded in λ-calculus — a compact library of pre-verified combinators plus neural inference only on bounded leaf subproblems — giving formal termination/cost-bound guarantees; across 4 long-context reasoning tasks and 9 base models it beats standard RLM in 29/36 comparisons, improving accuracy up to +21.9 points and cutting latency up to 4.1x.
+- Why it matters: A formally-grounded alternative to the already-queued Recursive Agent Harnesses (which spawns full subagent harnesses via generated scripts, with no verification guarantees) — worth checking whether trading free-form recursion for a verified combinator library actually earns back overhead better than the unstructured version, matching this repo's recurring "does structure pay for itself" question.
+- Testability: Feasible small-scale, API-only, no GPU. Implement a small library of 3-5 pre-verified combinators (map/filter/reduce-style) for a toy long-context QA task, compare against free-form recursive decomposition (mimicking standard RLM) using Haiku 4.5 for leaf subproblems and Sonnet 4.6 as the top-level orchestrator. Rough cost: $10-15; won't match the 9-model/4-task scale, directional check only.
+- Source: arXiv cs.CL/cs.AI (2603.20105), submitted 2026-03-20
