@@ -885,3 +885,56 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A serving-systems-level empirical grounding for exactly what this repo's harness experiments already suggest informally (overhead often lives outside the model call itself) — distinct from the already-queued "Agentic Coding in the Wild" (Copilot production-trace characterization focused on cache decay/idle time) by being a general-purpose, app-agnostic measurement toolkit/benchmark rather than one product's traffic, and squarely in the LLM-serving lane from `sources.yaml`.
 - Testability: Directionally feasible without GPU/Modal at toy scale — full production-serving-system replication (10 apps, systems instrumentation at scale) is out of budget, but the core measurement idea is cheap to check: instrument a small multi-tool toy agent task (Haiku 4.5/Sonnet 4.6) to log wall-clock/cost breakdown between LLM calls vs. tool execution vs. state-management overhead, and check whether tool/environment cost dominates as the task lengthens. API-only, no GPU. Rough cost: $5-10.
 - Source: arXiv cs.DC/cs.AI (2608.15127), HKUST/Alibaba/ByteDance, submitted 2026-08-15
+
+---
+
+## 2026-09-14 — proposed by research-scout
+
+### [Harness or Model? Isolating the Harness Effect in Agentic Coding with a Contamination-Controlled Private Suite](https://arxiv.org/abs/2609.11987)
+- Status: proposed — awaiting review
+- Claim: Measures, via paired same-model contrasts on a private, contamination-controlled suite of 256 repository/post-cutoff-contest tasks, whether a vendor's harness tuned to its own model actually beats alternative harnesses on that same model — i.e. isolates the harness effect from the model effect across Opus 4.8, GPT-5.5, Gemini 3.5-flash, and DeepSeek v3.2.
+- Why it matters: This is the exact question this repo's own naive-vs-structured harness experiments already probed and found mostly null/negative on toy tasks — a controlled, decontaminated, cross-vendor version of the same question at larger scale, directly comparable to the scoreboard's existing harness-effect rows.
+- Testability: Very feasible, API-only, no GPU. Build a small (10-20 task) fresh/decontaminated task set, cross 2 harnesses (repo's existing naive vs. a richer "vendor-style" scaffold) with 2 models (Haiku 4.5, Sonnet 4.6) in a paired 2×2 design. Rough cost: $15-20.
+- Source: arXiv cs.SE/cs.AI (2609.11987), submitted 2026-09-08.
+
+### [WHALE: A Simple Recipe for Joint Harness-Weight Optimization](https://arxiv.org/abs/2609.00196)
+- Status: proposed — awaiting review
+- Claim: Alternating model-weight updates (online rejection-sampling fine-tuning) with harness search (Meta-Harness) outperforms optimizing either the weights or the harness alone, because each phase unlocks headroom the other can then exploit.
+- Why it matters: Directly tests whether harness-only changes (this repo's usual intervention) are inherently capped without paired weight updates — relevant context for interpreting the repo's own repeated null/negative harness results.
+- Testability: Partially out of budget. The weight-update half needs actual fine-tuning (even rejection-sampling FT), which needs a GPU — on Modal, a scaled-down repro with a small open model (e.g. Llama-3-8B) would likely run $30-60, over the $25/experiment budget. The harness-search half alone (Meta-Harness against a frozen model, API-only) is cheap (~$10) and could be tested in isolation, but that's only half the paper's claim.
+- Source: arXiv cs.LG (2609.00196), Krafton AI/Stanford, submitted 2026-08-31; code at github.com/krafton-ai/WHALE.
+
+### [The Double Measurement Confound in Agent Benchmarks: De-Scaffolding, Ground-Truth Scoring, and Reliability Beyond the Mean](https://arxiv.org/abs/2609.09218)
+- Status: proposed — awaiting review
+- Claim: Agent benchmark scores conflate two independent artifacts — a fixed scaffold making execution-critical decisions instead of the model under test, and a scorer using criteria that may not reflect task correctness — and shows the two mask each other (fixing only the scorer leaves models tied; fixing only the scaffold leaves differences misgraded). Introduces BenchAudit (an executable audit-and-repair protocol producing a per-benchmark validity card) and ComtradeBench.
+- Why it matters: Distinct from the already-queued benchmark-validity papers ("Benchmarking the Benchmarks" ×2) by isolating and naming this specific two-part confound and shipping a general repair protocol rather than only measuring disagreement rates — a sharper match for this repo's habit of checking whether a headline number survives scrutiny.
+- Testability: Very feasible, API-only, no GPU. Reuse the repo's existing toy harness eval; independently vary scaffold rigidity (fixed vs. model-decides) and scorer strictness (exact-match vs. LLM-judge) to check whether de-scaffolding alone vs. re-scoring alone actually reorders model rankings as the paper predicts. Rough cost: $10-15.
+- Source: arXiv cs.SE (2609.09218), submitted 2026-09-09.
+
+### [Scanning the Harness: An Empirical Study of Supply-Chain Defects in AI Coding-Agent Configurations](https://arxiv.org/abs/2609.07360)
+- Status: proposed — awaiting review
+- Claim: Empirical audit of 3,171 public GitHub repos assembling coding-agent configs (instruction files, skills, commands, hooks, MCP server declarations, subagent definitions) finds 16.0% carry a confirmed security defect — e.g. 9.8% install an MCP server with no version pinned, 3.1% pre-approve arbitrary execution behind a scoped-looking grant like `Bash(python:*)`, 3.8% carry a skill that pre-approves the shell for whoever installs it.
+- Why it matters: A large-N real-world baseline for exactly the supply-chain risk class this repo's own `.claude/` config (hooks, subagent defs, MCP declarations) is structurally exposed to — distinct from already-queued MCP-protocol-security papers by auditing actual shipped configs rather than protocol design.
+- Testability: Very cheap — no LLM calls needed at all. Write a small static-analysis script (grep/AST) implementing the paper's specific defect classes (unpinned MCP versions, overly broad `Bash(...:*)` grants, shell-pre-approving skills) and run it against a sample of public agent-config repos, or even this repo's own `.claude/` directory as a sanity check. Near-zero cost, no GPU, no API spend.
+- Source: arXiv cs.SE (2609.07360), submitted 2026-09-07.
+
+### [CONTINUITY: Security-Context Contracts for Composable LLM Agent Controls](https://arxiv.org/abs/2609.05269)
+- Status: proposed — awaiting review
+- Claim: Individually-correct agent security mechanisms (provenance tracking, authorization, policy enforcement, protocol adapters, execution controls) do not compose into an end-to-end secure system because security-critical context can be dropped, widened, rebound, or reinterpreted across component boundaries ("security-context discontinuity"). Proposes assume-guarantee contracts carrying authenticated context via signed grants, provenance commitments, transition receipts, and effect-bound execution permits.
+- Why it matters: A composition-level framing of "security holes appear at the seams between independently-correct components" — relevant to any pipeline (like this repo's own discover→propose→gate→run design) that chains multiple guarded steps and assumes each gate being individually sound is enough.
+- Testability: Partially feasible without a GPU — full formal verification is out of scope, but a toy repro is doable: chain 2-3 mock security components (e.g. an authz check → a tool-call gate → an execution sandbox) with a deliberately leaky context handoff, and check whether a simplified version of the paper's contract mechanism actually catches injected context-dropping. API-only for any LLM-in-the-loop parts, no GPU. Rough cost: $10.
+- Source: arXiv cs.CR (2609.05269), submitted 2026-09-04.
+
+### [DAREBench: Deployment-Aware and Reliable Evaluation of Models as Agents](https://arxiv.org/abs/2609.06059)
+- Status: proposed — awaiting review
+- Claim: Across 233 tasks (adapted from 22 source benchmarks) run on a shared "OpenClaw" execution environment, evaluating 23 commercial API models and 12 local open-weight models over 7,587 model-task runs, no single model dominates all workload groups, and text vs. multimodal tasks show distinct accuracy-cost trade-offs — arguing against single-aggregate-score model selection for agent deployment.
+- Why it matters: An empirical caution directly relevant to how this repo should pick which model/config to test next, and complements the repo's own accuracy-vs-cost framing already established in the TokenPilot result.
+- Testability: Full-scale replication (35 models, 7,587 runs) is out of budget. Directionally testable at toy scale: pick 2-3 workload types (e.g. text tool-use vs. a lightweight multimodal task) and 2 models (Haiku 4.5, Sonnet 4.6), and check whether the accuracy-cost ranking flips across workload type as the paper claims. API-only, no GPU. Rough cost: $10-15.
+- Source: arXiv cs.AI (2609.06059), submitted 2026-09-06.
+
+### [Compact-Memory LLM Agents via Online Max-Member Clustering and Atom-Aware Packing](https://arxiv.org/abs/2609.04915)
+- Status: proposed — awaiting review
+- Claim: RSM-full, an online clustered-memory pipeline (cosine-gated max-member merge write rule + atom-aware grouped context packer), reaches 83% of full-context quality at 32% of the token cost on AMA-Bench at a 4k-token budget.
+- Why it matters: A concrete, numeric quality-vs-token Pareto point for memory compression, directly testable head-to-head against this repo's tested TokenPilot result and the already-queued PRO-LONG/ACM/Self-GC context-management candidates on the same toy long-horizon task.
+- Testability: Very feasible, API-only, no GPU. Implement a scaled-down cosine-similarity merge-and-pack write rule on the repo's existing toy long-horizon tool task; compare quality/token cost against full-context and a naive-truncation baseline, Haiku 4.5/Sonnet 4.6. Rough cost: $10-15.
+- Source: arXiv cs.CL (2609.04915), submitted 2026-09-04.
