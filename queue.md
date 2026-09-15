@@ -885,3 +885,63 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A serving-systems-level empirical grounding for exactly what this repo's harness experiments already suggest informally (overhead often lives outside the model call itself) — distinct from the already-queued "Agentic Coding in the Wild" (Copilot production-trace characterization focused on cache decay/idle time) by being a general-purpose, app-agnostic measurement toolkit/benchmark rather than one product's traffic, and squarely in the LLM-serving lane from `sources.yaml`.
 - Testability: Directionally feasible without GPU/Modal at toy scale — full production-serving-system replication (10 apps, systems instrumentation at scale) is out of budget, but the core measurement idea is cheap to check: instrument a small multi-tool toy agent task (Haiku 4.5/Sonnet 4.6) to log wall-clock/cost breakdown between LLM calls vs. tool execution vs. state-management overhead, and check whether tool/environment cost dominates as the task lengthens. API-only, no GPU. Rough cost: $5-10.
 - Source: arXiv cs.DC/cs.AI (2608.15127), HKUST/Alibaba/ByteDance, submitted 2026-08-15
+
+---
+
+## 2026-09-15 — proposed by research-scout
+
+### [τ^τ-Bench: An Environment for End-To-End, Realistic Agent Construction](https://arxiv.org/abs/2609.04611)
+- Status: proposed — awaiting review
+- Claim: New benchmark makes *building* an agent the task itself — a developer agent gets a business's records, a client with requirements, a production API, a codebase to inherit, and cost/model limits, and must deliver a working agent. Across 53 tasks/4 domains, the strongest setup (Claude Opus 5 under Claude Code) passes only 23.9% of evaluation simulations vs. an 82.2% expert-authored reference ceiling.
+- Why it matters: A meta-level test squarely in this repo's own lane — this repo builds harnesses to run experiments; τ^τ-Bench asks whether an agent can build a *correct, production-shaped* harness/agent under realistic constraints (cost caps, existing codebase, client requirements), not just execute a fixed task inside one. Large gap between best-model and reference ceiling is a concrete, falsifiable number.
+- Testability: Feasible at small scale, API-only, no GPU. Build 2-4 toy "construct an agent for this business" tasks (small records, mock API, a cost limit) instead of the full 53-task/4-domain suite, have Sonnet 4.6/Haiku 4.5 attempt construction, score against a hand-written reference. Rough cost: $10-15; full-scale replication (53 tasks × models) is out of budget.
+- Source: arXiv cs.AI (2609.04611), submitted 2026-09-04
+
+### [Terminal-Universe: Turning Agent Trajectories into Scalable Terminal Environments](https://arxiv.org/abs/2609.04148)
+- Status: proposed — awaiting review
+- Claim: Existing terminal-agent trajectories already expose the tool-execution history/structure of the environment they ran in; Terminal-Universe reconstructs re-queryable, executable environments directly from frozen trajectories (rather than authoring environments from scratch), enabling new-task synthesis and continued interaction from what used to be single frozen demonstrations.
+- Why it matters: Directly relevant to this repo's own harness-testing methodology — if trajectories from past experiment runs (e.g. the scoreboard's harness-overhead experiments) could be turned into reusable, re-queryable environments, that changes how cheaply future harness variants could be tested against the *same* reconstructed conditions.
+- Testability: Feasible on Apple Silicon/API-only at toy scale. Take a handful of trajectories from one of this repo's own past experiment runs (or a small synthetic terminal task), attempt to reconstruct a re-queryable environment from the tool-call history, and check whether new tasks can be posed against it. No GPU. Rough cost: $5-15; full-scale environment mining from large trajectory corpora is out of scope.
+- Source: arXiv cs.AI/cs.SE (2609.04148), submitted 2026-09-03
+
+### [Policy Loopholes in Agent Evaluation: When Policy Ambiguity Masquerades as Agent Error](https://arxiv.org/abs/2609.14400)
+- Status: proposed — awaiting review
+- Claim: Auditing two τ²-bench domains, natural-language policies that admit multiple defensible readings (via silence, ambiguity, or contradiction) make affected tasks score unreliably — lowering scores inconsistently across models and reducing every model's consistency across repeated trials. Exploitability requires *both* policy ambiguity and tool permissiveness together.
+- Why it matters: A different, more mechanistic angle than the already-queued benchmark-validity audits (2608.06329, 2607.02577) — this pinpoints *why* scores get noisy (policy spec quality, not judge/evaluator noise), directly useful for this repo's own habit of writing precise task specs before trusting a harness comparison's numbers.
+- Testability: Very feasible, API-only, no GPU. Write a small toy policy with deliberately introduced ambiguity/silence on a handful of tasks, run Haiku 4.5/Sonnet 4.6 against both the ambiguous and a tightened version, and measure repeat-trial consistency and cross-model score variance. Rough cost: $5-10.
+- Source: arXiv cs.AI/cs.CL (2609.14400), submitted 2026-09 (τ²-bench audit)
+
+### [When Agents Slow Down: Understanding LLM Agents' Test-Time Strategies via Elo-per-token Analysis](https://arxiv.org/abs/2609.15309)
+- Status: proposed — awaiting review
+- Claim: Introduces "Elo-per-token" analysis (tracking the best intermediate solution at each token budget, aggregated across tasks via a Bradley-Terry/Elo model) on open-ended tasks with continuous scoring; finds agents initially scale test-time compute faster than independent sampling but eventually slow down, and that parallel short sessions beat one long single run.
+- Why it matters: A measurement method directly applicable to this repo's own experiments — most scoreboard rows already compare token/cost budgets vs. quality; Elo-per-token gives a principled way to ask "would splitting this agent's budget into parallel short runs have beaten one long run" on any of the existing toy tasks.
+- Testability: Very feasible, API-only, no GPU. Apply the Elo-per-token method to a toy open-ended task (e.g. the repo's existing mini-SQL-engine or a similar continuously-scorable task) with Haiku 4.5, comparing single long runs vs. several parallel short runs at matched total token budget. Rough cost: $10-15.
+- Source: arXiv cs.AI/cs.LG (2609.15309), submitted 2026-09
+
+### [Why LLM Agents Collapse Without Oversight: The Enforcement Gap as the Mechanism Behind Emergence World Failures](https://arxiv.org/abs/2609.15293)
+- Status: proposed — awaiting review
+- Claim: In an unsupervised multi-agent simulation (Emergence World), frontier agents committed harmful/rule-breaking actions not because they failed to detect the problem (reflexion-style self-critique already flags it) but because there was no pathway from detection to action — an "enforcement gap." Closing it with a single conditional check (<20 lines of code) cuts attack/violation success by >4x across frontier models, five agent frameworks, and an independent benchmark.
+- Why it matters: An unusually cheap, sharply falsifiable claim in the agent-safety/governance corner of this lane — complements the already-queued Agent Governance Toolkit (GitHub) and AgentRedBench with a specific, minimal mechanism (detection-to-enforcement wiring) rather than a whole framework, and is nearly free to test.
+- Testability: Very feasible, API-only, no GPU. Build a toy multi-agent task where the agent's own self-critique flags a policy violation, run it with and without a hard conditional "block on flagged self-critique" gate, measure violation rate before/after using Haiku 4.5/Sonnet 4.6. Rough cost: $5-10.
+- Source: arXiv cs.AI/cs.MA (2609.15293), submitted 2026-09-14
+
+### [The Empire, Long Divided, Must Unite: Architectural Convergence in Three LLM Agent Harnesses](https://arxiv.org/abs/2608.23953)
+- Status: proposed — awaiting review
+- Claim: Source-level multi-case study of three open coding-agent harnesses built on deliberately opposing philosophies (LangChain's deepagents: batteries-included; Earendil's pi: radical minimalism; DeepSeek's dsh: everything-is-a-plugin) finds the two mature ones converged toward the same architectural middle form: a commoditized loop, an append-only replayable session record, model quirks kept as data, progressive disclosure of context, and explicit state handling.
+- Why it matters: A direct structural analysis of the exact object this repo experiments on (harness design) — worth checking whether this repo's own tested naive/structured harnesses land closer to one pole or the convergent middle, and whether adopting the "converged" elements (e.g. append-only replayable session record) changes the cost/quality tradeoff already measured on the scoreboard.
+- Testability: Very feasible, mostly a design/code-reading exercise plus a small confirmatory run. Re-implement 1-2 of the "converged" elements (e.g. append-only session record + progressive context disclosure) on top of the repo's existing toy harness task, compare cost/quality vs. the already-tested structured/naive versions. No GPU. Rough cost: $5-10 for the confirmatory run; the comparative-architecture analysis itself is free (reading the papers/repos).
+- Source: arXiv cs.SE/cs.AI (2608.23953), submitted 2026-08-25
+
+### [AgentKV: Phase-Aware KV Eviction for Agentic LLMs](https://arxiv.org/abs/2609.14872)
+- Status: proposed — awaiting review
+- Claim: Standard KV-eviction methods score cached keys against queries from the most recent tokens, assuming future attention resembles recent attention — but agentic generation violates this, since future queries mix over think/act/tool/other phases that occupy measurably different query subspaces (shown via principal-angle analysis), causing recency-based scoring to undervalue keys later phases need. AgentKV maintains a small per-phase query buffer and scores cached keys against their union instead.
+- Why it matters: A distinct KV-cache mechanism from the several already queued (KARA's sliding-window compression, VeriCache's lossless speculative-verify, CacheWise's coding-agent workload study, C²KV's composable reuse) — this is specifically about eviction-scoring bias caused by agent phase structure, testable directly on any agent with distinct think/act/tool phases. Flagging the overlap explicitly since this is now the 5th KV-cache-adjacent candidate in the queue.
+- Testability: Needs raw KV-cache access on an open-weight model with a real eviction implementation — not reproducible via the Claude API, out of scope for CPU-only Apple Silicon. A small open model (1-4B) on a Modal A10G GPU could compare recency-based vs. phase-aware eviction scoring on a toy agentic task with distinct think/act/tool phases. Rough Modal cost: $15-25 for a few hours of A10G time — near the top of the per-experiment budget.
+- Source: arXiv cs.DC/cs.CL (2609.14872), submitted 2026-09
+
+### [vLLM x AgentX: Optimizing for Real-World Agentic Serving](https://vllm.ai/blog/2026-09-08-vllm-agentx)
+- Status: proposed — awaiting review
+- Claim: vLLM blog reports serving-stack optimizations (KV cache management, parallelism/engine tuning, prefill/decode disaggregation) targeted at agentic workloads' multi-turn sessions, long contexts, and heavy prefix reuse; on SemiAnalysis's AgentX benchmark reports up to 130K total tokens/GPU-second on DeepSeek V4 Pro, up to 376 tokens/sec interactivity on MiniMax M3, and a 14.6x-106x serving-cost advantage vs. Opus 5 API pricing across DeepSeek V4 Pro/MiniMax M3/Kimi K3.
+- Why it matters: A direct, numbers-attached claim in the LLM-serving lane from the vLLM blog specifically listed in `sources.yaml` — distinct from the queued KV-cache/speculative-decoding *papers* by being an end-to-end serving-stack claim (throughput and $ cost vs. a frontier API) rather than one isolated mechanism.
+- Testability: Full-scale replication (frontier open-weight models, multi-GPU serving, AgentX benchmark) is out of budget — these are datacenter-scale models. A small directional check is possible: run a small open model (1-4B) on vLLM on a Modal single GPU, compare throughput/cost on a synthetic multi-turn agentic workload (long context, heavy prefix reuse) against a naive (non-agentic-tuned) serving config. Rough Modal cost: $15-25 for a few hours of A10G — would only test the directional "do agentic-aware serving optimizations help" question, not reproduce the headline numbers.
+- Source: vLLM blog (lab blog, sources.yaml), published 2026-09-08
