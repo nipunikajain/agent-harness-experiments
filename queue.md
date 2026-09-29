@@ -885,3 +885,42 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A serving-systems-level empirical grounding for exactly what this repo's harness experiments already suggest informally (overhead often lives outside the model call itself) — distinct from the already-queued "Agentic Coding in the Wild" (Copilot production-trace characterization focused on cache decay/idle time) by being a general-purpose, app-agnostic measurement toolkit/benchmark rather than one product's traffic, and squarely in the LLM-serving lane from `sources.yaml`.
 - Testability: Directionally feasible without GPU/Modal at toy scale — full production-serving-system replication (10 apps, systems instrumentation at scale) is out of budget, but the core measurement idea is cheap to check: instrument a small multi-tool toy agent task (Haiku 4.5/Sonnet 4.6) to log wall-clock/cost breakdown between LLM calls vs. tool execution vs. state-management overhead, and check whether tool/environment cost dominates as the task lengthens. API-only, no GPU. Rough cost: $5-10.
 - Source: arXiv cs.DC/cs.AI (2608.15127), HKUST/Alibaba/ByteDance, submitted 2026-08-15
+
+---
+
+## 2026-09-29 — proposed by research-scout
+
+### [HarnessDev: Can LLMs Create and Evolve Their Own Agent Harness?](https://arxiv.org/abs/2609.01437)
+- Status: proposed — awaiting review
+- Claim: A benchmark that evaluates models on building (Creation) and iteratively revising (Evolution) a runnable agent harness; models match or beat the human reference harness in writing and ML experimentation, lag far behind in search/research and code, and Evolution is harder: useful intermediate updates get erased and more updates do not guarantee a final gain.
+- Why it matters: Directly in the harness lane and complements the scoreboard's null/negative harness results by asking whether the model itself can build the harness, plus a finding (updates erased by later changes) that could be checked cheaply.
+- Testability: Full benchmark is likely too large, but a directional repro is feasible on Apple Silicon over the API: have Haiku 4.5/Sonnet 4.6 create and then evolve a tiny harness for one small domain (e.g. the existing mini-SQL task) for 3-4 revision rounds and track whether per-round gains persist. No GPU. Rough cost: $8-20.
+- Source: arXiv (2609.01437), submitted 2026-09
+
+### [Harness Engineering in LLM Tool Use via Agent-Native Reusable Tool Primitives (HEART / ToolFace)](https://arxiv.org/abs/2609.01736)
+- Status: proposed — awaiting review
+- Claim: Wrapping each tool behind a natural-language LLM interface (Tool Primitives) and retrieving tools on demand from a 25,519-function repository, orchestrated by a Planner/Router/Verifier (HEART), reduces brittle multi-step tool calling and degradation under large tool catalogues vs. schema-based invocation.
+- Why it matters: Tests a concrete harness/tool-interface design against raw schema enumeration, close to the MCP tool-description and tool-overload questions in the lane.
+- Testability: Feasible directionally over the API: a toy of about 30-50 tools, comparing schema-in-context vs. NL-wrapped retrieved tools on multi-hop tasks with Haiku 4.5. The full 25k-function ToolFace repo is not needed. No GPU. Rough cost: $5-15. Risk: extra LLM wrapper calls may cost more than they save, as with the earlier structured-harness results.
+- Source: arXiv (2609.01736), submitted 2026-09
+
+### [Harness-Zero: Harness Distillation via Agent-as-Harness](https://arxiv.org/abs/2609.24974)
+- Status: proposed — awaiting review
+- Claim: Distills the behavior induced by a domain-optimized harness into model weights by having a harnessing agent correct student responses in the target harness's action space and fine-tuning on the resulting trajectories, so the specialized harness can be dropped at deployment while keeping its gains.
+- Why it matters: Asks whether harness gains can be internalized rather than paid for at every call, the flip side of the harness-overhead results on the scoreboard. Code is public (github.com/metaevo-ai/harness-zero).
+- Testability: The fine-tuning step needs a GPU and a small open model (about 1-8B, LoRA), roughly $15-25 on Modal; the API-only part (generating corrected trajectories) is cheap. Tight against the $25 budget, so likely a reduced-scale directional run only.
+- Source: arXiv (2609.24974) + GitHub metaevo-ai/harness-zero, submitted 2026-09
+
+### [NebulaSD: Many-for-Many Speculative Decoding](https://arxiv.org/abs/2609.29364)
+- Status: proposed — awaiting review
+- Claim: An M-for-N speculative decoding system with independently schedulable draft and target worker pools and dynamic batch reconstruction improves request-round processing rate by 50.4% over a physically disaggregated baseline and 72.6% over co-located execution on a 4-GPU deployment.
+- Why it matters: LLM-serving lane; a systems claim about draft/target scheduling and GPU utilization under multi-request load.
+- Testability: Headline needs a 4-GPU multi-worker deployment, so a faithful repro is roughly $40-100+ on Modal (likely out of budget). A cheap partial check would be a single-GPU simulation of pooled vs. co-located draft/target scheduling with a small draft/target pair (about $10-20), which would not validate the headline numbers.
+- Source: arXiv (2609.29364), Univ. of Hong Kong, submitted 2026-09-23
+
+### [When Agents Look Like Beacons: NIDS Evasion by Model Context Protocol Traffic](https://arxiv.org/abs/2609.19091)
+- Status: proposed — awaiting review
+- Claim: MCP Streamable-HTTP traffic (authenticated, high-frequency JSON-RPC with lognormal inter-arrival times) resembles Cobalt Strike-style C2 beaconing and evades standard enterprise NIDS heuristics; proposes Agent-Native ALPN and out-of-band headers as an agent traffic indication standard.
+- Why it matters: MCP infrastructure/security angle that is not covered in the queue; accepted at IEEE ICNP NIPA 2026.
+- Testability: Cheap and CPU-only in principle: run a Haiku 4.5 agent against a local MCP server, capture traffic timing, and compare inter-arrival statistics to a synthetic beacon profile. Testing against a real NIDS ruleset (Suricata/Zeek) adds setup effort but no GPU. Rough cost: $2-5. Caveat: a network-security claim, so the fit with the scoreboard's accuracy/cost format is loose.
+- Source: arXiv cs.NI/cs.CR (2609.19091), submitted 2026-09
