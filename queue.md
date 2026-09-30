@@ -885,3 +885,30 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A serving-systems-level empirical grounding for exactly what this repo's harness experiments already suggest informally (overhead often lives outside the model call itself) — distinct from the already-queued "Agentic Coding in the Wild" (Copilot production-trace characterization focused on cache decay/idle time) by being a general-purpose, app-agnostic measurement toolkit/benchmark rather than one product's traffic, and squarely in the LLM-serving lane from `sources.yaml`.
 - Testability: Directionally feasible without GPU/Modal at toy scale — full production-serving-system replication (10 apps, systems instrumentation at scale) is out of budget, but the core measurement idea is cheap to check: instrument a small multi-tool toy agent task (Haiku 4.5/Sonnet 4.6) to log wall-clock/cost breakdown between LLM calls vs. tool execution vs. state-management overhead, and check whether tool/environment cost dominates as the task lengthens. API-only, no GPU. Rough cost: $5-10.
 - Source: arXiv cs.DC/cs.AI (2608.15127), HKUST/Alibaba/ByteDance, submitted 2026-08-15
+
+---
+
+## 2026-09-30 — proposed by research-scout
+
+Ranked by fit with the repo's existing harness/context findings. arxiv.org was blocked from this environment, so the paper details below come from search-result summaries, not the full text; verify against the paper before `/test-paper`.
+
+### [An Empirical Study of Harness Design for Coding Agents](https://arxiv.org/abs/2609.20804)
+- Status: proposed — awaiting review
+- Claim: With the execution loop fixed, varying planning, action space and context management across 176 matched settings (5 context strategies, 4 window budgets, 4 models; SWE-Bench Verified and Terminal-Bench 2.1) shows context management lengthens trajectories without much changing agent behavior, planning changes where trajectories stop, and action space changes code-writing granularity.
+- Why it matters: A controlled component-level ablation of harness design, the same question the scoreboard's three harness rows probe by hand. It could confirm or contradict those "structure costs more than it helps" results.
+- Testability: Feasible small-scale. Build a toy coding-task suite (not SWE-Bench) with a fixed loop and vary context strategy (truncate / summarize / none) and window budget on Haiku 4.5. API only, no GPU. Rough cost: $10-20.
+- Source: arXiv (2609.20804)
+
+### [headroom (chopratejas/headroom)](https://github.com/chopratejas/headroom)
+- Status: proposed — awaiting review
+- Claim: Local, reversible compression of tool outputs, logs, RAG chunks and history before they reach the LLM gives "20% fewer tokens for coding agents, 60-95% fewer for JSON" with identical answers (repo's own claim; Apache-2.0, ~74k stars).
+- Why it matters: A widely adopted tool with self-reported savings. Worth checking whether accuracy is truly unchanged on tool-heavy tasks, and it pairs with the queued tool-output-pruning and TokenPilot items. It is a package, so installing it is your call.
+- Testability: Feasible on API only. Run a small tool-heavy task set with and without it in front of Haiku 4.5, compare tokens and accuracy. Rough cost: $5-15. Needs your approval to install.
+- Source: GitHub trending / MCP lists
+
+### [When Malicious Instructions Persist: Persistent Memory ...](https://arxiv.org/abs/2609.13889)
+- Status: proposed — awaiting review
+- Claim: Malicious instructions written into an agent's persistent memory keep influencing later sessions (title only; the details were not readable from this environment).
+- Why it matters: A memory-security angle on agent infrastructure. It may overlap with the already-queued memory-poisoning entries, so check for overlap before choosing it.
+- Testability: Probably feasible with a toy agent and a simple memory store on Haiku 4.5, API only, about $5-10. Low confidence until the paper is read.
+- Source: arXiv (2609.13889)
