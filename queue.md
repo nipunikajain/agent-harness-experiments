@@ -885,3 +885,51 @@ done (in the README scoreboard) · rejected.
 - Why it matters: A serving-systems-level empirical grounding for exactly what this repo's harness experiments already suggest informally (overhead often lives outside the model call itself) — distinct from the already-queued "Agentic Coding in the Wild" (Copilot production-trace characterization focused on cache decay/idle time) by being a general-purpose, app-agnostic measurement toolkit/benchmark rather than one product's traffic, and squarely in the LLM-serving lane from `sources.yaml`.
 - Testability: Directionally feasible without GPU/Modal at toy scale — full production-serving-system replication (10 apps, systems instrumentation at scale) is out of budget, but the core measurement idea is cheap to check: instrument a small multi-tool toy agent task (Haiku 4.5/Sonnet 4.6) to log wall-clock/cost breakdown between LLM calls vs. tool execution vs. state-management overhead, and check whether tool/environment cost dominates as the task lengthens. API-only, no GPU. Rough cost: $5-10.
 - Source: arXiv cs.DC/cs.AI (2608.15127), HKUST/Alibaba/ByteDance, submitted 2026-08-15
+
+---
+
+## 2026-10-01 — proposed by research-scout
+
+Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so entries were found via web search and abstract snippets only; claims are from search summaries and not verified against the full papers.
+
+### [Beyond Prompts: Measuring and Optimizing LLM Tool-Agent Harnesses](https://arxiv.org/abs/2609.05736)
+- Status: proposed — awaiting review
+- Claim: Optimizing the runtime harness (prompts plus tool-boundary middleware) around a fixed model lifts held-out accuracy; the PRISM optimizer gets +14.2, +14.9 and +10.1 pp on BFCL multi-round, τ²-Retail and τ²-Telecom. The paper also argues that some search procedures find large gains but pick brittle harnesses, so it proposes reporting worst-condition lift, repeatability and a conservative RelLift95(B) alongside the mean.
+- Why it matters: Directly on this repo's core thesis (does harness structure help?), and its reliability-of-the-selected-harness protocol fits the repo's multi-seed rigor. It is distinct from the queued self-evolving-harness papers because it is about how to measure harness gains honestly.
+- Testability: Feasible API-only, no GPU. Build a tiny tool-boundary middleware (arg validation and retry-on-error guard) on a toy tool task with Haiku 4.5, then compare against the plain harness over many seeds and report mean and worst-condition lift. Full PRISM on BFCL or τ² is out of scope; a directional version costs about $10-15.
+- Source: arXiv cs.AI (2609.05736), submitted 2026-09-04
+
+### [Harness Engineering in LLM Tool Use via Agent-Native Reusable Tool Primitives (HEART)](https://arxiv.org/abs/2609.01736)
+- Status: proposed — awaiting review
+- Claim: A Planner/Router/Verifier harness over reusable tool primitives beats SFT-based models by about 10% on average and frontier models (GPT-5.4, Claude 4.6 Sonnet, Gemini 3.1 Pro) by about 6% on average, while cutting API cost by up to 85%.
+- Why it matters: A claim that harness design alone lets a cheaper model beat bigger ones at lower cost, which is a headline worth checking given this repo's prior null/negative results on structured harnesses.
+- Testability: Feasible API-only, no GPU. Implement a minimal plan, route, verify loop with Haiku 4.5 versus a plain single-agent Sonnet 4.6 baseline on a small toy tool-use suite, measuring accuracy and cost. The 85% cost and SFT comparisons are not reproducible on budget. Roughly $10-20.
+- Source: arXiv cs.AI/cs.CL (2609.01736), submitted 2026-09-01
+
+### [Demystifying Agent Skills: Why They Work, Until They Don't](https://arxiv.org/abs/2608.14036)
+- Status: proposed — awaiting review
+- Claim: In a controlled study over 8,135 trials, skills act mainly as procedural anchors that stabilize execution (65.7% of cases) rather than injecting knowledge (4.5%). Skills beat Workflow Memory by 6.06 points in matched comparisons, but actual-use retrieval precision falls from 29.6% to 3.3% as the skill pool grows from 5 to 100.
+- Why it matters: Tests whether skills help and where they break at scale, which matters for the skill-scout side of this pipeline and for any harness that loads many skills or tools.
+- Testability: Very feasible, API-only. Make 5, 25 and 100 toy SKILL.md-style entries, run a retrieval-plus-use task with Haiku 4.5, and measure the fraction of skills actually used correctly versus pool size and skill-vs-no-skill success. Roughly $5-10.
+- Source: arXiv cs.AI (2608.14036), Princeton/UCSD/Stanford and others, August 2026
+
+### [Toward Reliable Context Compression for Long-Horizon Agents: An Empirical Study of Execution Instability (TRACE)](https://arxiv.org/abs/2608.06503)
+- Status: proposed — awaiting review
+- Claim: Recurrent summary-based compression destabilizes agents: correct terminal completion is 37.3% for summaries versus 68.1% for plain FIFO truncation, with more blocked actions and repeated exploration right after compaction. TRACE, a verifier-guided prompt optimizer, improves on compression baselines on AppWorld.
+- Why it matters: A direct counter-claim to context-management papers (including the already-tested TokenPilot) that summarizing is a safe win, and the repo already has recover()-style findings about harsher reduction.
+- Testability: Feasible API-only. On a toy long-horizon tool task with Haiku 4.5, compare LLM-summary compaction against FIFO truncation against no compaction at a fixed token budget over multiple seeds. TRACE's optimizer and AppWorld are out of scope. Roughly $10-15.
+- Source: arXiv cs.AI/cs.CL (2608.06503), submitted 2026-08-06 (slightly outside the 4-5 week window but not previously queued)
+
+### [Public-Sharing Labels and Verbatim Field Egress in an MCP-to-A2A Agent Configuration: A Controlled Multi-Model Study](https://arxiv.org/abs/2609.01693)
+- Status: proposed — awaiting review
+- Claim: In an MCP-to-A2A agent setup, a "PUBLIC - OK TO SHARE" label raises verbatim egress of record fields in outbound messages relative to an unlabeled baseline, with a strong effect for claude-sonnet-5 and little or none for some other models. The test uses a three-arm design with a CONFIDENTIAL header, no header, and a PUBLIC label over 10 scenarios.
+- Why it matters: A small, deterministically scored MCP safety experiment with released code, traces and analysis pipeline, and an unusual result that a harmless-looking label increases leakage.
+- Testability: Very feasible, API-only, no GPU. Reuse the released artifact if it runs locally, or script a local MCP server and a stub A2A peer, then run the three arms on Haiku 4.5 and Sonnet 4.6 with deterministic string-match scoring. Roughly $3-8.
+- Source: arXiv cs.AI/cs.CR (2609.01693), submitted ~2026-09-01 (search summary dates the paper to August 2026)
+
+### [Hindsight: Agent Memory That Learns](https://github.com/vectorize-io/hindsight)
+- Status: proposed — awaiting review
+- Claim: Open-source (MIT) agent memory with Retain/Recall/Reflect operations over separate world, experience and opinion memory networks, with parallel semantic, keyword, graph and temporal retrieval. It reports state-of-the-art 91.4% on LongMemEval and gained about 18k stars in a week on GitHub trending (Python).
+- Why it matters: A fast-rising memory layer exposed as an MCP server, claiming agents that learn rather than just recall. Self-reported SOTA benchmark numbers are exactly what this repo exists to check.
+- Testability: Feasible but needs care. Memory service runs locally (CPU, Apple Silicon fine) with the LLM calls over the API. Test a small LongMemEval-style slice (about 30-50 questions) with Haiku 4.5 comparing Hindsight against full-context stuffing and a naive embedding-RAG baseline. Roughly $10-20; installing it is the human's call.
+- Source: GitHub trending (Python, weekly)
