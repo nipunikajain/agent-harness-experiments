@@ -931,6 +931,92 @@ done (in the README scoreboard) · rejected.
 - Why it matters: Sets up a direct, testable tension with the already-queued "MCP goes stateless: the 2026-07-28 specification" candidate — that spec change removes protocol-level sessions entirely, while this real, GitHub-trending tool is built specifically around session affinity. Worth checking whether session-aware routing actually helps task completion/latency under server restarts or replica scaling vs. the stateless/handle-based pattern the spec now recommends, using a real gateway instead of a mock.
 - Testability: Feasible on Apple Silicon/API-only. Stand up the gateway locally (Docker) in front of 1-2 toy MCP tool servers, run Haiku 4.5/Sonnet 4.6 through multi-step tool tasks with induced instance restarts/replica changes, and compare completion rate/latency against a stateless direct-connection baseline (can reuse the mock stateless server already scoped for the "MCP goes stateless" candidate). No GPU. Rough cost: $5-10 in API calls; most of the effort is standing up the gateway itself, not model spend. Flag: no published benchmark numbers to replicate — frame any result as this repo's own finding, not a replication.
 - Source: GitHub trending (topics: mcp, agent-framework), week of 2026-09-22
+## 2026-09-29 — proposed by research-scout
+
+### [HarnessDev: Can LLMs Create and Evolve Their Own Agent Harness?](https://arxiv.org/abs/2609.01437)
+- Status: proposed — awaiting review
+- Claim: A benchmark that evaluates models on building (Creation) and iteratively revising (Evolution) a runnable agent harness; models match or beat the human reference harness in writing and ML experimentation, lag far behind in search/research and code, and Evolution is harder: useful intermediate updates get erased and more updates do not guarantee a final gain.
+- Why it matters: Directly in the harness lane and complements the scoreboard's null/negative harness results by asking whether the model itself can build the harness, plus a finding (updates erased by later changes) that could be checked cheaply.
+- Testability: Full benchmark is likely too large, but a directional repro is feasible on Apple Silicon over the API: have Haiku 4.5/Sonnet 4.6 create and then evolve a tiny harness for one small domain (e.g. the existing mini-SQL task) for 3-4 revision rounds and track whether per-round gains persist. No GPU. Rough cost: $8-20.
+- Source: arXiv (2609.01437), submitted 2026-09
+
+### [Harness Engineering in LLM Tool Use via Agent-Native Reusable Tool Primitives (HEART / ToolFace)](https://arxiv.org/abs/2609.01736)
+- Status: proposed — awaiting review
+- Claim: Wrapping each tool behind a natural-language LLM interface (Tool Primitives) and retrieving tools on demand from a 25,519-function repository, orchestrated by a Planner/Router/Verifier (HEART), reduces brittle multi-step tool calling and degradation under large tool catalogues vs. schema-based invocation.
+- Why it matters: Tests a concrete harness/tool-interface design against raw schema enumeration, close to the MCP tool-description and tool-overload questions in the lane.
+- Testability: Feasible directionally over the API: a toy of about 30-50 tools, comparing schema-in-context vs. NL-wrapped retrieved tools on multi-hop tasks with Haiku 4.5. The full 25k-function ToolFace repo is not needed. No GPU. Rough cost: $5-15. Risk: extra LLM wrapper calls may cost more than they save, as with the earlier structured-harness results.
+- Source: arXiv (2609.01736), submitted 2026-09
+
+### [Harness-Zero: Harness Distillation via Agent-as-Harness](https://arxiv.org/abs/2609.24974)
+- Status: proposed — awaiting review
+- Claim: Distills the behavior induced by a domain-optimized harness into model weights by having a harnessing agent correct student responses in the target harness's action space and fine-tuning on the resulting trajectories, so the specialized harness can be dropped at deployment while keeping its gains.
+- Why it matters: Asks whether harness gains can be internalized rather than paid for at every call, the flip side of the harness-overhead results on the scoreboard. Code is public (github.com/metaevo-ai/harness-zero).
+- Testability: The fine-tuning step needs a GPU and a small open model (about 1-8B, LoRA), roughly $15-25 on Modal; the API-only part (generating corrected trajectories) is cheap. Tight against the $25 budget, so likely a reduced-scale directional run only.
+- Source: arXiv (2609.24974) + GitHub metaevo-ai/harness-zero, submitted 2026-09
+
+### [NebulaSD: Many-for-Many Speculative Decoding](https://arxiv.org/abs/2609.29364)
+- Status: proposed — awaiting review
+- Claim: An M-for-N speculative decoding system with independently schedulable draft and target worker pools and dynamic batch reconstruction improves request-round processing rate by 50.4% over a physically disaggregated baseline and 72.6% over co-located execution on a 4-GPU deployment.
+- Why it matters: LLM-serving lane; a systems claim about draft/target scheduling and GPU utilization under multi-request load.
+- Testability: Headline needs a 4-GPU multi-worker deployment, so a faithful repro is roughly $40-100+ on Modal (likely out of budget). A cheap partial check would be a single-GPU simulation of pooled vs. co-located draft/target scheduling with a small draft/target pair (about $10-20), which would not validate the headline numbers.
+- Source: arXiv (2609.29364), Univ. of Hong Kong, submitted 2026-09-23
+
+### [When Agents Look Like Beacons: NIDS Evasion by Model Context Protocol Traffic](https://arxiv.org/abs/2609.19091)
+- Status: proposed — awaiting review
+- Claim: MCP Streamable-HTTP traffic (authenticated, high-frequency JSON-RPC with lognormal inter-arrival times) resembles Cobalt Strike-style C2 beaconing and evades standard enterprise NIDS heuristics; proposes Agent-Native ALPN and out-of-band headers as an agent traffic indication standard.
+- Why it matters: MCP infrastructure/security angle that is not covered in the queue; accepted at IEEE ICNP NIPA 2026.
+- Testability: Cheap and CPU-only in principle: run a Haiku 4.5 agent against a local MCP server, capture traffic timing, and compare inter-arrival statistics to a synthetic beacon profile. Testing against a real NIDS ruleset (Suricata/Zeek) adds setup effort but no GPU. Rough cost: $2-5. Caveat: a network-security claim, so the fit with the scoreboard's accuracy/cost format is loose.
+- Source: arXiv cs.NI/cs.CR (2609.19091), submitted 2026-09
+## 2026-09-23 — proposed by research-scout
+
+### [The Double Measurement Confound in Agent Benchmarks: De-Scaffolding, Ground-Truth Scoring, and Reliability Beyond the Mean](https://arxiv.org/abs/2609.09218)
+- Status: proposed — awaiting review
+- Claim: Identifies two conflated axes in agent benchmarks — (1) a fixed scaffold, not the model, making execution-critical decisions (retry, pagination, dedup, submission), and (2) a scorer grading output shape/self-reported metadata rather than comparing to ground truth. On ComtradeBench, jointly fixing both turns a nearly flat leaderboard into a reliability spectrum that distinguishes both average performance and seed-to-seed robustness; auditing existing benchmarks shows scorer validity is benchmark-specific, but scaffold ownership is an uncontrolled axis everywhere the authors checked.
+- Why it matters: A sharper, more actionable version of the already-queued "Stop Comparing LLM Agents Without Disclosing the Harness" and "Harness-Bench" position papers — gives a concrete two-part audit protocol (de-scaffold + ground-truth score) directly applicable to re-auditing this repo's own naive-vs-structured harness comparisons already on the scoreboard, where a flat or reversed result might hide exactly this confound.
+- Testability: Very feasible, API-only. Apply the de-scaffolding + ground-truth-scoring audit to one of this repo's existing toy benchmarks (e.g. the DB-harness task): move a fixed-scaffold decision (e.g. retry/submission logic) onto the model, replace any shape/metadata-based scoring with direct ground-truth comparison, and check whether the already-observed naive-vs-structured comparison changes shape. Haiku 4.5/Sonnet 4.6, no GPU. Rough cost: $5-10.
+- Source: arXiv cs.AI/cs.SE (2609.09218), submitted 2026-09-06
+
+### [Ask the Tool, Don't Guess: Agent Tool Calls Hold Their Progress, and the Serving System Should Read It](https://arxiv.org/abs/2609.18849)
+- Status: proposed — awaiting review
+- Claim: A census of four public agent-trace corpora finds that most of the wall-clock time agentic requests spend waiting on tool calls (while their KV cache still holds GPU memory) carries a readable progress signal once instrumented — either a fraction-of-work-remaining estimate or a reliable "the end is near" signal — arguing serving systems should read this signal instead of guessing tool-call duration when making scheduling/eviction decisions.
+- Why it matters: A genuinely new LLM-serving-lane angle distinct from every KV-cache/speculative-decoding candidate already queued (all of which compress, reuse, or quantize the cache) — this is about scheduling *around* tool-call idle time using a signal the tool itself exposes, directly relevant to any harness here with slow/long-running tools.
+- Testability: Feasible without a real GPU serving stack for a directional check. Build a toy discrete-event scheduler simulation: mock tools that emit progress signals during artificial multi-second waits, compare a "blind" fixed-timeout KV-retention policy vs. a "reads-the-signal" policy on simulated GPU-memory-hours saved; use Haiku 4.5/Sonnet 4.6 only for the agent loop issuing the tool calls. No GPU needed for this scoped check. Rough cost: $5-10. A full vLLM-integrated replication would need Modal GPU time (~$15-25) and is optional beyond the directional check.
+- Source: arXiv cs.DC/cs.AI (2609.18849), submitted 2026-09
+
+### [vLLM x AgentX: Optimizing for Real-World Agentic Serving](https://vllm.ai/blog/2026-09-08-vllm-agentx)
+- Status: proposed — awaiting review
+- Claim: Coordinated KV-cache management, parallelism/engine optimizations, and prefill/decode disaggregation tuned specifically for agentic traffic (long contexts, extensive prefix reuse, multi-turn sessions) let vLLM reach up to 130K tokens/GPU-second on DeepSeek V4 Pro and a 14.6x-106x serving-cost advantage over Opus 5 API pricing, validated on SemiAnalysis's public agentic benchmark (median 43 turns/session, ~142K-token median input, >96% prefix-cache hit rate).
+- Why it matters: A fresh, heavily-quantified claim from the exact vLLM blog named in `sources.yaml`, specifically about the *combined* agentic-serving stack (cache + parallelism + PD disaggregation together) rather than one isolated mechanism — distinct from every single-technique KV-cache/PD-disaggregation candidate already queued (DCP, CacheWise, KARA, C²KV, etc.).
+- Testability: The headline numbers (130K tok/s/GPU, up to 106x cost advantage) are at multi-GPU/large-model production scale and out of a $25 budget to reproduce directly. A scoped directional check: run a small open model on a single Modal A10G/T4 with vLLM, replay a small synthetic agentic-traffic trace (high prefix-cache-hit-rate multi-turn sessions), and compare a naive vLLM config vs. an agentic-tuned one (PD disaggregation + cache policy on vs. off) on tokens/sec and estimated cost. Rough Modal cost: $15-25 — near the top of the per-experiment budget; needs a small model and short trace to fit.
+- Source: vLLM Blog (vllm.ai/blog/2026-09-08-vllm-agentx), published 2026-09-08
+
+### [ContextPipe: Database-Inspired Context Assembly for Long-Horizon Agents](https://arxiv.org/abs/2609.00749)
+- Status: proposed — awaiting review
+- Claim: Treats context assembly as structurally isomorphic to query execution in a relational database — a five-phase Plan-Bind-Optimize-Execute-Feedback pipeline backed by a structured data-source catalog, a deterministic cache-aware optimizer, and an EXPLAIN-ANALYZE-style trace for auditability/replayability/failure-isolation — reducing total token volume by 31%, LLM calls by 23%, and response time by 9% vs. append-only context construction on a SWE-bench Pro (Qutebrowser) subset.
+- Why it matters: This queue's context-management cluster is already dense (TokenPilot tested; ARC, GenericAgent, PRO-LONG, ACM, Self-GC, VISTA, Scroll, Context Compaction Theory queued), but ContextPipe's distinct contribution — a declarative, auditable/replayable DB-optimizer framing rather than another prune/summarize/offload mechanism — is a genuinely different lens, and it's the freshest entry in the cluster (submitted 2026-09-01, accepted to VLDB-colocated ADS 2026).
+- Testability: Feasible on Apple Silicon/API only. Implement a scaled-down Plan-Bind-Optimize-Execute pipeline (skip the full data-source-catalog machinery) on a toy long-horizon coding task, compare token volume/LLM-call count/wall-clock against naive append-only accumulation and against this repo's already-tested TokenPilot config, using Haiku 4.5/Sonnet 4.6. No GPU. Rough cost: $10-15.
+- Source: arXiv cs.DB/cs.AI (2609.00749), submitted 2026-09-01; accepted ADS 2026 (VLDB-colocated)
+
+### [Harness Engineering: Anatomy, Architecture, and Evolution of Coding Agents — A Source-Code Study of Eleven Systems](https://arxiv.org/abs/2609.00006)
+- Status: proposed — awaiting review
+- Claim: A source-code study of eleven production coding-agent harnesses (Claude Code, Codex CLI, Gemini CLI, Mistral Vibe, OpenHands, Aider, Mini-SWE-Agent, Hermes, Pi, OpenCode, OpenClaw, plus Databricks' Omnigent as a meta-harness contrast point) names "harness engineering" as a discipline and taxonomizes recurring architectural elements (loop, tools, context management, safety controls, orchestration, extension surfaces) — e.g. finding SKILL.md-style skills now lead MCP in adoption (9/11 vs 8/11 systems) and that ACP has grown a third role, harness-hosting (OpenHands running Claude Code/Codex/Gemini CLI as interchangeable backends).
+- Why it matters: A direct empirical-grounding exercise for this repo's entire premise — instead of proposing a new mechanism, it maps what real production harnesses actually do, useful for checking whether this repo's own toy naive/structured harness designs are representative of real-world practice or a strawman.
+- Testability: Effectively free — no experiment or API spend strictly required. Read the paper's taxonomy and spot-check 2-3 of its claims (e.g. skills-vs-MCP adoption counts, ACP's harness-hosting role) against the actual open-source repos it studied (Claude Code, OpenHands, Aider are all public). A few dollars of Haiku 4.5/Sonnet 4.6 calls only if an LLM-assisted pass over the source code is wanted. Rough cost: under $5, mostly reading time.
+- Source: arXiv cs.SE/cs.AI (2609.00006), Wavestone AI Lab, submitted 2026-09
+
+### [Agentic coding is straining CI. Here's how we scaled test impact analysis at Anthropic](https://claude.com/blog/agentic-coding-is-straining-ci-heres-how-we-scaled-test-impact-analysis-at-anthropic)
+- Status: proposed — awaiting review
+- Claim: Anthropic engineers now ship ~8x as much code per quarter as in 2021-2025 (with Claude authoring ~80% of it), tests grew 10x, and CI jobs grew 25x in six months; their patched test-impact-analysis service failed three times in a row (fixes lasting 70, then 29, then <1 day) before a redesign to a deterministic package-touch-mapping + recorded-past-results architecture (a listener that records outcomes, a selector that reads them to pick tests per PR) stabilized it.
+- Why it matters: A concrete, dated (2026-09-14) real-world infrastructure lesson from the same lab whose models this repo tests, squarely in the agent-tooling/SE lane — tests whether a simple deterministic package-touch-mapping test-selector actually beats "run everything" or a naive heuristic as codebase size and agent-driven commit volume grow, a distinct angle from every harness/context/MCP candidate already queued.
+- Testability: Very feasible, no GPU, minimal API spend. Build a small toy monorepo with synthetic packages/tests and simulated agent-driven commit-volume growth, implement a simplified package-touch-mapping selector vs. a "run everything" baseline and a naive path-glob heuristic, measure CI time saved and missed-regression rate as commit volume scales up. Mostly scripting/simulation, not LLM-call-heavy. Rough cost: under $5.
+- Source: Anthropic Engineering blog (claude.com/blog), published 2026-09-14
+
+### [Memory as Infrastructure: Reliability Engineering for Persistent Agent Memory in Months-Long LLM-Assisted Development](https://arxiv.org/abs/2609.05510)
+- Status: proposed — awaiting review
+- Claim: Drawing on a single continuous Claude Code session driving a 633,000-line codebase since January 2026, with its memory subsystem instrumented since July 2026, the paper frames and measures "SIx Harness" (per-project long-term memory + hybrid lexical-vector retrieval over SQLite + precision-gated context injection) as a reliability-engineering problem — uptime/correctness of the memory subsystem itself — rather than a benchmark-score problem.
+- Why it matters: Every memory candidate already queued (TencentDB-Agent-Memory, ARC, A-TMA, AgentMemBench, ClawVM, StateMemBench) is framed around retrieval quality or a benchmark number; this is the one framed around operational reliability of a real, long-running memory subsystem over months — a distinct failure axis (memory infra breaking down under sustained real use) rather than memory quality on a fixed eval.
+- Testability: Feasible on Apple Silicon/API only — local SQLite backend, no GPU. Can't replicate "months-long" directly, but a compressed toy version is testable: run a multi-session toy coding task over many sessions with induced context compactions, implement a simplified precision-gated SQLite memory store, and measure reliability metrics (retrieval correctness/drift after N compactions) rather than just task success, using Haiku 4.5/Sonnet 4.6. Rough cost: $10-15.
+- Source: arXiv cs.SE/cs.AI (2609.05510), submitted 2026-08-31
 ## 2026-09-17 — proposed by research-scout
 
 ### [The Compaction Cliff in Long-Running AI Agent Memory](https://arxiv.org/abs/2608.22752)
