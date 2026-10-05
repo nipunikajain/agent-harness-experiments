@@ -14,12 +14,14 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shutil
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TEMPLATE = Path(__file__).resolve().parent / "template.html"
+STATIC = Path(__file__).resolve().parent / "static"  # copied to the site root as-is
 
 SECTION_RE = re.compile(r"^## (\d{4}-\d{2}-\d{2})\b")
 ENTRY_RE = re.compile(r"^### \[(.+?)\]\((\S+?)\)")
@@ -218,7 +220,7 @@ def parse_scoreboard(text: str) -> list[dict]:
     return rows
 
 
-def build(out_dir: Path, repo_url: str) -> dict:
+def build(out_dir: Path, repo_url: str, site_url: str) -> dict:
     entries = parse_queue((ROOT / "queue.md").read_text(encoding="utf-8"))
     if not entries:
         sys.exit("No entries parsed from queue.md — refusing to publish an empty dashboard.")
@@ -232,8 +234,11 @@ def build(out_dir: Path, repo_url: str) -> dict:
     }
     # The JSON is inlined in a <script> block, so no literal "<" may survive in it.
     payload = json.dumps(data, ensure_ascii=False).replace("<", "\\u003c")
-    html = TEMPLATE.read_text(encoding="utf-8").replace("/*__DATA__*/null", payload, 1)
+    # Link-preview tags need absolute URLs, so the template carries a placeholder for them.
+    html = TEMPLATE.read_text(encoding="utf-8").replace("__SITE_URL__", site_url)
+    html = html.replace("/*__DATA__*/null", payload, 1)
     out_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(STATIC, out_dir, dirs_exist_ok=True)
     (out_dir / "index.html").write_text(html, encoding="utf-8")
     return data
 
@@ -246,8 +251,13 @@ def main() -> None:
         default="https://github.com/nipunikajain/agent-harness-experiments",
         help="repository URL used for links back to queue.md and experiment notes",
     )
+    parser.add_argument(
+        "--site-url",
+        default="https://nipunikajain.github.io/agent-harness-experiments/",
+        help="public URL the dashboard is served from, used by the link-preview tags",
+    )
     args = parser.parse_args()
-    data = build(ROOT / args.out, args.repo_url.rstrip("/"))
+    data = build(ROOT / args.out, args.repo_url.rstrip("/"), args.site_url.rstrip("/") + "/")
     latest = max(e["run"] for e in data["entries"])
     print(
         f"Built {args.out}/index.html: {len(data['entries'])} entries, "
