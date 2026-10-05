@@ -888,6 +888,56 @@ done (in the README scoreboard) · rejected.
 
 ---
 
+## 2026-09-08 — proposed by research-scout
+
+### [HarnessDev: Can LLMs Create and Evolve Their Own Agent Harness?](https://arxiv.org/abs/2609.01437)
+- Status: proposed — awaiting review
+- Claim: A benchmark shifting evaluation from task outputs to runnable infrastructure — agents must first *build* a complete execution harness from a minimal seed (Creation), then iteratively revise it using downstream execution feedback (Evolution). Across 6 creator LLMs, 4 domains, and 5 benchmarks, self-built harnesses vary widely in capability, lag mature human-engineered systems in code/search/research, transfer poorly across models, and "evolution" gains are often unstable and runtime-model-dependent rather than monotonic improvements.
+- Why it matters: Independently validates this repo's own repeated finding (2026-06/07 agent-harness and db-harness experiments: structured/self-evolving harness overhead with zero-to-negative quality gain) at benchmark scale, and from the opposite direction — instead of testing a fixed structured vs. naive harness, it tests whether the *model itself* can build one that's worth the overhead. Directly falsifiable minimal repro against the repo's own toy task.
+- Testability: Very feasible, API-only, no GPU. Have Haiku 4.5/Sonnet 4.6 build a minimal harness from a seed for the repo's existing toy task, run it, then do 2-3 revision iterations using execution feedback; check whether performance improves monotonically or is unstable, matching the paper's "unstable evolution" finding. Rough cost: $10-15.
+- Source: arXiv cs.SE/cs.AI (2609.01437), submitted 2026-09-01.
+
+### [Harness Engineering: Anatomy, Architecture, and Evolution of Coding Agents — A Source-Code Study of Eleven Systems](https://arxiv.org/abs/2609.00006)
+- Status: proposed — awaiting review
+- Claim: A source-code anatomy of eleven production coding-agent harnesses (Claude Code, Codex CLI, Gemini CLI, Mistral Vibe, OpenHands, Aider, Mini-SWE-Agent, Hermes, Pi, OpenCode, OpenClaw) plus a "meta-harness" (Omnigent), defining an agent as "model + harness" and decomposing every harness into seven canonical subsystems (loop, tools, context management, safety controls, orchestration, extension surfaces, plus one more) — arguing production agent capability differences trace mainly to harness architecture, not model choice.
+- Why it matters: Gives a concrete taxonomy to audit this repo's own three harness experiments against — the repo's null/negative results (structured harness costing 5.9-10x tokens for zero quality gain) can be mapped onto which of the 7 subsystems the "structured" arm actually varied vs. held constant, which may explain why the intervention never paid off.
+- Testability: $0, no API calls — this is a reference/taxonomy paper, not an interventional claim. Testable only as a desk audit: re-read the repo's own 3 harness `intervention.py` files against the paper's 7-subsystem framework. Flagged as a documentation/audit exercise rather than a run.
+- Source: arXiv cs.SE (2609.00006), Wavestone AI Lab, submitted 2026-09 (posted as 2609.00006).
+
+### [Prime Agent: A Self-Improving RLM Harness](https://arxiv.org/abs/2608.23552) ([GitHub](https://github.com/PrimeIntellect-ai/prime-agent))
+- Status: proposed — awaiting review
+- Claim: An open-source harness pairing a persistent IPython REPL (Recursive Language Model abstraction, for programmatic context processing and test-time compute) with a "Continual Harness" that preserves history, memory, skills, and prompts across trajectories — claiming this separation of concerns prevents harness failures from masking a model's true capability and improves long-horizon task performance over stateless, single-shot harnesses.
+- Why it matters: A real, runnable system making the same "does persistent structured state actually help" bet this repo has now tested three times and found null/negative — a live target to replicate against on the repo's own toy tasks using the actual released harness rather than a reimplementation.
+- Testability: Feasible on Apple Silicon/API-only, no GPU (the REPL runs locally; only LLM calls hit the API). Clone the repo, wire the repo's toy multi-step task through Prime Agent's Continual Harness, compare against the naive/structured baselines already on the scoreboard. Rough cost: $10-20 given real integration overhead.
+- Source: arXiv cs.AI (2608.23552), Princeton/Prime Intellect, submitted 2026-08-24.
+
+### [AgentSwing: Adaptive Parallel Context Management Routing for Long-Horizon Web Agents](https://arxiv.org/abs/2603.27490)
+- Status: proposed — awaiting review
+- Claim: Static, single-strategy context management underperforms on long-horizon tasks; AgentSwing's state-aware router expands multiple context-managed branches in parallel at each trigger point and picks the most promising continuation via lookahead, matching or beating strong static context-management baselines with up to 3x fewer interaction turns.
+- Why it matters: Directly comparable to this repo's tested TokenPilot result (context management whose headline win was mostly prompt caching, not context management itself) — AgentSwing's mechanism (parallel branching + lookahead) is a different lever entirely, and "3x fewer turns" is a clean, falsifiable number to check against a naive fixed-strategy baseline.
+- Testability: Very feasible, API-only, no GPU. Reuse the repo's referral-chain/toy long-horizon task; run parallel-branch context management (small model as router, a few branches) vs. a single fixed strategy vs. no context management, measuring turns-to-completion and cost. Note parallel branches multiply API calls, so budget carefully. Rough cost: $10-15.
+- Source: arXiv cs.CL/cs.AI (2603.27490), Tongyi Lab/Alibaba, submitted 2026-03-27 — older paper, not previously surfaced or queued.
+
+### [context-mode](https://github.com/mksglu/context-mode)
+- Status: proposed — awaiting review
+- Claim: An MCP server that sandboxes tool output so raw data never enters the model's context window (the agent generates code to query results server-side instead of reading raw output) — claims a 98% reduction in context size per session (measured 315KB→5.4KB in the README) and extends usable session length from ~30 minutes to ~3 hours before compaction, across 12+ coding-agent platforms via MCP + hooks.
+- Why it matters: A concrete, installable competitor to this repo's tested TokenPilot result and to the already-queued "Context as an Environment" paper — makes a specific, checkable numeric claim (98% size reduction, ~6x session length) using a real MCP server rather than a reimplementation.
+- Testability: Very feasible on Apple Silicon, API-only, no GPU — it's a local Node.js MCP server. Route the repo's toy multi-tool task through it vs. a no-sandboxing baseline, measure actual context bytes and turns-to-compaction. Rough cost: $5-10.
+- Source: GitHub trending, agents/MCP/context-management topic.
+
+### [ACLE-MCP: Attested Capability Leases for Execution-Time Trust in Remote LLM Tool Use](https://arxiv.org/abs/2609.02690)
+- Status: proposed — awaiting review
+- Claim: OAuth-only authorization for remote MCP tool calls leaves a "post-authorization execution trust gap" (an endpoint can stay authorized even after execution shifts to a substituted or stale workload). ACLE-MCP's short-lived, sender-constrained capability leases (binding workload, freshness, operation/object/parameter bounds) close this gap, but in the authors' own prototype (Keycloak/OIDC + MCP Python SDK + optional vTPM attestation) increase pooled p95 latency on normal allowed calls by 25.7% vs. OAuth-only.
+- Why it matters: A concrete security-vs-latency tradeoff number for MCP tool use, distinct from the already-queued MCP security papers (MCP-DPT's defense taxonomy, "Caller Identity Confusion," the registry-drift measurement paper) — this one ships a runnable prototype and a specific, reproducible overhead figure.
+- Testability: Very feasible, no GPU. Stand up a toy local MCP server + OAuth (or a lighter stand-in), implement a minimal capability-lease check, and measure p95 latency overhead on repeated toy tool calls vs. an OAuth-only baseline, checking whether the 25.7% figure replicates at small scale. Rough cost: $0-5 (mostly local infra, minimal API spend).
+- Source: arXiv cs.CR (2609.02690), submitted 2026-09-02.
+
+### [Random Attention: Rethinking KV Cache Eviction for Efficient Reasoning](https://arxiv.org/abs/2609.03430)
+- Status: proposed — awaiting review
+- Claim: For KV cache eviction under reasoning workloads, keeping the prompt intact and evicting decode-side cache entries uniformly at random within each attention head matches competing heuristic-eviction methods' quality while serving 32-43% higher throughput in vLLM deployment.
+- Why it matters: A surprising, cheap-to-falsify claim (random eviction beating/matching heuristic eviction) squarely in the LLM-serving lane — distinct from every already-queued KV-cache paper (VeriCache, "C²KV", CacheWise, "Spend Bits Where Queries Look", KARA), which all propose structured or learned eviction/compression; if random really matches heuristics it's a strong "the heuristics weren't earning their complexity" result very much in this repo's wheelhouse.
+- Testability: Needs a GPU to produce a meaningful throughput number — CPU-only Apple Silicon can't show real vLLM throughput deltas. Modal estimate: a single A10G or L4 running vLLM with a small open model (e.g. an 8B-class model) for a short reasoning-eviction comparison, a few hours of GPU time, roughly $10-20 on Modal (A10G ≈ $1-1.5/hr).
+- Source: arXiv cs.CL/cs.DC (2609.03430), submitted 2026-09-03.
 ## 2026-09-07 — proposed by research-scout
 
 ### [OpenAI agent swarms exploited shared infrastructure as unmonitored coordination channels: the DSE Wiki and Artifactory/Hugging Face incidents](https://techcrunch.com/2026/09/04/another-swarm-of-openai-agents-reached-the-open-internet-without-the-frontier-labs-knowledge/)
