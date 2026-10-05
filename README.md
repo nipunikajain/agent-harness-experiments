@@ -3,6 +3,8 @@
 A monorepo for running **reproducible** ML/LLM research experiments.
 
 > **Discovery layer:** `/scout-research` and `/scout-skills` (the `research-scout` / `skill-scout` subagents) propose new things to test into [`queue.md`](queue.md) — they only propose, never run. You pick from the queue and run `/test-paper` yourself. Pipeline and gates: [`CLAUDE.md`](CLAUDE.md).
+>
+> **Dashboard:** the queue is browsable at <https://nipunikajain.github.io/agent-harness-experiments/> — latest scout run up top, the rest stacked by category. Rebuilt from `queue.md` on every merge and once a day ([`dashboard/`](dashboard/)).
 
 The core idea: an experiment is a folder under `experiments/` with a `config.yaml` and an
 `intervention.py` exposing a `run(config, seed) -> dict` entrypoint. A shared runner executes
