@@ -33,3 +33,6 @@ experiments/**/results/_workspaces/
 # db-harness sweep artifacts
 experiments/**/results/runs/
 experiments/**/results/.spend_ledger.json
+
+# Built dashboard (dashboard/build.py output; deployed by CI, never committed)
+_site/
