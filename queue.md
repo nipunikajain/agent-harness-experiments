@@ -888,6 +888,42 @@ done (in the README scoreboard) · rejected.
 
 ---
 
+## 2026-10-02 — proposed by research-scout
+
+### [The Scaffold Effect in Coding Agents: Harness Choice as a Hidden Variable in Coding-Agent Evaluation](https://arxiv.org/abs/2607.22585)
+- Status: proposed — awaiting review
+- Claim: Holding the model fixed, harness choice changes tokens per solved task by up to 40× while paired pass-rate differences stay within 0–8 pp.
+- Why it matters: Same shape as all three scoreboard rows (harness overhead with no quality gain) but measured across real coding harnesses; a direct external check on this repo's finding.
+- Testability: Feasible, API-only, no GPU. Run a small fixed task set (~10-15 tasks) under 2-3 minimal scaffolds with Haiku 4.5, compare tokens/solved vs pass rate. Rough cost: $10-20.
+- Source: arXiv (2607.22585); surfaced via search, abstract details limited to the headline numbers.
+
+### [Harness or Model? Isolating the Harness Effect in Agentic Coding with a Contamination-Controlled Private Suite](https://arxiv.org/abs/2609.11987)
+- Status: proposed — awaiting review
+- Claim: On a private 256-task suite, same-model paired contrasts of vendor-native vs neutral harness show no average advantage (−1.25 pp for Opus 4.8, +1.25 pp for GPT-5.5), but strata diverge: native trails by 9.0 pp on repo tasks and leads by 23.7 pp on contest tasks.
+- Why it matters: Tests the "vendor-native harness is better" assumption; the opposite-sign strata are the interesting part and match this repo's habit of checking whether a headline survives.
+- Testability: Directional only. Compare two lightweight harnesses on two task types (repo-fix vs short algorithmic) with Haiku 4.5 / Sonnet 4.6, ~10 tasks each. Full replication (microVMs, multi-vendor) out of budget. Rough cost: $10-20.
+- Source: arXiv (2609.11987), Sep 2026
+
+### [An Empirical Study of Harness Design for Coding Agents](https://arxiv.org/abs/2609.20804)
+- Status: proposed — awaiting review
+- Claim: With the execution loop fixed, varying planning, action space and context management across 176 matched settings (4 models, SWE-Bench Verified, Terminal-Bench 2.1) shows context management extends trajectories without changing behavior, planning changes where trajectories stop, and action space changes code-writing granularity.
+- Why it matters: Component-level ablation, which this repo's monolithic structured-vs-naive comparisons lack; could explain which part of the structured harness cost tokens.
+- Testability: Feasible API-only at toy scale: ablate planning on/off and one context-management strategy on this repo's mini SQL engine task with Haiku 4.5. Rough cost: $10-20.
+- Source: arXiv (2609.20804), submitted 2026-09-17
+
+### [MCP-GRANITE: GRANularity Interface TEsting for MCP-Based LLM Agents](https://arxiv.org/abs/2609.24161)
+- Status: proposed — awaiting review
+- Claim: Treating tool-interface granularity as a controlled variable (81 scenarios, 9 domains, 4 levels, 9 local models 268M–20.9B, 8,748 trials), a 4-tool interface beats fine-grained primitives by 16.4% and a single monolithic tool by 33.6% in task completion.
+- Why it matters: Concrete, testable MCP tool-design guidance (how many tools, how coarse) aimed at small models.
+- Testability: Very feasible. Build one toy domain exposed at 3 granularities (1 / ~4 / many tools) and run Haiku 4.5 (small local models via Ollama on Apple Silicon also possible). Rough cost: $5-10.
+- Source: arXiv (2609.24161), submitted 2026-09-21
+
+### [What a Random Draw from the MCP Registry Contains, and What Tool-Use Benchmarks Contain Instead](https://arxiv.org/abs/2609.10962)
+- Status: proposed — awaiting review
+- Claim: Of 400 randomly drawn official-registry MCP servers, only 48.8% complete an initialize handshake and 37.5% never start (vs 66.7% for 24 hand-picked); 68.8% of BFCL v4 tool definitions and 85.6% of UltraTool's are exact repeats vs 0.4% for real MCP tools.
+- Why it matters: Suggests tool-use benchmarks are unrepresentative of the real MCP ecosystem; complements the queued benchmark-validity audit (2607.02577) from the registry side.
+- Testability: Very feasible, no LLM needed for the core claim: sample ~50-100 registry servers and attempt an initialize handshake in a sandbox. Note this executes third-party server code, so it would need isolation. Rough cost: <$5.
+- Source: arXiv (2609.10962), Sep 2026; seed and pipeline reportedly on Zenodo
 ## 2026-10-01 — proposed by research-scout
 
 Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so entries were found via web search and abstract snippets only; claims are from search summaries and not verified against the full papers.
