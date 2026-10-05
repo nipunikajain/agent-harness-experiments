@@ -12,6 +12,7 @@ The dashboard is a read-only view: ``queue.md`` and ``README.md`` stay the sourc
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import shutil
@@ -236,6 +237,10 @@ def build(out_dir: Path, repo_url: str, site_url: str) -> dict:
     payload = json.dumps(data, ensure_ascii=False).replace("<", "\\u003c")
     # Link-preview tags need absolute URLs, so the template carries a placeholder for them.
     html = TEMPLATE.read_text(encoding="utf-8").replace("__SITE_URL__", site_url)
+    # LinkedIn and others cache the preview image by URL, so the URL carries the image's
+    # hash: a re-rendered og.png gets a new address and is fetched afresh.
+    og_version = hashlib.sha256((STATIC / "og.png").read_bytes()).hexdigest()[:10]
+    html = html.replace("__OG_VERSION__", og_version)
     html = html.replace("/*__DATA__*/null", payload, 1)
     out_dir.mkdir(parents=True, exist_ok=True)
     shutil.copytree(STATIC, out_dir, dirs_exist_ok=True)
