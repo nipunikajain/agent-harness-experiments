@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research Queue</title>
+<meta name="description" content="Papers and techniques the research scout has proposed, newest run first.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='9' y='4' width='18' height='22' rx='2' fill='%23c9c2b3'/%3E%3Crect x='5' y='7' width='18' height='22' rx='2' fill='%231c1b19'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #faf8f3;
+  --surface: #ffffff;
+  --ink: #1c1b19;
+  --ink-2: #4a4741;
+  --muted: #7a756b;
+  --line: #e3ded2;
+  --line-strong: #cfc8b8;
+  --new: oklch(56% 0.19 32);
+  --cat-l: 50%;  --cat-c: 0.14;
+  --tint-l: 95%; --tint-c: 0.035;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141311;
+    --surface: #1d1b18;
+    --ink: #eeeae0;
+    --ink-2: #c9c4b8;
+    --muted: #918b7f;
+    --line: #2f2c27;
+    --line-strong: #454138;
+    --new: oklch(72% 0.17 40);
+    --cat-l: 76%;  --cat-c: 0.11;
+    --tint-l: 25%; --tint-c: 0.04;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+[style*="--h"] {
+  --cat: oklch(var(--cat-l) var(--cat-c) var(--h));
+  --tint: oklch(var(--tint-l) var(--tint-c) var(--h));
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+@media (min-width: 720px) { .wrap { padding: 0 28px; } }
+
+/* Masthead */
+.masthead { text-align: center; padding: 34px 0 22px; }
+.masthead h1 {
+  font: 700 clamp(30px, 5vw, 44px)/1.05 var(--serif);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.masthead p { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
+.masthead p b { color: var(--ink-2); font-weight: 600; }
+
+/* Sticky nav */
+.nav {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-block: 1px solid var(--line);
+}
+.nav .wrap { display: flex; align-items: center; gap: 4px; min-height: 52px; }
+.nav a {
+  text-decoration: none; font-weight: 500; font-size: 15px; color: var(--ink-2);
+  padding: 14px 10px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  white-space: nowrap;
+}
+.nav a:hover { color: var(--ink); border-bottom-color: var(--line-strong); }
+.nav .spacer { flex: 1; }
+.nav .count { color: var(--muted); font-size: 13px; display: none; }
+@media (min-width: 560px) { .nav .count { display: block; } }
+
+main > section { padding: 36px 0 8px; }
+.section-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.section-head h2 { font: 700 24px/1.2 var(--serif); letter-spacing: -0.01em; margin: 0; }
+.section-head .sub { color: var(--muted); font-size: 14px; }
+
+/* Small parts */
+.eyebrow {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-size: 12px; font-weight: 650; letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--cat, var(--muted)); margin: 0 0 10px;
+}
+.badge-new {
+  background: var(--new); color: #fff; border-radius: 4px; padding: 2px 7px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+}
+@media (prefers-color-scheme: dark) { .badge-new { color: #1a1206; } }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 0; padding: 0; list-style: none; }
+.chip {
+  font-size: 12.5px; line-height: 1; padding: 6px 9px; border-radius: 999px;
+  border: 1px solid var(--line-strong); color: var(--ink-2); white-space: nowrap;
+}
+.chip.gpu { border-color: transparent; background: oklch(var(--tint-l) 0.06 75); color: oklch(var(--cat-l) 0.13 70); }
+.chip.status { border-color: transparent; background: var(--ink); color: var(--bg); text-transform: capitalize; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.btn {
+  font: 600 14px/1 var(--sans); padding: 10px 14px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+  text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:hover { border-color: var(--ink-2); }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn.primary:hover { opacity: 0.88; }
+.btn code { font: 500 13px/1 var(--mono); }
+:focus-visible { outline: 2px solid var(--new); outline-offset: 2px; border-radius: 4px; }
+code { font-family: var(--mono); font-size: 0.9em; }
+.claim { color: var(--ink-2); margin: 0; }
+.facts { margin: 14px 0 0; }
+.facts dt {
+  font-size: 11.5px; font-weight: 650; letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--muted); margin-top: 12px;
+}
+.facts dd { margin: 3px 0 0; color: var(--ink-2); font-size: 14.5px; overflow-wrap: anywhere; }
+details.more { margin-top: 14px; }
+details.more > summary {
+  cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-2);
+  list-style: none; display: inline-flex; align-items: center; gap: 6px;
+}
+details > summary::-webkit-details-marker { display: none; }
+details.more > summary::before { content: "+"; font: 500 15px/1 var(--mono); width: 10px; }
+details.more[open] > summary::before { content: "–"; }
+
+/* Hero: the first paper of the latest run */
+.hero {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; align-items: center;
+  padding-bottom: 30px; border-bottom: 1px solid var(--line);
+}
+@media (min-width: 880px) { .hero { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 44px; } }
+@media (min-width: 880px) { .cover { aspect-ratio: 4 / 3; } }
+.cover {
+  position: relative; display: flex; flex-direction: column; justify-content: space-between;
+  aspect-ratio: 16 / 10; padding: 22px; border-radius: 14px; overflow: hidden;
+  text-decoration: none; color: var(--cat);
+  background:
+    radial-gradient(120% 90% at 100% 0%, color-mix(in oklch, var(--cat) 30%, transparent), transparent 60%),
+    repeating-linear-gradient(0deg, color-mix(in oklch, var(--cat) 12%, transparent) 0 1px, transparent 1px 28px),
+    repeating-linear-gradient(90deg, color-mix(in oklch, var(--cat) 12%, transparent) 0 1px, transparent 1px 28px),
+    var(--tint);
+  border: 1px solid color-mix(in oklch, var(--cat) 28%, transparent);
+}
+.cover-cat { font-size: 12px; font-weight: 650; letter-spacing: 0.08em; text-transform: uppercase; }
+.cover-name {
+  font: 700 clamp(30px, 6vw, 58px)/1.02 var(--serif); letter-spacing: -0.02em;
+  color: var(--ink); overflow-wrap: anywhere;
+}
+.cover-name.long { font-size: clamp(22px, 3.4vw, 32px); line-height: 1.15; }
+.cover-id { font: 500 13px/1 var(--mono); }
+.hero h2 { font: 700 clamp(26px, 3.6vw, 38px)/1.12 var(--serif); letter-spacing: -0.015em; margin: 0 0 14px; }
+.hero h2 a, .card h3 a, .mini a { text-decoration: none; }
+.hero h2 a:hover, .card h3 a:hover, .mini a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.hero .claim { font-size: 17px; }
+
+/* The rest of the latest run */
+.cards { display: grid; gap: 16px; margin-top: 26px; }
+@media (min-width: 720px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--cat);
+  border-radius: 10px; padding: 18px 18px 20px; display: flex; flex-direction: column;
+}
+.card h3 { font: 700 20px/1.22 var(--serif); margin: 0 0 10px; }
+.card .claim { font-size: 15px; }
+.card .actions { margin-top: auto; padding-top: 16px; }
+
+/* Row of slightly older papers */
+.minis { display: grid; gap: 0; }
+@media (min-width: 720px) { .minis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.mini { display: flex; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); }
+@media (min-width: 720px) {
+  .mini { padding: 14px 18px; border-top: 0; border-left: 1px solid var(--line); }
+  .mini:nth-child(3n + 1) { padding-left: 0; border-left: 0; }
+  .mini:nth-child(n + 4) { margin-top: 10px; }
+}
+.mini .thumb {
+  flex: none; width: 46px; height: 58px; border-radius: 5px; background: var(--tint);
+  border: 1px solid color-mix(in oklch, var(--cat) 30%, transparent);
+  box-shadow: 3px 3px 0 -1px var(--bg), 3px 3px 0 0 color-mix(in oklch, var(--cat) 30%, transparent);
+  display: grid; place-items: center; font: 700 15px/1 var(--serif); color: var(--cat);
+}
+.mini a { font: 700 16.5px/1.25 var(--serif); display: block; }
+.mini .meta { font-size: 12.5px; color: var(--muted); margin-top: 5px; }
+
+/* Filters */
+.filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+.search {
+  flex: 1 1 240px; min-width: 0; font: 15px var(--sans); color: var(--ink);
+  padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface);
+}
+.search::placeholder { color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button {
+  font: 500 14px/1 var(--sans); padding: 11px 12px; border: 0; background: none; color: var(--ink-2); cursor: pointer;
+}
+.seg button + button { border-left: 1px solid var(--line-strong); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.jump { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 26px; }
+.jump a {
+  text-decoration: none; font-size: 13px; padding: 6px 10px; border-radius: 999px;
+  background: var(--tint); color: var(--cat); font-weight: 600;
+}
+.jump a span { opacity: 0.7; font-weight: 500; margin-left: 3px; }
+
+/* Stacks: one pile per category */
+.stacks { display: grid; gap: 30px 26px; align-items: start; padding-right: 8px; }
+@media (min-width: 900px) { .stacks { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stack {
+  background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px;
+  box-shadow:
+    4px 4px 0 -1px var(--surface), 4px 4px 0 0 var(--line-strong),
+    8px 8px 0 -1px var(--surface), 8px 8px 0 0 var(--line);
+}
+.stack > header {
+  display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+  border-bottom: 1px solid var(--line); border-top: 3px solid var(--cat); border-radius: 9px 9px 0 0;
+}
+.stack > header h3 { font: 700 18px/1.2 var(--serif); margin: 0; flex: 1; }
+.stack > header .n {
+  font: 600 12.5px/1 var(--sans); padding: 5px 9px; border-radius: 999px; background: var(--tint); color: var(--cat);
+}
+.row { border-bottom: 1px solid var(--line); }
+.row:last-of-type { border-bottom: 0; }
+.row > summary { list-style: none; cursor: pointer; padding: 12px 16px; display: block; }
+.row > summary:hover { background: color-mix(in srgb, var(--tint) 45%, transparent); }
+.row .t { font: 600 16px/1.3 var(--serif); display: block; }
+.row .meta { display: block; font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+.row .meta .badge-new { font-size: 10px; padding: 1px 5px; margin-right: 4px; }
+.row .meta .gpu { color: oklch(var(--cat-l) 0.13 70); font-weight: 600; }
+.row[open] > summary { background: color-mix(in srgb, var(--tint) 60%, transparent); }
+.row .body { padding: 4px 16px 18px; }
+.row .body .claim { font-size: 15px; margin-top: 10px; }
+.stack .all {
+  display: block; width: 100%; padding: 12px 16px; border: 0; border-top: 1px solid var(--line);
+  background: none; color: var(--cat); font: 600 14px var(--sans); cursor: pointer; text-align: left;
+  border-radius: 0 0 9px 9px;
+}
+.stack .all:hover { background: var(--tint); }
+.empty { color: var(--muted); padding: 30px 0; }
+
+/* Tested */
+.verdicts { display: grid; gap: 16px; }
+@media (min-width: 800px) { .verdicts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.verdict { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+.verdict .date { font-size: 12.5px; color: var(--muted); }
+.verdict h3 { font: 700 18px/1.25 var(--serif); margin: 4px 0 10px; }
+.verdict .v { font-weight: 600; font-size: 15px; margin: 0 0 8px; }
+.verdict .r { color: var(--ink-2); font-size: 14.5px; margin: 0; }
+.verdict a.notes { display: inline-block; margin-top: 12px; font-weight: 600; font-size: 14px; }
+
+footer { margin-top: 48px; border-top: 1px solid var(--line); padding: 22px 0 40px; color: var(--muted); font-size: 13.5px; }
+footer p { margin: 0 0 6px; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <h1>Research Queue</h1>
+    <p id="stats"></p>
+  </div>
+</header>
+<nav class="nav" aria-label="Sections">
+  <div class="wrap">
+    <a href="#new">New</a>
+    <a href="#recent">Recent</a>
+    <a href="#stacks">Stacks</a>
+    <a href="#tested">Tested</a>
+    <span class="spacer"></span>
+    <span class="count" id="nav-count"></span>
+  </div>
+</nav>
+
+<main class="wrap">
+  <section id="new" aria-labelledby="new-h">
+    <div class="section-head">
+      <h2 id="new-h">New in the latest run</h2>
+      <span class="sub" id="new-sub"></span>
+    </div>
+    <div id="hero"></div>
+    <div class="cards" id="new-cards"></div>
+  </section>
+
+  <section id="recent" aria-labelledby="recent-h">
+    <div class="section-head">
+      <h2 id="recent-h">From the runs before</h2>
+      <span class="sub" id="recent-sub"></span>
+    </div>
+    <div class="minis" id="minis"></div>
+  </section>
+
+  <section id="stacks" aria-labelledby="stacks-h">
+    <div class="section-head">
+      <h2 id="stacks-h">The stacks</h2>
+      <span class="sub" id="stacks-sub"></span>
+    </div>
+    <div class="filters">
+      <input class="search" id="q" type="search" placeholder="Search titles and claims…" aria-label="Search papers">
+      <div class="seg" role="group" aria-label="Compute needed">
+        <button type="button" data-compute="" aria-pressed="true">All</button>
+        <button type="button" data-compute="api" aria-pressed="false">API only</button>
+        <button type="button" data-compute="gpu" aria-pressed="false">Needs GPU</button>
+      </div>
+    </div>
+    <div class="jump" id="jump"></div>
+    <div class="stacks" id="stack-grid"></div>
+  </section>
+
+  <section id="tested" aria-labelledby="tested-h">
+    <div class="section-head">
+      <h2 id="tested-h">Tested so far</h2>
+      <span class="sub">Verdicts from the README scoreboard</span>
+    </div>
+    <div class="verdicts" id="verdicts"></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p id="built"></p>
+    <p>A read-only view of <a id="queue-link">queue.md</a>. Claims are the scout's summaries of each source and are untested unless listed under “Tested so far”. To test one, run <code>/test-paper &lt;link&gt;</code> yourself.</p>
+  </div>
+</footer>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+const HUES = {
+  "Harness design & evolution": 290,
+  "Context management": 155,
+  "Memory": 200,
+  "MCP & tool use": 245,
+  "Multi-agent & orchestration": 335,
+  "Evaluation & benchmarks": 110,
+  "Security & safety": 20,
+  "Serving & inference": 65,
+};
+const STACK_PREVIEW = 5;
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// The queue is markdown; honour the three inline marks the scout actually uses.
+const md = (s) => esc(s)
+  .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+  .replace(/\*(\S(?:[^*]*?\S)?)\*/g, "<em>$1</em>")
+  .replace(/`([^`]+)`/g, "<code>$1</code>");
+const fmtDate = (iso, withYear = false) =>
+  new Date(iso + "T00:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric", year: withYear ? "numeric" : undefined, timeZone: "UTC" });
+const hue = (e) => `style="--h:${HUES[e.category] ?? 290}"`;
+const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+const entries = DATA.entries.slice().sort((a, b) => (a.run < b.run ? 1 : a.run > b.run ? -1 : a.id - b.id));
+const runs = [...new Set(entries.map((e) => e.run))];
+const latestRun = runs[0];
+const fresh = entries.filter((e) => e.run === latestRun);
+
+function chips(e) {
+  const out = [`<li class="chip ${e.compute}">${e.compute === "gpu" ? "Needs GPU" : "API only"}</li>`];
+  if (e.cost) out.push(`<li class="chip">~${esc(e.cost)} to test</li>`);
+  out.push(`<li class="chip">${e.arxiv ? "arXiv " + esc(e.arxiv) : esc(e.kind)}</li>`);
+  if (e.status !== "proposed") out.push(`<li class="chip status">${esc(e.status)}</li>`);
+  return `<ul class="chips">${out.join("")}</ul>`;
+}
+function facts(e) {
+  return `<dl class="facts">
+    <dt>Why it matters</dt><dd>${md(e.why)}</dd>
+    <dt>How it could be tested</dt><dd>${md(e.testability)}</dd>
+    <dt>Source</dt><dd>${md(e.source)}</dd>
+  </dl>`;
+}
+function actions(e) {
+  if (!e.url) return "";
+  const label = e.kind === "GitHub" ? "Open repo" : e.kind === "Blog" ? "Read post" : "Read paper";
+  return `<div class="actions">
+    <a class="btn primary" href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">${label} ↗</a>
+    <button class="btn" type="button" data-copy="/test-paper ${esc(e.url)}">Copy <code>/test-paper</code></button>
+  </div>`;
+}
+const titleLink = (e) => (e.url ? `<a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">${esc(e.title)}</a>` : esc(e.title));
+
+function renderNew() {
+  $("new-sub").textContent = `${fmtDate(latestRun, true)} · ${plural(fresh.length, "paper")}`;
+  const [lead, ...rest] = fresh;
+  const name = lead.short || lead.title;
+  $("hero").innerHTML = `<article class="hero" ${hue(lead)}>
+    <a class="cover" ${lead.url ? `href="${esc(lead.url)}" target="_blank" rel="noopener noreferrer"` : ""} aria-hidden="true" tabindex="-1">
+      <span class="cover-cat">${esc(lead.category)}</span>
+      <span class="cover-name${name.length > 22 ? " long" : ""}">${esc(name)}</span>
+      <span class="cover-id">${lead.arxiv ? "arXiv:" + esc(lead.arxiv) : esc(lead.kind)}</span>
+    </a>
+    <div>
+      <p class="eyebrow"><span class="badge-new">New</span>${esc(lead.category)}</p>
+      <h2>${titleLink(lead)}</h2>
+      <p class="claim">${md(lead.claim)}</p>
+      ${chips(lead)}
+      <details class="more"><summary>Why it matters and how to test it</summary>${facts(lead)}</details>
+      ${actions(lead)}
+    </div>
+  </article>`;
+  $("new-cards").innerHTML = rest.map((e) => `<article class="card" ${hue(e)}>
+    <p class="eyebrow"><span class="badge-new">New</span>${esc(e.category)}</p>
+    <h3>${titleLink(e)}</h3>
+    <p class="claim">${md(e.claim)}</p>
+    ${chips(e)}
+    <details class="more"><summary>Why it matters and how to test it</summary>${facts(e)}</details>
+    ${actions(e)}
+  </article>`).join("");
+}
+
+function renderRecent() {
+  const recentRuns = runs.slice(1, 4);
+  const list = entries.filter((e) => recentRuns.includes(e.run)).slice(0, 9);
+  if (!list.length) { $("recent").hidden = true; return; }
+  $("recent-sub").textContent = recentRuns.map((r) => fmtDate(r)).reverse().join(" · ");
+  $("minis").innerHTML = list.map((e) => {
+    const initials = (e.short || e.title).replace(/[^A-Za-z0-9 ]/g, "").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("");
+    return `<div class="mini" ${hue(e)}>
+      <span class="thumb" aria-hidden="true">${esc(initials)}</span>
+      <div>${titleLink(e)}
+        <div class="meta">${fmtDate(e.run)} · ${esc(e.category)}${e.cost ? " · ~" + esc(e.cost) : ""}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+const state = { q: "", compute: "", open: new Set() };
+
+function rowHtml(e) {
+  const meta = [
+    fmtDate(e.run),
+    e.compute === "gpu" ? `<span class="gpu">Needs GPU</span>` : "API only",
+    e.cost ? "~" + esc(e.cost) : null,
+    esc(e.kind),
+    e.status !== "proposed" ? esc(e.status) : null,
+  ].filter(Boolean).join(" · ");
+  return `<details class="row">
+    <summary>
+      <span class="t">${esc(e.title)}</span>
+      <span class="meta">${e.run === latestRun ? `<span class="badge-new">New</span>` : ""}${meta}</span>
+    </summary>
+    <div class="body">
+      <p class="claim">${md(e.claim)}</p>
+      ${facts(e)}
+      ${actions(e)}
+    </div>
+  </details>`;
+}
+
+function renderStacks() {
+  const q = state.q.trim().toLowerCase();
+  const filtering = Boolean(q || state.compute);
+  const match = (e) =>
+    (!state.compute || e.compute === state.compute) &&
+    (!q || `${e.title} ${e.claim} ${e.why} ${e.category}`.toLowerCase().includes(q));
+  const shown = entries.filter(match);
+  const groups = Object.keys(HUES)
+    .map((name) => ({ name, items: shown.filter((e) => e.category === name) }))
+    .filter((g) => g.items.length);
+  // A category pinned in queue.md that this page has no colour for still gets a stack.
+  const known = new Set(Object.keys(HUES));
+  const other = [...new Set(shown.filter((e) => !known.has(e.category)).map((e) => e.category))];
+  other.forEach((name) => groups.push({ name, items: shown.filter((e) => e.category === name) }));
+
+  $("stacks-sub").textContent = filtering
+    ? `${shown.length} of ${plural(entries.length, "paper")} match`
+    : `${plural(entries.length, "paper")} in ${groups.length} ${groups.length === 1 ? "category" : "categories"}`;
+  $("jump").innerHTML = groups.map((g) =>
+    `<a href="#stack-${slug(g.name)}" style="--h:${HUES[g.name] ?? 290}">${esc(g.name)}<span>${g.items.length}</span></a>`).join("");
+  $("stack-grid").innerHTML = groups.length ? groups.map((g) => {
+    const expanded = filtering || state.open.has(g.name);
+    const visible = expanded ? g.items : g.items.slice(0, STACK_PREVIEW);
+    const hidden = g.items.length - visible.length;
+    return `<section class="stack" id="stack-${slug(g.name)}" style="--h:${HUES[g.name] ?? 290}" aria-label="${esc(g.name)}">
+      <header><h3>${esc(g.name)}</h3><span class="n">${g.items.length}</span></header>
+      ${visible.map(rowHtml).join("")}
+      ${hidden > 0 ? `<button class="all" type="button" data-all="${esc(g.name)}">Show all ${g.items.length} →</button>` : ""}
+      ${!filtering && expanded && g.items.length > STACK_PREVIEW ? `<button class="all" type="button" data-less="${esc(g.name)}">Show fewer</button>` : ""}
+    </section>`;
+  }).join("") : `<p class="empty">Nothing in the queue matches that.</p>`;
+}
+
+function renderTested() {
+  if (!DATA.scoreboard.length) { $("tested").hidden = true; return; }
+  $("verdicts").innerHTML = DATA.scoreboard.map((r) => `<article class="verdict">
+    <span class="date">Tested ${esc(r.date)}</span>
+    <h3>${md(r.technique)}</h3>
+    <p class="v">${md(r.verdict)}</p>
+    <p class="r">${md(r.result)}</p>
+    ${r.link && !/^[a-z]+:/i.test(r.link) ? `<a class="notes" href="${esc(DATA.repo)}/blob/master/${esc(r.link)}" target="_blank" rel="noopener noreferrer">Read the notes ↗</a>` : ""}
+  </article>`).join("");
+}
+
+function renderChrome() {
+  $("stats").innerHTML = `<b>${entries.length}</b> in the queue · <b>${DATA.scoreboard.length}</b> tested · latest scout run <b>${fmtDate(latestRun, true)}</b>`;
+  $("nav-count").textContent = `${fresh.length} new · ${entries.length} total`;
+  $("built").textContent = `Built ${DATA.built} from queue.md.`;
+  $("queue-link").href = `${DATA.repo}/blob/master/queue.md`;
+}
+
+$("q").addEventListener("input", (ev) => { state.q = ev.target.value; renderStacks(); });
+document.addEventListener("click", async (ev) => {
+  const seg = ev.target.closest("[data-compute]");
+  if (seg) {
+    state.compute = seg.dataset.compute;
+    document.querySelectorAll("[data-compute]").forEach((b) => b.setAttribute("aria-pressed", String(b === seg)));
+    return renderStacks();
+  }
+  const all = ev.target.closest("[data-all]");
+  if (all) { state.open.add(all.dataset.all); return renderStacks(); }
+  const less = ev.target.closest("[data-less]");
+  if (less) {
+    state.open.delete(less.dataset.less);
+    renderStacks();
+    return document.getElementById("stack-" + slug(less.dataset.less))?.scrollIntoView({ block: "start" });
+  }
+  const copy = ev.target.closest("[data-copy]");
+  if (copy) {
+    const original = copy.innerHTML;
+    try { await navigator.clipboard.writeText(copy.dataset.copy); copy.textContent = "Copied"; }
+    catch { copy.textContent = "Copy failed"; }
+    setTimeout(() => { copy.innerHTML = original; }, 1400);
+  }
+});
+
+renderChrome();
+renderNew();
+renderRecent();
+renderStacks();
+renderTested();
+</script>
+</body>
+</html>

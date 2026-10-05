@@ -46,6 +46,10 @@ requires the human.
 - Invoke the scouts: `/scout-research`, `/scout-skills`
 - Experiment command: `/test-paper`  ·  Scoreboard: the table in `README.md`
 - Auto-merge gate for scout PRs: `.github/workflows/validate-scout-pr.yml`
+- Queue dashboard (read-only view of `queue.md` + the scoreboard, on GitHub Pages):
+  `dashboard/build.py` + `dashboard/template.html`, deployed by
+  `.github/workflows/deploy-dashboard.yml`. Preview locally with `python dashboard/build.py`
+  and open `_site/index.html`.
 
 ## Scheduling
 
