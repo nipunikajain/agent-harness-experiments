@@ -1178,6 +1178,31 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Testability: Very feasible on Apple Silicon, API-only, no GPU — it's a local Node.js MCP server. Route the repo's toy multi-tool task through it vs. a no-sandboxing baseline, measure actual context bytes and turns-to-compaction. Rough cost: $5-10.
 - Source: GitHub trending, agents/MCP/context-management topic.
 
+---
+
+## 2026-10-05 — proposed by research-scout
+
+### [Don't Break the Cache: An Evaluation of Prompt Caching for Long-Horizon Agentic Tasks](https://arxiv.org/abs/2601.06007)
+- Status: proposed — awaiting review
+- Claim: Prompt caching cuts API cost 45-80% and time-to-first-token 13-31% on multi-turn tool-calling agent tasks. Strategic cache-block control (dynamic content at the end of the system prompt, excluding dynamic tool results) beats naive full-context caching.
+- Why it matters: The repo's TokenPilot result found about 4/5 of the headline win was just prompt caching. This paper is the direct test of which caching strategy matters in agent loops.
+- Testability: Very feasible, API-only, no GPU. Use the repo's referral-chain task with Haiku 4.5 and compare no caching, full-context caching, system-prompt-only caching and exclude-tool-results caching, n=3. Rough cost: $3-8.
+- Source: arXiv cs.AI (2601.06007), found via web search. Older paper (Jan 2026), not previously queued.
+
+### [TensorFold: exact speculative-decoding inference server (Apple Silicon MLX + NVIDIA)](https://github.com/ashhart/TensorFold)
+- Status: proposed — awaiting review
+- Claim: Exact speculative decoding gives byte-identical output to serial decoding. Self-reported speedups are 1.6-3.1x over vLLM (MTP=3) on DGX Spark, and about 188-206 tok/s vs 138 tok/s for mlx_lm on an M5 Max.
+- Why it matters: LLM serving on the user's own hardware class. The claim is checkable on two axes, speed and exactness (byte-identical output).
+- Testability: Partly feasible. It has an MLX backend for Apple Silicon, but the supported models are large (a 26-30B-class model needs a lot of unified memory) and the supported model families are narrow. Checking exactness and speedup on a Mac costs $0 in compute if the hardware has enough RAM. A GPU comparison against vLLM would be about $5-15 on Modal (single H100/L40S, a few hours). Installing it is the human's call. Its numbers are self-reported and unreplicated.
+- Source: GitHub trending (python).
+
+### [CacheRouter: A Dual-Path Tool Routing Architecture with Cache-Preserving Main-Model Isolation for Long-Tail Tool Discovery](https://arxiv.org/abs/2608.22708)
+- Status: proposed — awaiting review
+- Claim: Routing long-tail tool discovery through a separate path keeps the main model's prompt prefix stable, so the cache is preserved while the tool set scales. This is claimed to cut cost and latency vs. loading all tool schemas into the main context. Exact numbers not verified (I could not fetch the paper).
+- Why it matters: It combines MCP-style large tool ecosystems with prompt-cache economics, a gap TokenPilot's finding exposed.
+- Testability: Likely feasible with API-only models. Build a 50-100 tool toy registry, then compare all-tools-in-prompt vs. a router with a small model (Haiku 4.5), measuring cost, cache hit rate and tool-selection accuracy. Rough cost: $5-12. Caveat: the paper could not be fetched, so the claim above is from the title and a search snippet only. Triage should read the abstract first.
+- Source: arXiv (2608.22708), found via web search. Dated Aug 2026, so outside the 1-2 week window.
+
 ### [ACLE-MCP: Attested Capability Leases for Execution-Time Trust in Remote LLM Tool Use](https://arxiv.org/abs/2609.02690)
 - Status: proposed — awaiting review
 - Claim: OAuth-only authorization for remote MCP tool calls leaves a "post-authorization execution trust gap" (an endpoint can stay authorized even after execution shifts to a substituted or stale workload). ACLE-MCP's short-lived, sender-constrained capability leases (binding workload, freshness, operation/object/parameter bounds) close this gap, but in the authors' own prototype (Keycloak/OIDC + MCP Python SDK + optional vTPM attestation) increase pooled p95 latency on normal allowed calls by 25.7% vs. OAuth-only.
