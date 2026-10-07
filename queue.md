@@ -1435,3 +1435,9 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: A formally-grounded alternative to the already-queued Recursive Agent Harnesses (which spawns full subagent harnesses via generated scripts, with no verification guarantees) — worth checking whether trading free-form recursion for a verified combinator library actually earns back overhead better than the unstructured version, matching this repo's recurring "does structure pay for itself" question.
 - Testability: Feasible small-scale, API-only, no GPU. Implement a small library of 3-5 pre-verified combinators (map/filter/reduce-style) for a toy long-context QA task, compare against free-form recursive decomposition (mimicking standard RLM) using Haiku 4.5 for leaf subproblems and Sonnet 4.6 as the top-level orchestrator. Rough cost: $10-15; won't match the 9-model/4-task scale, directional check only.
 - Source: arXiv cs.CL/cs.AI (2603.20105), submitted 2026-03-20
+
+---
+
+## 2026-10-07 — research-scout run: nothing new
+
+No new candidates this run. arXiv, simonwillison.net and blog.vllm.ai were blocked by the network egress proxy, and web search and the GitHub trending / Anthropic Engineering pages surfaced nothing new that was testable and not already queued or on the scoreboard. Coverage was partial, so a re-run with arXiv access may still find items.
