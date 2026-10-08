@@ -1438,6 +1438,27 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 
 ---
 
-## 2026-10-07 — research-scout run: nothing new
+## 2026-10-07 — proposed by research-scout
 
-No new candidates this run. arXiv, simonwillison.net and blog.vllm.ai were blocked by the network egress proxy, and web search and the GitHub trending / Anthropic Engineering pages surfaced nothing new that was testable and not already queued or on the scoreboard. Coverage was partial, so a re-run with arXiv access may still find items.
+<!-- Partial coverage: arXiv/simonwillison/vllm blog were egress-blocked; candidates come from web search snippets only, so claims are abstract-level and unverified against the full papers. -->
+
+### [Trained Agentic Context Management](https://arxiv.org/abs/2610.02404)
+- Status: proposed — awaiting review
+- Claim: A Qwen3.6-35B-A3B fine-tuned to manage its own context (harness exposes only a self-call and a token-range reader) at an 8K window matches GPT-5.4 with 1M context once documents exceed 40K tokens.
+- Why it matters: Tests whether a minimal harness plus learned context management beats brute-force long context, relevant to this repo's finding that heavier scaffolding loses.
+- Testability: The trained model is not reproducible here (needs fine-tuning, ~35B). A reduced version is feasible: the same minimal self-call/range-reader harness with prompting only on Haiku 4.5 vs full-context baseline on ~20 long-doc QA tasks. API only, rough cost $5-15; it would not test the trained-model claim.
+- Source: arXiv (2610.02404), submitted 2026-10-01
+
+### [Finding the Right Fit: Model–Harness Interactions across Agent Tasks](https://arxiv.org/abs/2610.00917)
+- Status: proposed — awaiting review
+- Claim: Harness effectiveness depends on the model and task: the same harness components (tools, context/memory, skills, planning, retries) help some model–task pairs and hurt others.
+- Why it matters: Directly bears on the scoreboard's pattern where one harness helped neither Haiku nor Sonnet; checks whether the effect is model-specific.
+- Testability: Cheap, API only. Cross two models (Haiku 4.5, Sonnet 4.6) with 2-3 harness variants on a small task set. Rough cost: $10-20. Exact numeric claim not verified (abstract not read).
+- Source: arXiv (2610.00917), submitted ~2026-10-01
+
+### [Behavior-Preserving KV Cache Compression](https://arxiv.org/abs/2610.06479)
+- Status: proposed — awaiting review
+- Claim: A training-free KV eviction scoring method that aims to preserve model behavior (not just perplexity) under compression.
+- Why it matters: Serving-lane claim that is locally testable; behavior preservation is a stricter bar than most KV-compression papers report.
+- Testability: Feasible on a small open model (e.g. Qwen 1.5-3B) on Apple Silicon or a small cloud GPU, comparing against a simple baseline (e.g. H2O/recency) on output agreement. Rough cost: $0 local to ~$5 GPU. Details unverified (abstract not read).
+- Source: arXiv (2610.06479), submitted 2026-10-05
