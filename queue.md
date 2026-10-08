@@ -1435,3 +1435,42 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: A formally-grounded alternative to the already-queued Recursive Agent Harnesses (which spawns full subagent harnesses via generated scripts, with no verification guarantees) — worth checking whether trading free-form recursion for a verified combinator library actually earns back overhead better than the unstructured version, matching this repo's recurring "does structure pay for itself" question.
 - Testability: Feasible small-scale, API-only, no GPU. Implement a small library of 3-5 pre-verified combinators (map/filter/reduce-style) for a toy long-context QA task, compare against free-form recursive decomposition (mimicking standard RLM) using Haiku 4.5 for leaf subproblems and Sonnet 4.6 as the top-level orchestrator. Rough cost: $10-15; won't match the 9-model/4-task scale, directional check only.
 - Source: arXiv cs.CL/cs.AI (2603.20105), submitted 2026-03-20
+
+---
+
+## 2026-10-06 — proposed by research-scout
+
+### [AgentKV: Phase-Aware KV Eviction for Agentic LLMs](https://arxiv.org/pdf/2609.14872)
+- Status: proposed — awaiting review
+- Claim: Agentic generation violates standard attention assumptions (future queries are a mixture over think/act/tool phases occupying different query subspaces); keeping a small per-phase query buffer to score KV eviction improves task score by 5.5 points on average over other KV eviction methods.
+- Why it matters: Targets KV-cache pressure specifically for agent loops (serving lane), distinct from the queued generic KV compression papers (KARA, VeriCache, Random Attention) and from cache-keepalive/prefix-scheduling work.
+- Testability: Needs open weights and attention access, so not API-testable. A directional repro on a small model (Qwen ~1.5-3B) could run on Apple Silicon CPU slowly, or on a Modal A10G for a few hours. Rough cost: $5-15 on Modal. Details taken from search snippet only (arXiv fetch was blocked), so verify the setup before committing.
+- Source: arXiv (2609.14872), found via web search
+
+### [AsymSpec: Context-Asymmetric Speculative Decoding for Agentic LLMs](https://arxiv.org/pdf/2608.26004)
+- Status: proposed — awaiting review
+- Claim: Standard speculative decoding assumes drafter and verifier share one context window, which breaks in agentic sessions as tool outputs accumulate; giving the drafter an asymmetric (reduced) context cuts inference latency and compute cost for deep agentic sessions (reported accepted at EMNLP 2026).
+- Why it matters: Speculative decoding adapted to agent/tool-use workloads, which is this repo's serving lane. Related queued items are Speculate with Memory, DSpark and NebulaSD, but none address the context asymmetry between drafter and verifier.
+- Testability: Needs a local drafter plus verifier pair. A small pair (e.g. 0.5B drafter, 3B-7B verifier) can be run directionally on Apple Silicon (MLX) or on a Modal A10G. Rough cost: $5-15. Exact speedup numbers were not verified (arXiv fetch blocked).
+- Source: arXiv (2608.26004), found via web search
+
+### [AgentSpec: speculative decoding for LLM agents under large batch sizes](https://arxiv.org/abs/2608.24004)
+- Status: proposed — awaiting review
+- Claim: State-of-the-art speculative decoding loses its speedup at large batch sizes in agent applications because of a high rejection rate for speculative tokens and under-used dynamic token budgets; AgentSpec addresses both factors to keep the speedup under batched agent serving (reported accepted at EMNLP 2026).
+- Why it matters: Batch-serving angle on agent speculative decoding. It pairs with AsymSpec and could be tested head-to-head, but it is a separate paper and mechanism.
+- Testability: Needs GPU-scale batching to show the effect (batch-size scaling), so use Modal. Estimate $10-25 on an A10G/L4 with vLLM and a small model pair. Out of budget if reproducing the full paper scale. The title above is a descriptive label, because the exact title could not be fetched (arXiv blocked). Confirm the title before running `/test-paper`.
+- Source: arXiv (2608.24004), found via web search
+
+### [MemTR: Enhancing Tool-Calling Reliability via Uncertainty-Triggered FFN-Space Retracing](https://preview.aclanthology.org/ingest-acl/2026.findings-acl.973/)
+- Status: proposed — awaiting review
+- Claim: A weight-free, decoding-time method that retrieves relevant tool evidence and mixes it into FFN output at uncertain layers, reducing tool-calling failures by 2%-9% with no fine-tuning (ACL 2026 Findings).
+- Why it matters: Tool-call reliability fix at the model level rather than the harness level, which complements the queued harness-side work (Verified Tool Calls, Closed-World Resolution, Tunable Tool-Call Rates via steering).
+- Testability: Needs hidden-state access to open weights, so not API-testable. A small open model (1-3B) with a tool-call benchmark subset could run on Apple Silicon CPU slowly, or on Modal for $5-10. The reported gain is modest (2-9%), so expect a noisy directional result.
+- Source: ACL 2026 Findings (ACL Anthology preview), found via web search
+
+### [claude-mem](https://github.com/thedotmack/claude-mem)
+- Status: proposed — awaiting review
+- Claim: A Claude Code plugin that hooks session lifecycle events, compresses tool-use observations with an LLM, stores them in SQLite, and injects relevant memory into future sessions. It is trending on GitHub TypeScript this week (about 97k stars).
+- Why it matters: A popular, concrete cross-session memory harness. No rigorous measurement of its token cost or task benefit was found, so it is a candidate for the repo's "does the technique pay for itself" test, next to the queued Hindsight and TencentDB-Agent-Memory.
+- Testability: API-only, no GPU. Run the same multi-session coding or QA task with and without memory injection on Haiku 4.5/Sonnet 4.6, and measure tokens per task and success. Installing a third-party plugin is the human's call, so a reimplemented minimal version of the compress-and-inject loop is safer. Rough cost: $10-20. Star count and mechanism come from the trending page and secondary descriptions.
+- Source: GitHub trending (TypeScript, weekly)
