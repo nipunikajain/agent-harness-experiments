@@ -1474,3 +1474,28 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: A popular, concrete cross-session memory harness. No rigorous measurement of its token cost or task benefit was found, so it is a candidate for the repo's "does the technique pay for itself" test, next to the queued Hindsight and TencentDB-Agent-Memory.
 - Testability: API-only, no GPU. Run the same multi-session coding or QA task with and without memory injection on Haiku 4.5/Sonnet 4.6, and measure tokens per task and success. Installing a third-party plugin is the human's call, so a reimplemented minimal version of the compress-and-inject loop is safer. Rough cost: $10-20. Star count and mechanism come from the trending page and secondary descriptions.
 - Source: GitHub trending (TypeScript, weekly)
+
+---
+
+## 2026-10-08 — proposed by research-scout
+
+### [MemDecay: Region-Aware KV Cache Eviction for Efficient LLM Agent Inference](https://arxiv.org/abs/2607.10582)
+- Status: proposed — awaiting review
+- Claim: A training-free KV eviction policy that gives each context region (system prompt, plan, scratchpad, tool output) its own decay rate and lets critical regions be pinned keeps system-region facts at full-cache accuracy under a fixed budget, while recency-based retention collapses (Qwen2.5-1.5B/3B, ~450 and ~1,700-token contexts).
+- Why it matters: Targets the serving lane from the agent side, using structure the orchestrator already knows. It sits next to the queued AgentKV and Leyline-style items but is the only one with small-model numbers, so a repro is cheap.
+- Testability: Feasible on a small model. Qwen2.5-1.5B runs on Apple Silicon CPU or MLX with a custom eviction hook in HF transformers. Rough cost: $0 locally, or $3-8 on a Modal T4/A10G for longer contexts. The paper's own contexts are short, so expect a directional result only. Note the abstract admits accumulated-attention retention does better on unpinned content.
+- Source: arXiv cs.LG/cs.AI (2607.10582), found via web search (abstract page was not fetchable; details from search summaries)
+
+### [Leyline: KV Cache Directives for Agentic Inference](https://arxiv.org/abs/2606.01065)
+- Status: proposed — awaiting review
+- Claim: Standard KV cache management assumes append-only chat prompts, which breaks when agents edit their own context; Leyline proposes directives that let a policy remove or replace a cached span without re-prefilling everything after it.
+- Why it matters: Agent context edits (compaction, tool-result pruning) are exactly what this repo's context-management results (TokenPilot) touch, and this asks what they cost at the serving layer.
+- Testability: Needs serving-stack changes (vLLM/SGLang), so GPU-based. A directional repro could measure re-prefill cost saved on a small model via Modal, roughly $10-20. Full system reproduction is likely out of budget. Claim numbers were not verified (arXiv fetch blocked; only the search summary was seen).
+- Source: arXiv (2606.01065), found via web search
+
+### [iFixAi: independent agent behavior auditing tool](https://github.com/ifixai-ai/iFixAi)
+- Status: proposed — awaiting review
+- Claim: An Apache-2.0 Python tool runs 60 inspections across 25 categories (Fabrication, Manipulation, Deception, Unpredictability, Opacity) against an agent behind an OpenAI-compatible endpoint, graded A-F by a judge model from a different vendor. It is trending on GitHub this week (about 5.9k stars this week).
+- Why it matters: A popular agent-audit harness with no visible validation of whether its grades track real agent failures. It is a "does the technique hold up" test: do its grades separate agents with known, seeded defects, and are they stable across judges and reruns?
+- Testability: API-only, no GPU. The project estimates $12-18 per full run with a Sonnet judge; a subset of inspections on Haiku 4.5 would be $3-8. It has telemetry on by default (disable with `--no-telemetry`), and installing a third-party package is the human's call. Star counts and the cost figure come from the repo page, unverified.
+- Source: GitHub trending (Python, weekly)
