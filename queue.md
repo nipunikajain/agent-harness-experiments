@@ -1474,3 +1474,51 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: A popular, concrete cross-session memory harness. No rigorous measurement of its token cost or task benefit was found, so it is a candidate for the repo's "does the technique pay for itself" test, next to the queued Hindsight and TencentDB-Agent-Memory.
 - Testability: API-only, no GPU. Run the same multi-session coding or QA task with and without memory injection on Haiku 4.5/Sonnet 4.6, and measure tokens per task and success. Installing a third-party plugin is the human's call, so a reimplemented minimal version of the compress-and-inject loop is safer. Rough cost: $10-20. Star count and mechanism come from the trending page and secondary descriptions.
 - Source: GitHub trending (TypeScript, weekly)
+
+---
+
+## 2026-10-09 — proposed by research-scout
+
+<!-- Ranked by fit to the repo's harness-overhead line of work and by cost to test. Abstract pages were not fetchable from this environment (arxiv.org not resolvable), so claims and numbers come from search snippets; verify at triage. -->
+
+### [LEAP: Learning Efficient Action Proposals For LLM Agents](https://arxiv.org/abs/2610.02670)
+- Status: proposed — awaiting review
+- Claim: A small draft model (0.6B) proposes agent actions that the large model only verifies, matching the target on most decisions and cutting end-to-end agent wall-clock by up to 60% with no systematic change in task success.
+- Why it matters: Speculation at the action level instead of the token level. It asks whether agent latency can be bought back without touching quality, and it differs from the queued token-level agent speculative decoding items (AsymSpec, AgentSpec, NebulaSD).
+- Testability: Yes, on a small model. Qwen ~0.6B drafter plus a 3-7B verifier on a tool-use task set, measuring action agreement and wall-clock. Runs on Apple Silicon (MLX/llama.cpp) or a Modal A10G. Rough cost: $5-15.
+- Source: arXiv (2610.02670), found via web search (snippet only)
+
+### [Finding the Right Fit: Model–Harness Interactions across Agent Tasks](https://arxiv.org/html/2610.00917v1)
+- Status: proposed — awaiting review
+- Claim: The benefit of harness scaffolding depends on the model: a model that manages its own commands does well with little scaffolding, while a model that makes more command errors benefits from a harness that catches them.
+- Why it matters: Directly bears on the scoreboard rows, where structured harnesses lost to naive on Haiku/Sonnet. It predicts the harness should help weaker models, which the repo has not tested.
+- Testability: Yes. Reuse the existing structured-vs-naive harness with a small open model (e.g. Qwen 3B-7B local) next to Haiku 4.5 and check whether the sign of the harness effect flips. Rough cost: $3-10 API plus local compute.
+- Source: arXiv (2610.00917), found via web search (snippet only)
+
+### [Passing the Test You Trained On: Re-evaluating Prompt-Injection Detectors for LLM Agents](https://arxiv.org/abs/2610.03448)
+- Status: proposed — awaiting review
+- Claim: A prompt-injection detector's public benchmark score does not predict its behavior inside an agent; detectors should be evaluated on the agent's own tool outputs and reported at a low false-positive rate.
+- Why it matters: A "does the headline number hold in the real setting" test, which is this repo's core question, applied to a security control agents increasingly ship with.
+- Testability: Yes, cheap. Run an open small detector (e.g. a ~100M-1B classifier) on benchmark data and on tool outputs from a toy Haiku agent, and compare false-positive rates. CPU-capable. Rough cost: under $5.
+- Source: arXiv (2610.03448), found via web search (snippet only)
+
+### [AutoCompact: Learning When to Compact Context in Long-Horizon Coding Agents](https://arxiv.org/abs/2610.02163)
+- Status: proposed — awaiting review
+- Claim: Base models rarely call compact() before hitting the context limit, even when told the rules; training the model to choose when to compact improves pass rates by 9.2% (SWE-bench Verified) and 5.0% (SWE-PolyBench Verified) absolute.
+- Why it matters: Adds a trigger-timing angle to the queued compaction items (Compaction Cliff, CliffCompaction-style work). The cheap half of the claim, that models under-use compaction when prompted, can be tested without training.
+- Testability: Partly. The training part needs fine-tuning and is out of budget. A prompt-only version (model-chosen vs fixed-interval vs overflow-only compaction) runs on Haiku 4.5 or a small open model on a toy long-horizon task. Rough cost: $5-15.
+- Source: arXiv (2610.02163), found via web search (snippet only)
+
+### [Resource-Efficient Speculative Decoding for Long-Context LLM Serving (SpecStream)](https://arxiv.org/abs/2609.33184)
+- Status: proposed — awaiting review
+- Claim: When the KV cache is offloaded, starting verification before the full KV history is back on the GPU and drafting in the idle compute during transfers improves output throughput per GPU by 55.4% on average over parallel speculative decoding on separate target and draft GPUs.
+- Why it matters: Targets long-context agent sessions, where the KV cache does not fit and offloading is the norm. It is a serving-lane claim with a concrete comparison baseline.
+- Testability: Hard to reproduce fully. Needs a GPU with KV offload to CPU and a vLLM-style stack, so a directional test with a small model pair on a Modal L4/A10G. Rough cost: $10-25. Not API-testable.
+- Source: arXiv (2609.33184), found via web search (snippet only)
+
+### [billion-context](https://github.com/ranxianglei/billion-context)
+- Status: proposed — awaiting review
+- Claim: A context-compression plugin aimed at small context windows that claims to cut token use and support long sessions. About 243 stars this week on GitHub TypeScript trending.
+- Why it matters: Another "does the technique pay for itself" candidate beside the queued claude-mem and context-mode. It targets small windows, which matches running small models locally.
+- Testability: Yes, but the repo is unvetted. Reimplement the compression idea or inspect the code first; do not install it. Compare tokens and task success with and without it on a small local model with a 4-8k window. Rough cost: under $5. Claims taken from the trending page description only.
+- Source: GitHub trending (TypeScript, weekly)
