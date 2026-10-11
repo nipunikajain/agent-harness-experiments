@@ -1438,37 +1438,25 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 
 ---
 
-## 2026-10-06 — proposed by research-scout
+## 2026-10-07 — proposed by research-scout
 
-### [AgentKV: Phase-Aware KV Eviction for Agentic LLMs](https://arxiv.org/pdf/2609.14872)
+<!-- Partial coverage: arXiv/simonwillison/vllm blog were egress-blocked; candidates come from web search snippets only, so claims are abstract-level and unverified against the full papers. -->
+
+### [Trained Agentic Context Management](https://arxiv.org/abs/2610.02404)
 - Status: proposed — awaiting review
-- Claim: Agentic generation violates standard attention assumptions (future queries are a mixture over think/act/tool phases occupying different query subspaces); keeping a small per-phase query buffer to score KV eviction improves task score by 5.5 points on average over other KV eviction methods.
-- Why it matters: Targets KV-cache pressure specifically for agent loops (serving lane), distinct from the queued generic KV compression papers (KARA, VeriCache, Random Attention) and from cache-keepalive/prefix-scheduling work.
-- Testability: Needs open weights and attention access, so not API-testable. A directional repro on a small model (Qwen ~1.5-3B) could run on Apple Silicon CPU slowly, or on a Modal A10G for a few hours. Rough cost: $5-15 on Modal. Details taken from search snippet only (arXiv fetch was blocked), so verify the setup before committing.
-- Source: arXiv (2609.14872), found via web search
+- Claim: A Qwen3.6-35B-A3B fine-tuned to manage its own context (harness exposes only a self-call and a token-range reader) at an 8K window matches GPT-5.4 with 1M context once documents exceed 40K tokens.
+- Why it matters: Tests whether a minimal harness plus learned context management beats brute-force long context, relevant to this repo's finding that heavier scaffolding loses.
+- Testability: The trained model is not reproducible here (needs fine-tuning, ~35B). A reduced version is feasible: the same minimal self-call/range-reader harness with prompting only on Haiku 4.5 vs full-context baseline on ~20 long-doc QA tasks. API only, rough cost $5-15; it would not test the trained-model claim.
+- Source: arXiv (2610.02404), submitted 2026-10-01
 
-### [AsymSpec: Context-Asymmetric Speculative Decoding for Agentic LLMs](https://arxiv.org/pdf/2608.26004)
+### [Finding the Right Fit: Model–Harness Interactions across Agent Tasks](https://arxiv.org/abs/2610.00917)
 - Status: proposed — awaiting review
-- Claim: Standard speculative decoding assumes drafter and verifier share one context window, which breaks in agentic sessions as tool outputs accumulate; giving the drafter an asymmetric (reduced) context cuts inference latency and compute cost for deep agentic sessions (reported accepted at EMNLP 2026).
-- Why it matters: Speculative decoding adapted to agent/tool-use workloads, which is this repo's serving lane. Related queued items are Speculate with Memory, DSpark and NebulaSD, but none address the context asymmetry between drafter and verifier.
-- Testability: Needs a local drafter plus verifier pair. A small pair (e.g. 0.5B drafter, 3B-7B verifier) can be run directionally on Apple Silicon (MLX) or on a Modal A10G. Rough cost: $5-15. Exact speedup numbers were not verified (arXiv fetch blocked).
-- Source: arXiv (2608.26004), found via web search
+- Claim: Harness effectiveness depends on the model and task: the same harness components (tools, context/memory, skills, planning, retries) help some model–task pairs and hurt others.
+- Why it matters: Directly bears on the scoreboard's pattern where one harness helped neither Haiku nor Sonnet; checks whether the effect is model-specific.
+- Testability: Cheap, API only. Cross two models (Haiku 4.5, Sonnet 4.6) with 2-3 harness variants on a small task set. Rough cost: $10-20. Exact numeric claim not verified (abstract not read).
+- Source: arXiv (2610.00917), submitted ~2026-10-01
 
-### [AgentSpec: speculative decoding for LLM agents under large batch sizes](https://arxiv.org/abs/2608.24004)
-- Status: proposed — awaiting review
-- Claim: State-of-the-art speculative decoding loses its speedup at large batch sizes in agent applications because of a high rejection rate for speculative tokens and under-used dynamic token budgets; AgentSpec addresses both factors to keep the speedup under batched agent serving (reported accepted at EMNLP 2026).
-- Why it matters: Batch-serving angle on agent speculative decoding. It pairs with AsymSpec and could be tested head-to-head, but it is a separate paper and mechanism.
-- Testability: Needs GPU-scale batching to show the effect (batch-size scaling), so use Modal. Estimate $10-25 on an A10G/L4 with vLLM and a small model pair. Out of budget if reproducing the full paper scale. The title above is a descriptive label, because the exact title could not be fetched (arXiv blocked). Confirm the title before running `/test-paper`.
-- Source: arXiv (2608.24004), found via web search
-
-### [MemTR: Enhancing Tool-Calling Reliability via Uncertainty-Triggered FFN-Space Retracing](https://preview.aclanthology.org/ingest-acl/2026.findings-acl.973/)
-- Status: proposed — awaiting review
-- Claim: A weight-free, decoding-time method that retrieves relevant tool evidence and mixes it into FFN output at uncertain layers, reducing tool-calling failures by 2%-9% with no fine-tuning (ACL 2026 Findings).
-- Why it matters: Tool-call reliability fix at the model level rather than the harness level, which complements the queued harness-side work (Verified Tool Calls, Closed-World Resolution, Tunable Tool-Call Rates via steering).
-- Testability: Needs hidden-state access to open weights, so not API-testable. A small open model (1-3B) with a tool-call benchmark subset could run on Apple Silicon CPU slowly, or on Modal for $5-10. The reported gain is modest (2-9%), so expect a noisy directional result.
-- Source: ACL 2026 Findings (ACL Anthology preview), found via web search
-
-### [claude-mem](https://github.com/thedotmack/claude-mem)
+### [Behavior-Preserving KV Cache Compression](https://arxiv.org/abs/2610.06479)
 - Status: proposed — awaiting review
 - Claim: A Claude Code plugin that hooks session lifecycle events, compresses tool-use observations with an LLM, stores them in SQLite, and injects relevant memory into future sessions. It is trending on GitHub TypeScript this week (about 97k stars).
 - Why it matters: A popular, concrete cross-session memory harness. No rigorous measurement of its token cost or task benefit was found, so it is a candidate for the repo's "does the technique pay for itself" test, next to the queued Hindsight and TencentDB-Agent-Memory.
@@ -1522,3 +1510,29 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: Another "does the technique pay for itself" candidate beside the queued claude-mem and context-mode. It targets small windows, which matches running small models locally.
 - Testability: Yes, but the repo is unvetted. Reimplement the compression idea or inspect the code first; do not install it. Compare tokens and task success with and without it on a small local model with a 4-8k window. Rough cost: under $5. Claims taken from the trending page description only.
 - Source: GitHub trending (TypeScript, weekly)
+## 2026-10-08 — proposed by research-scout
+
+### [MemDecay: Region-Aware KV Cache Eviction for Efficient LLM Agent Inference](https://arxiv.org/abs/2607.10582)
+- Status: proposed — awaiting review
+- Claim: A training-free KV eviction policy that gives each context region (system prompt, plan, scratchpad, tool output) its own decay rate and lets critical regions be pinned keeps system-region facts at full-cache accuracy under a fixed budget, while recency-based retention collapses (Qwen2.5-1.5B/3B, ~450 and ~1,700-token contexts).
+- Why it matters: Targets the serving lane from the agent side, using structure the orchestrator already knows. It sits next to the queued AgentKV and Leyline-style items but is the only one with small-model numbers, so a repro is cheap.
+- Testability: Feasible on a small model. Qwen2.5-1.5B runs on Apple Silicon CPU or MLX with a custom eviction hook in HF transformers. Rough cost: $0 locally, or $3-8 on a Modal T4/A10G for longer contexts. The paper's own contexts are short, so expect a directional result only. Note the abstract admits accumulated-attention retention does better on unpinned content.
+- Source: arXiv cs.LG/cs.AI (2607.10582), found via web search (abstract page was not fetchable; details from search summaries)
+
+### [Leyline: KV Cache Directives for Agentic Inference](https://arxiv.org/abs/2606.01065)
+- Status: proposed — awaiting review
+- Claim: Standard KV cache management assumes append-only chat prompts, which breaks when agents edit their own context; Leyline proposes directives that let a policy remove or replace a cached span without re-prefilling everything after it.
+- Why it matters: Agent context edits (compaction, tool-result pruning) are exactly what this repo's context-management results (TokenPilot) touch, and this asks what they cost at the serving layer.
+- Testability: Needs serving-stack changes (vLLM/SGLang), so GPU-based. A directional repro could measure re-prefill cost saved on a small model via Modal, roughly $10-20. Full system reproduction is likely out of budget. Claim numbers were not verified (arXiv fetch blocked; only the search summary was seen).
+- Source: arXiv (2606.01065), found via web search
+
+### [iFixAi: independent agent behavior auditing tool](https://github.com/ifixai-ai/iFixAi)
+- Status: proposed — awaiting review
+- Claim: An Apache-2.0 Python tool runs 60 inspections across 25 categories (Fabrication, Manipulation, Deception, Unpredictability, Opacity) against an agent behind an OpenAI-compatible endpoint, graded A-F by a judge model from a different vendor. It is trending on GitHub this week (about 5.9k stars this week).
+- Why it matters: A popular agent-audit harness with no visible validation of whether its grades track real agent failures. It is a "does the technique hold up" test: do its grades separate agents with known, seeded defects, and are they stable across judges and reruns?
+- Testability: API-only, no GPU. The project estimates $12-18 per full run with a Sonnet judge; a subset of inspections on Haiku 4.5 would be $3-8. It has telemetry on by default (disable with `--no-telemetry`), and installing a third-party package is the human's call. Star counts and the cost figure come from the repo page, unverified.
+- Source: GitHub trending (Python, weekly)
+- Claim: A training-free KV eviction scoring method that aims to preserve model behavior (not just perplexity) under compression.
+- Why it matters: Serving-lane claim that is locally testable; behavior preservation is a stricter bar than most KV-compression papers report.
+- Testability: Feasible on a small open model (e.g. Qwen 1.5-3B) on Apple Silicon or a small cloud GPU, comparing against a simple baseline (e.g. H2O/recency) on output agreement. Rough cost: $0 local to ~$5 GPU. Details unverified (abstract not read).
+- Source: arXiv (2610.06479), submitted 2026-10-05
