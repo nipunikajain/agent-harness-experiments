@@ -1536,3 +1536,42 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: Serving-lane claim that is locally testable; behavior preservation is a stricter bar than most KV-compression papers report.
 - Testability: Feasible on a small open model (e.g. Qwen 1.5-3B) on Apple Silicon or a small cloud GPU, comparing against a simple baseline (e.g. H2O/recency) on output agreement. Rough cost: $0 local to ~$5 GPU. Details unverified (abstract not read).
 - Source: arXiv (2610.06479), submitted 2026-10-05
+
+---
+
+## 2026-10-14 — proposed by research-scout
+
+### [Building LLM Agent Systems the Deep Learning Way: From Modular Design to Architecture Search](https://arxiv.org/abs/2610.04961)
+- Status: proposed — awaiting review
+- Claim: Treats agent systems as composable modules and searches over agent architectures the way neural architecture search does; the exact gains versus hand-designed baselines were not verified (only the title and topic were seen in search results).
+- Why it matters: Automated agent-architecture search is a harness-lane claim, and the repo's earlier results suggest hand-built structure often adds cost for no gain, so this tests whether search finds anything better than naive.
+- Testability: Likely feasible as a directional repro: a small search space over agent configs, evaluated with Haiku 4.5 on a small task set. Rough cost: $10-25, since search multiplies runs. Cap the number of candidate architectures to stay in budget. Claim details unverified.
+- Source: arXiv cs.AI (2610.04961), found via web search; arXiv was not fetchable
+
+### [RAISED: Self-Distillation for Robustness to Prompt Injection in LLM Agents](https://arxiv.org/abs/2610.06401)
+- Status: proposed — awaiting review
+- Claim: Self-distillation training makes LLM agents more robust to prompt injection; the size of the effect versus baseline defenses was not verified.
+- Why it matters: Prompt injection through tool outputs is a core agent and MCP risk, and the queue already holds a re-evaluation showing detector benchmarks overstate protection, so a trained defense is worth checking the same way.
+- Testability: The method needs fine-tuning a model, so a full repro needs a GPU (a small open model with LoRA on Modal, roughly $15-25). Cheaper partial check: use any released checkpoint, if one exists, against an injection test set with a small API model as the baseline. Likely borderline on budget.
+- Source: arXiv cs.CR (2610.06401), found via web search
+
+### [MCPDisCo: Seesaw-Mitigated Tuning for MCP-Native Agents](https://arxiv.org/abs/2610.14956)
+- Status: proposed — awaiting review
+- Claim: A training framework built on long-horizon interactions with real servers (70 MCP servers, 527 tools, six domains) that mitigates the "seesaw" effect of tuning on one MCP domain at the expense of another; it reports results on MCP-Atlas and GAIA. Numbers were not verified.
+- Why it matters: It is one of the few MCP-native agent training results, so it tests whether tuning for MCP tool use generalizes across servers.
+- Testability: Mostly out of budget. Training on this scale needs GPU fine-tuning well above $25. Only feasible if the authors release a small checkpoint and an eval harness, in which case an evaluation-only run would cost roughly $10-20 in API and Modal time.
+- Source: arXiv (2610.14956), found via web search
+
+### [Uncovering Robustness Weaknesses in LLM Agents via Persona Evolution with Task-Integrity Constraints (TIPER)](https://arxiv.org/abs/2610.16155)
+- Status: proposed — awaiting review
+- Claim: TIPER evolves simulated-user personas under task-integrity constraints to surface agent failures that standard simulated users miss; the size of the extra failures found was not verified.
+- Why it matters: It is a cheap, API-only way to test whether agent robustness evals are underestimating failures, in the same vein as the repo's evaluation-validity items.
+- Testability: Feasible and API-only. Run a small tool-agent with Haiku 4.5 against a baseline simulated user and an evolved-persona user, then compare failure rates. Rough cost: $5-15. Needs the paper's method details, which were not read.
+- Source: arXiv cs.AI (2610.16155), found via web search
+
+### [repowise](https://github.com/repowise-dev/repowise)
+- Status: proposed — awaiting review
+- Claim: Codebase intelligence exposed to agents through MCP (health scores, generated docs, dead-code detection). The trending page lists no benchmark; any improvement claim is unverified.
+- Why it matters: An MCP server aimed at coding agents. The useful test is whether giving an agent this context beats plain grep and file reads, consistent with the "Is Grep All You Need?" thread already in the queue.
+- Testability: API-only, no GPU. Compare a Haiku 4.5 agent with and without the MCP server on a small set of repo-question or bug-fix tasks, measuring accuracy and tokens. Rough cost: $5-12. The repo is unvetted, so installing it is the human's call; inspect the code first.
+- Source: GitHub trending (Python, weekly)
