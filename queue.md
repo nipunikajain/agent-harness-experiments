@@ -1575,3 +1575,44 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: An MCP server aimed at coding agents. The useful test is whether giving an agent this context beats plain grep and file reads, consistent with the "Is Grep All You Need?" thread already in the queue.
 - Testability: API-only, no GPU. Compare a Haiku 4.5 agent with and without the MCP server on a small set of repo-question or bug-fix tasks, measuring accuracy and tokens. Rough cost: $5-12. The repo is unvetted, so installing it is the human's call; inspect the code first.
 - Source: GitHub trending (Python, weekly)
+## 2026-10-13 — proposed by research-scout
+
+<!-- Partial coverage: arxiv.org and export.arxiv.org were not resolvable from this environment and no 2610.* listing was reachable, so candidates come from web-search snippets only. Claims are abstract-level and unverified against the full papers; verify at triage. No fresh GitHub trending list could be fetched. Ranked by fit to the repo's harness-overhead line and by cost to test. -->
+
+### [From Tool Orchestration to Code Execution: A Study of MCP Design Choices](https://arxiv.org/abs/2602.15945)
+- Status: proposed — awaiting review
+- Claim: Having the agent write one program that runs in an isolated runtime ("Code Execution MCP", tool schemas loaded after the query) instead of calling MCP tools one at a time significantly cuts tokens and latency across 10 MCP-Bench servers, at the cost of a larger attack surface (16 attack classes identified). Exact numbers not read.
+- Why it matters: A direct "does the technique pay for itself" test of a popular MCP pattern, and the token-overhead question this repo keeps asking of harnesses.
+- Testability: Yes, API only. Same multi-tool task set on Haiku 4.5 with classic per-call tool use vs a code-execution wrapper over a few local mock MCP tools; measure tokens, turns, success. Rough cost $5-15.
+- Source: arXiv (2602.15945), submitted 2026-02-17 (older paper, not previously queued)
+
+### [DynamicMCPBench: A Trace-Grounded, Effect-Scored Benchmark for LLM Agents over Live MCP Servers](https://www.alphaxiv.org/abs/2607.20531)
+- Status: proposed — awaiting review
+- Claim: Scoring agents on whether they reproduce required side effects under deterministic replay (not on final answers) over 121 live MCP servers / 750 tasks / 15 categories gives a different picture than answer-based grading.
+- Why it matters: Tests whether answer-graded MCP results overstate agent reliability; could give this harness an effect-based grader.
+- Testability: Partly. The full benchmark needs live servers; a small subset (~20 tasks) on Haiku 4.5, answer-graded vs effect-graded, is API-only. Rough cost $5-10. Whether the data and harness are public is unconfirmed.
+- Source: arXiv (2607.20531), July 2026
+
+### [JIT-Agent: Scaling Harness Intelligence via Just-in-Time Harness Evolution](https://arxiv.org/abs/2608.25593)
+- Status: proposed — awaiting review
+- Claim: Evolving the agent harness just in time at inference, rather than offline, improves agent performance. Title-level only; abstract and numbers not read.
+- Why it matters: Same question as the queued Self-Harness and TTHE entries, from another group. Worth testing only if one of those is picked, as a comparison.
+- Testability: Unclear until the method is read. Likely API-only on Haiku 4.5 with a small task set; rough cost $10-20.
+- Source: arXiv (2608.25593), submitted ~2026-08
+## 2026-10-12 — proposed by research-scout
+
+<!-- Thin run: arxiv.org and export.arxiv.org are not resolvable from this environment, and search snippets surfaced almost nothing dated October. Two new candidates survived dedupe against queue.md and the scoreboard; claims come from search snippets and secondary pages, so verify at triage. Ranked by fit to the repo's harness-overhead line and by cost to test. -->
+
+### [free-claude-code (Alishahryar1): local proxy that runs Claude Code / agent harnesses on other models](https://github.com/Alishahryar1/free-claude-code)
+- Status: proposed — awaiting review
+- Claim: A local FastAPI proxy (set via `ANTHROPIC_BASE_URL`) lets Claude Code and other harnesses run against NVIDIA NIM, OpenRouter, DeepSeek, Gemini or local Ollama/LM Studio models; for some providers tool calls are parsed heuristically from text output.
+- Why it matters: Trending on GitHub (~58k stars). It sets up a "does the harness still work when the model behind it changes" test: how much tool-call fidelity and task success is lost when a Claude-shaped harness is driven by a small open model through a translation layer. That complements the queued model-harness-fit item.
+- Testability: Yes, with caveats. Run a fixed small tool-use task set through the proxy against a local 3-7B model (Ollama / llama.cpp) and compare tool-call parse failures and task success against Haiku 4.5 direct. A third-party audit flagged the piped install script and the unauthenticated Admin UI, so read the code and keep it on localhost. Rough cost: $2-8 (Haiku baseline) plus local compute.
+- Source: GitHub trending (python, weekly), plus secondary write-ups (search snippets only)
+
+### [OasisKV: Scaling In-Decode KV Cache Beyond HBM with Lookahead Sparse Prefetching](https://arxiv.org/abs/2608.08097)
+- Status: proposed — awaiting review
+- Claim: Keeping the full KV cache in host/remote memory and prefetching only the blocks that speculative-decoding lookahead tokens predict will matter keeps accuracy within 0.7 points of full attention at a 2,048-token KV budget, with 1.69x dense-vLLM throughput on reasoning workloads (up to 2.1x multi-GPU long-context) and 6.5-9.7x less KV admitted per request.
+- Why it matters: It ties two queued themes together (sparse KV eviction and speculative decoding). The open question is whether the accuracy-at-budget number holds outside the authors' setup. It is also not in the queue yet.
+- Testability: Partly. The throughput claim needs a vLLM multi-GPU setup and is out of budget. The accuracy-at-small-KV-budget half can be approximated on a 1-8B model with an existing sparse-attention / KV-budget baseline on a single rented GPU, if the authors release code (not confirmed). Rough cost: $10-25 on a Modal A10G/L4.
+- Source: arXiv (2608.08097, submitted 2026-08-08), found via web search; reported numbers are the authors' own, with no independent verification found
