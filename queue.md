@@ -1536,3 +1536,23 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: Serving-lane claim that is locally testable; behavior preservation is a stricter bar than most KV-compression papers report.
 - Testability: Feasible on a small open model (e.g. Qwen 1.5-3B) on Apple Silicon or a small cloud GPU, comparing against a simple baseline (e.g. H2O/recency) on output agreement. Rough cost: $0 local to ~$5 GPU. Details unverified (abstract not read).
 - Source: arXiv (2610.06479), submitted 2026-10-05
+
+---
+
+## 2026-10-12 — proposed by research-scout
+
+<!-- Thin run: arxiv.org and export.arxiv.org are not resolvable from this environment, and search snippets surfaced almost nothing dated October. Two new candidates survived dedupe against queue.md and the scoreboard; claims come from search snippets and secondary pages, so verify at triage. Ranked by fit to the repo's harness-overhead line and by cost to test. -->
+
+### [free-claude-code (Alishahryar1): local proxy that runs Claude Code / agent harnesses on other models](https://github.com/Alishahryar1/free-claude-code)
+- Status: proposed — awaiting review
+- Claim: A local FastAPI proxy (set via `ANTHROPIC_BASE_URL`) lets Claude Code and other harnesses run against NVIDIA NIM, OpenRouter, DeepSeek, Gemini or local Ollama/LM Studio models; for some providers tool calls are parsed heuristically from text output.
+- Why it matters: Trending on GitHub (~58k stars). It sets up a "does the harness still work when the model behind it changes" test: how much tool-call fidelity and task success is lost when a Claude-shaped harness is driven by a small open model through a translation layer. That complements the queued model-harness-fit item.
+- Testability: Yes, with caveats. Run a fixed small tool-use task set through the proxy against a local 3-7B model (Ollama / llama.cpp) and compare tool-call parse failures and task success against Haiku 4.5 direct. A third-party audit flagged the piped install script and the unauthenticated Admin UI, so read the code and keep it on localhost. Rough cost: $2-8 (Haiku baseline) plus local compute.
+- Source: GitHub trending (python, weekly), plus secondary write-ups (search snippets only)
+
+### [OasisKV: Scaling In-Decode KV Cache Beyond HBM with Lookahead Sparse Prefetching](https://arxiv.org/abs/2608.08097)
+- Status: proposed — awaiting review
+- Claim: Keeping the full KV cache in host/remote memory and prefetching only the blocks that speculative-decoding lookahead tokens predict will matter keeps accuracy within 0.7 points of full attention at a 2,048-token KV budget, with 1.69x dense-vLLM throughput on reasoning workloads (up to 2.1x multi-GPU long-context) and 6.5-9.7x less KV admitted per request.
+- Why it matters: It ties two queued themes together (sparse KV eviction and speculative decoding). The open question is whether the accuracy-at-budget number holds outside the authors' setup. It is also not in the queue yet.
+- Testability: Partly. The throughput claim needs a vLLM multi-GPU setup and is out of budget. The accuracy-at-small-KV-budget half can be approximated on a 1-8B model with an existing sparse-attention / KV-budget baseline on a single rented GPU, if the authors release code (not confirmed). Rough cost: $10-25 on a Modal A10G/L4.
+- Source: arXiv (2608.08097, submitted 2026-08-08), found via web search; reported numbers are the authors' own, with no independent verification found
