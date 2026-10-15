@@ -1616,3 +1616,37 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: It ties two queued themes together (sparse KV eviction and speculative decoding). The open question is whether the accuracy-at-budget number holds outside the authors' setup. It is also not in the queue yet.
 - Testability: Partly. The throughput claim needs a vLLM multi-GPU setup and is out of budget. The accuracy-at-small-KV-budget half can be approximated on a 1-8B model with an existing sparse-attention / KV-budget baseline on a single rented GPU, if the authors release code (not confirmed). Rough cost: $10-25 on a Modal A10G/L4.
 - Source: arXiv (2608.08097, submitted 2026-08-08), found via web search; reported numbers are the authors' own, with no independent verification found
+
+---
+
+## 2026-10-15 — proposed by research-scout
+
+_Scout note: arXiv.org was unreachable from the scout sandbox this run, so claims below come from search-result snippets only (abstracts not opened). Verify before picking._
+
+### [Towards Robust Tool Use in Agents via Experience-Driven Adaptive Guidance (ExpG)](https://arxiv.org/pdf/2608.03403)
+- Status: proposed — awaiting review
+- Claim: Per-tool guidance distilled from accumulated agent experience (acquire → distill → reuse) and injected at runtime makes tool use more robust than a no-guidance baseline (exact gain not verified).
+- Why it matters: A cheap, harness-level change to tool use; fits the repo's question of whether added scaffolding earns its token cost.
+- Testability: Likely feasible. Small tool-use suite with Haiku 4.5 via API, guidance on vs off, no GPU. Rough cost: $5-12.
+- Source: arXiv (2608.03403), found via web search; snippet only
+
+### [H-Spec: Parallel Speculative Decoding Without a Drafter-Side KV Cache](https://arxiv.org/pdf/2609.24197)
+- Status: proposed — awaiting review
+- Claim: Parallel speculative decoding with no drafter-side KV cache gives higher accepted length and speedup than the best baseline, and higher peak throughput with lower KV utilization in vLLM (numbers not verified).
+- Why it matters: Serving-efficiency claim in the LLM systems lane.
+- Testability: Needs a GPU and vLLM; not runnable on Apple Silicon CPU. A small-model (1-8B) directional repro on a single Modal A10G/L4 is plausible if code is released (unconfirmed). Rough cost: $10-25.
+- Source: arXiv (2609.24197), found via web search; snippet only
+
+### [HyperAgent: tools as hyperedges in a schema-level hypergraph for tool-use planning](https://papers.cool/arxiv/2608.02650)
+- Status: proposed — awaiting review
+- Claim: Modeling tools as hyperedges in a schema-level hypergraph, rather than having the LLM infer tool compositions from text, makes tool-use planning more reliable (gain not verified).
+- Why it matters: Tests whether structured tool-composition planning beats plain prompting for multi-tool tasks.
+- Testability: Likely feasible with Haiku 4.5 on a small synthetic multi-tool benchmark; planner is classical code. Rough cost: $5-15. Link is a papers.cool mirror of arXiv 2608.02650.
+- Source: arXiv (2608.02650), found via web search; snippet only
+
+### [How Much Context Do MCP Servers Actually Cost? We Measured 38,900 Tokens](https://pub.towardsai.net/how-much-context-do-mcp-servers-actually-cost-we-measured-38-900-tokens-bd6187ca140d)
+- Status: proposed — awaiting review
+- Claim: 116 tools across 9 MCP servers cost about 38,900 tokens (~19% of a 200k window); 93.6% of Notion's cost is JSON Schema, only 2.5% is the description the model reads.
+- Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
+- Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
+- Source: blog (Towards AI), found via web search; author's own numbers, unverified
