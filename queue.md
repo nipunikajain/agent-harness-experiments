@@ -1616,3 +1616,35 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: It ties two queued themes together (sparse KV eviction and speculative decoding). The open question is whether the accuracy-at-budget number holds outside the authors' setup. It is also not in the queue yet.
 - Testability: Partly. The throughput claim needs a vLLM multi-GPU setup and is out of budget. The accuracy-at-small-KV-budget half can be approximated on a 1-8B model with an existing sparse-attention / KV-budget baseline on a single rented GPU, if the authors release code (not confirmed). Rough cost: $10-25 on a Modal A10G/L4.
 - Source: arXiv (2608.08097, submitted 2026-08-08), found via web search; reported numbers are the authors' own, with no independent verification found
+
+## 2026-10-16 — proposed by research-scout
+
+<!-- Partial coverage: arxiv.org was not resolvable from this environment (WebFetch DNS failure), so candidates come from web-search snippets only. Claims are abstract-level and unverified against the full papers; verify at triage. GitHub trending and the blog sources were not checked this run. Ranked by fit to the lane and cost. Considered and skipped: Praxa (2610.00015; the author's own pilot shows no gain, 17/36 vs 17/36 at higher token cost), Code as Agent Harness (2605.18747; survey-style). -->
+
+### [Is Bash All You Need? An Empirical Study of Tool Interfaces for Enterprise Digital Worker Agents](https://arxiv.org/abs/2609.11999)
+- Status: proposed — awaiting review
+- Claim: Bash alone beats typed tool catalogs by ~21.8-24.5 points on TheAgentCompany and 4.8-7.4 points on APEX-Agents, using 19-72% fewer tokens. Layering typed or synthesized tools on top of bash adds no detectable gain, and programmatic tool calling trails bash on both quality and cost.
+- Why it matters: Same "does the structure pay for itself" question as the scoreboard, applied to tool interfaces. A positive result would mean the simplest harness wins again.
+- Testability: Yes, API only. Run a small multi-step task set (~20 tasks over a local mock environment) on Haiku 4.5 with a typed-tool arm, a bash-only arm and a bash+typed arm, then compare success and tokens. Rough cost $8-15. The paper used Opus-4.8 and GPT-5.5, so this only checks the direction on smaller models.
+- Source: arXiv cs.AI (2609.11999), 2026-09-10 (Microsoft/CMU authors)
+
+### [Measuring the Microtask Eligibility Gap: When Is an Off-the-Shelf SLM Enough for an Agent Harness?](https://arxiv.org/abs/2610.00025)
+- Status: proposed — awaiting review
+- Claim: Across Qwen3 models from 0.6B to 8B, none of 16 task-model configurations on four harness microtasks beat a cheap non-LLM baseline with confidence. The gap tracks model size more than quantization, and replicates on Llama-3.x. A 4B re-ranker over a BM25 shortlist does beat BM25 alone.
+- Why it matters: Asks directly whether a small local model can fill a role inside a harness. This fits the small-model-on-my-hardware constraint, and a null result is likely and still informative.
+- Testability: Yes, and the best fit for local hardware. Qwen3 0.6B-4B run on Apple Silicon CPU via llama.cpp or MLX, plus Haiku 4.5 as a reference. Needs the authors' task definitions (code release unconfirmed), otherwise a rebuild of 2 microtasks. Rough cost: $0-5, mostly local compute.
+- Source: arXiv cs.AI (2610.00025), early Oct 2026 (NeurIPS 2026 workshop submission; date varies across listings)
+
+### [MedicalHarness: A Controlled Evaluation of LLMs and Agent Harnesses on Medical Tasks](https://arxiv.org/abs/2610.05778)
+- Status: proposed — awaiting review
+- Claim: Benchmark score reflects the model-harness pair, and the harness plus its interaction with the model explains about a quarter of outcome variance. No single harness is best across models and tasks. MH-Lab toggles context management, planning and tool exposure one at a time on 107 tasks across 4 environments.
+- Why it matters: A controlled one-factor-at-a-time harness ablation with public code, which is the same kind of test this repo runs, so results can be compared directly.
+- Testability: Feasible, API only. Use the public MH-Lab (github.com/REAL-Lab-NU/MedicalHarness) on a subset such as MedTool, with Haiku 4.5 across 2-3 toggles. Rough cost $10-20. Subset size is limited by the budget, so the variance-share figure will not replicate.
+- Source: arXiv cs.AI (2610.05778), Oct 2026; code at github.com/REAL-Lab-NU/MedicalHarness
+
+### [Better Harnesses, Smaller Models: Building 90% Cheaper Agents via Automated Harness Adaptation](https://arxiv.org/abs/2607.08938)
+- Status: proposed — awaiting review
+- Claim: Automated harness adaptation lets smaller models match larger ones at about 90% lower cost. Title-level only; the numbers were not read.
+- Why it matters: It is the small-model-plus-harness trade-off that matches this repo's preferred setup (Haiku over Sonnet).
+- Testability: Unclear until the method is read. Likely API only with Haiku 4.5 vs Sonnet 4.6 on a small task set. Rough cost $10-20. Overlaps the queued Self-Harness and Life-Harness entries, so only worth running as a comparison to them.
+- Source: arXiv (2607.08938), Jul 2026
