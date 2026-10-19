@@ -1616,3 +1616,34 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: It ties two queued themes together (sparse KV eviction and speculative decoding). The open question is whether the accuracy-at-budget number holds outside the authors' setup. It is also not in the queue yet.
 - Testability: Partly. The throughput claim needs a vLLM multi-GPU setup and is out of budget. The accuracy-at-small-KV-budget half can be approximated on a 1-8B model with an existing sparse-attention / KV-budget baseline on a single rented GPU, if the authors release code (not confirmed). Rough cost: $10-25 on a Modal A10G/L4.
 - Source: arXiv (2608.08097, submitted 2026-08-08), found via web search; reported numbers are the authors' own, with no independent verification found
+## 2026-10-19 — proposed by research-scout
+
+<!-- Thin run: search snippets only; arxiv listings were not fetched, so claims are abstract-level and unverified against the full papers. Deduped against queue.md and the scoreboard (2609.07370, 2608.04719, 2608.26189 were already queued and skipped). Ranked by fit to the repo's harness-overhead thread. -->
+
+### [Mingbird: A Local-First Agent Harness Enabling Small Open Models to Complete Real Tasks](https://arxiv.org/abs/2610.02001)
+- Status: proposed — awaiting review
+- Claim: Many small-open-model agent failures come from the harness rather than the model, and a harness designed for small models lets them complete real tasks. Evidence is a self-built benchmark on one machine with single-trial scoring (the authors' own stated limits); numbers not verified.
+- Why it matters: It is the opposite of this repo's scoreboard thread (structured harnesses cost tokens and lose to naive). It tests whether harness structure helps specifically for weak models.
+- Testability: Yes, on a small model. Run a fixed tool-task set with a 3-7B model via Ollama on Apple Silicon (CPU) under a naive loop vs Mingbird-style scaffolding, with Haiku 4.5 as a reference. Rough cost: $0-5 local plus $3-8 API. Code availability not confirmed.
+- Source: arXiv (2610.02001), found via web search
+
+### [Toward SLM-based agentic task-tool intent matching](https://arxiv.org/abs/2610.03213)
+- Status: proposed — awaiting review
+- Claim: A small language model, tuned with prompt optimization, SFT and GRPO on a new multi-tool dataset, can act as a classifier that checks whether each tool call fits the task. Accuracy figures not read.
+- Why it matters: A cheap guardrail for agent tool calls. The test is whether it catches wrong calls without adding more cost than it saves.
+- Testability: Partly. Evaluating a released checkpoint or a prompted small model as a call-checker on a small tool-use set is API/CPU only, about $3-10. Reproducing the GRPO training is out of scope and needs a GPU, roughly $20+ on Modal.
+- Source: arXiv (2610.03213), found via web search
+
+### [SFT or RL for Tool-Calling Agents? A Controlled Study Across Data, Method, and Scale](https://arxiv.org/pdf/2609.17848)
+- Status: proposed — awaiting review
+- Claim: A controlled comparison of SFT vs RL for tool-calling agents across data, method and model scale. Which wins was not read from the abstract.
+- Why it matters: Answers whether the usual RL-for-agents recommendation holds under controls. Useful context, but it is a training study.
+- Testability: Mostly out of budget (needs fine-tuning on GPU, likely above $25). Only a small-scale directional repro with a ~0.5-1B model on one rented GPU could fit, about $15-25.
+- Source: arXiv (2609.17848), found via web search
+
+### [AuditKIT: A Unified Evaluation Spine for Benchmarking, Judging, and Comparing LLMs and Agentic Systems](https://arxiv.org/abs/2610.22511)
+- Status: proposed — awaiting review
+- Claim: An evaluation framework that matches tool calls across turns, separates parallel from sequential execution, and scores missing evidence as unscored rather than failed. Whether this changes agent rankings was not read.
+- Why it matters: Tests whether "missing evidence = failure" grading distorts agent results, in line with the repo's evaluation-validity items.
+- Testability: Yes, API only. Re-grade existing agent traces (including this repo's own results) with failure-vs-unscored handling and compare rankings. Rough cost: $2-8. Whether the code is public is unconfirmed.
+- Source: arXiv (2610.22511), found via web search
