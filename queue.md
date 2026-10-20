@@ -1616,3 +1616,20 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: It ties two queued themes together (sparse KV eviction and speculative decoding). The open question is whether the accuracy-at-budget number holds outside the authors' setup. It is also not in the queue yet.
 - Testability: Partly. The throughput claim needs a vLLM multi-GPU setup and is out of budget. The accuracy-at-small-KV-budget half can be approximated on a 1-8B model with an existing sparse-attention / KV-budget baseline on a single rented GPU, if the authors release code (not confirmed). Rough cost: $10-25 on a Modal A10G/L4.
 - Source: arXiv (2608.08097, submitted 2026-08-08), found via web search; reported numbers are the authors' own, with no independent verification found
+## 2026-10-20 — proposed by research-scout
+
+<!-- Thin run: arxiv.org is not resolvable from this environment and searches surfaced almost nothing dated October. Two new candidates survived dedupe against queue.md and the scoreboard; claims come from search snippets and the repo page, so verify at triage. Ranked by fit to the repo's context-overhead line and by cost to test. -->
+
+### [headroom (chopratejas): local compression of tool outputs and context before they reach the LLM](https://github.com/chopratejas/headroom)
+- Status: proposed — awaiting review
+- Claim: Compressing tool outputs, logs, RAG chunks and history locally (library, proxy or MCP server) cuts prompt tokens 20-95% depending on content (21% code search, 57% SRE debugging, 30% issue triage, 60-95% repetitive JSON) with unchanged answers; the repo reports no accuracy change on GSM8K/TruthfulQA/BFCL at N=100.
+- Why it matters: It is the same question as the TokenPilot row, from a different angle. That test found most of the headline was prompt caching, not context management. Headroom's savings are measured on prompt tokens, not on cost with caching on, so it needs the same cache-aware baseline. Apache 2.0, about 76k stars.
+- Testability: Yes. Run the existing multi-hop tool-use task on Haiku 4.5 with and without Headroom as a proxy, cache on in both arms, and compare cost per run and accuracy. Check whether compression breaks the cache prefix. Rough cost: $2-6.
+- Source: GitHub (MCP topic trending), repo page. Numbers are the authors' own.
+
+### [H-Spec: Parallel Speculative Decoding Without a Drafter-Side KV Cache](https://arxiv.org/pdf/2609.24197)
+- Status: proposed — awaiting review
+- Claim: Parallel speculative decoding that drops the drafter's own KV cache gives 5-17% peak throughput gains over the strongest baseline in vLLM, with lower average KV cache utilization. Title and snippet only; the abstract was not read.
+- Why it matters: Tests whether a modest serving gain survives outside the authors' setup. The queue has several KV-cache and speculative-decoding items; this one is not among them.
+- Testability: Partly. Needs code release (unconfirmed) and a GPU. A 1-8B target with a small draft model on one rented L4/A10G could check the throughput delta at low concurrency. Rough cost: $8-20.
+- Source: arXiv (2609.24197), found via web search
