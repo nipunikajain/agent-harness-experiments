@@ -1616,3 +1616,35 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: It ties two queued themes together (sparse KV eviction and speculative decoding). The open question is whether the accuracy-at-budget number holds outside the authors' setup. It is also not in the queue yet.
 - Testability: Partly. The throughput claim needs a vLLM multi-GPU setup and is out of budget. The accuracy-at-small-KV-budget half can be approximated on a 1-8B model with an existing sparse-attention / KV-budget baseline on a single rented GPU, if the authors release code (not confirmed). Rough cost: $10-25 on a Modal A10G/L4.
 - Source: arXiv (2608.08097, submitted 2026-08-08), found via web search; reported numbers are the authors' own, with no independent verification found
+
+## 2026-10-21 — proposed by research-scout
+
+<!-- Thin run: arxiv.org is not resolvable from this environment, so claims come from search snippets and secondary pages, not the papers. Four candidates survived dedupe against queue.md and the scoreboard. Ranked by testability on a small model. Verify claims at triage. -->
+
+### [Towards Robust Tool Use in Agents via Experience-Driven Adaptive Guidance (ExpG)](https://arxiv.org/abs/2608.03403)
+- Status: proposed — awaiting review
+- Claim: Distilling guidance from an agent's past tool-call trajectories and injecting it at later tasks improves tool selection, tool calling and response generation on MetaTool, API-Bank and BFCL-V3, lets smaller agents beat larger agents without it, and gives the lowest run-to-run std over three runs.
+- Why it matters: It is a cheap, non-training version of the "harness learns from its own traces" idea, so it fits next to the scoreboard's overhead findings. The "small model beats larger" claim is the part worth checking.
+- Testability: Yes, API-only. Run a BFCL or API-Bank subset with Haiku 4.5, with and without distilled guidance, n=3. Code is reportedly at github.com/WangCan1178/ExpG (unverified). Rough cost $5-12.
+- Source: arXiv (2608.03403, ~2026-08), via web search. Numbers not read.
+
+### [HyperAgent: Planning and Acting over Tool-Schema Hypergraphs for Tool-Use LLM Agents](https://arxiv.org/abs/2608.02650)
+- Status: proposed — awaiting review
+- Claim: Modelling tool dependencies as a schema hypergraph (input/output schema nodes) and expanding the tools for each subtask by unresolved deficit cuts redundant API calls, LLM calls and tokens on AppWorld while raising task completion. A third-party blog quotes 67.1% vs 48.8% for ReAct, which I could not confirm in the paper.
+- Why it matters: It is a structured planning layer sold as both better and cheaper, which is the opposite of what the three structured-harness rows on the scoreboard found. A direct check on whether schema-aware structure pays for itself.
+- Testability: Partly. The method is mostly graph construction plus prompting, so a reduced version on a small tool set with Haiku 4.5 is feasible. Full AppWorld is heavier and needs setup. Rough cost $10-20.
+- Source: arXiv (2608.02650, submitted 2026-07-31), via web search. Code not confirmed.
+
+### [mcp-vs-cli-bench: an open benchmark for MCP versus CLI tool use across agent scaffoldings and models](https://doi.org/10.5281/zenodo.21851992)
+- Status: proposed — awaiting review
+- Claim: One six-step GitHub workflow run under seven scaffoldings and five models, with or without the official GitHub MCP server, scored by reading repo state back through the API. Other 2026 studies disagree: Smithery found MCP higher on success (91.7% vs 83.3%), Scalekit found CLI 10-32x cheaper.
+- Why it matters: Conflicting public results on a live design question, and this benchmark has a stricter scoring method than the others. Different from the queued 2607.20531 MCP-vs-CLI entry (different authors and design).
+- Testability: Yes, but narrow. Reproduce one arm pair with Haiku 4.5 on a throwaway private repo and compare success and tokens. GPL v3 software, v1.0.0. Needs a GitHub token (a human call). Rough cost $5-15.
+- Source: Zenodo record, v1.0.0, 2026-08, via web search (abstract only, no results read).
+
+### [TokenSpeed (lightseekorg/tokenspeed): inference engine aimed at agentic workloads](https://github.com/lightseekorg/tokenspeed)
+- Status: proposed — awaiting review
+- Claim: An MIT-licensed engine (C++ scheduler, Python execution plane, pluggable kernels) that says it approaches TensorRT-LLM speed with vLLM-like usability on agentic workloads. Headline figures (580 TPS on Qwen3.5-397B-A17B, 685 tok/s/user on GB300) are the project's own and unverified.
+- Why it matters: It was on GitHub trending this week. It overlaps with the queued vLLM-for-agents and agent-aware serving entries, and a claim like this is easy to over-read.
+- Testability: Poor. The benchmarks target Blackwell/Rubin and MI355X-class GPUs, so the headline claims are out of the $25 budget and cannot run on Apple Silicon CPU. At most, a small-model throughput comparison against vLLM on one rented GPU, rough cost $15-30. Low priority.
+- Source: GitHub trending (python, weekly) and the repo README.
