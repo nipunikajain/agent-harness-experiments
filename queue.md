@@ -1616,3 +1616,37 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: It ties two queued themes together (sparse KV eviction and speculative decoding). The open question is whether the accuracy-at-budget number holds outside the authors' setup. It is also not in the queue yet.
 - Testability: Partly. The throughput claim needs a vLLM multi-GPU setup and is out of budget. The accuracy-at-small-KV-budget half can be approximated on a 1-8B model with an existing sparse-attention / KV-budget baseline on a single rented GPU, if the authors release code (not confirmed). Rough cost: $10-25 on a Modal A10G/L4.
 - Source: arXiv (2608.08097, submitted 2026-08-08), found via web search; reported numbers are the authors' own, with no independent verification found
+
+---
+
+## 2026-10-22 — proposed by research-scout
+
+<!-- Thin run: arxiv.org, export.arxiv.org, and the blog hosts are not resolvable from this environment (WebFetch DNS failures), and the queue is already saturated on harness/context/KV topics. Claims below come from WebSearch snippets only; verify at triage. Deduped by arXiv id and title against queue.md and the scoreboard. -->
+
+### [Toward SLM-based agentic task-tool intent matching](https://arxiv.org/abs/2610.03213)
+- Status: proposed — awaiting review
+- Claim: Permission checks alone cannot tell whether a tool call serves the task's intent; per-call oversight by a small language model (low latency, on-prem capable) can check task-tool intent match.
+- Why it matters: Cheap runtime guard at the agent-tool boundary (MCP-style), and it uses small models, which fits this repo's budget.
+- Testability: Yes. Build a small labeled set of task/tool-call pairs (benign vs. off-intent) and compare a local 1-8B model against Haiku 4.5 as the matcher; measure precision/recall and latency. Rough cost: $3-10 API, local CPU inference for the small model. Method details not read; confirm the paper releases data or the set is easy to construct.
+- Source: arXiv (2610.03213, via papers.cool snippet), October 2026
+
+### [Auditing Tool-Call Evaluation for Local Small Language Models](https://neurips.cc/virtual/2026/171321)
+- Status: proposed — awaiting review
+- Claim: A single agent success score hides whether execution reached a submit state, whether the final state is correct, and whether the trace is exact; separating these changes conclusions about local 8-10B models.
+- Why it matters: Directly relevant to how this repo scores agent runs on small models, and complements queued evaluation-validity items.
+- Testability: Yes, probably. Re-score existing run traces (including this repo's own experiments) with the three-way split, then run a few local 8B models via Ollama/llama.cpp on Apple Silicon. Rough cost: under $5 API, mostly local compute. Needs the paper or code to confirm the protocol; only a NeurIPS listing was found, no arXiv link.
+- Source: NeurIPS 2026 virtual listing (found via web search)
+
+### [H-Spec: Parallel Speculative Decoding Without a Drafter-Side KV Cache](https://arxiv.org/abs/2609.24197)
+- Status: proposed — awaiting review
+- Claim: Parallel speculative decoding that needs no drafter-side KV cache cuts average KV cache utilization by 4.3-24.6% versus the most memory-efficient baseline on vLLM across settings, where all baselines require a drafter cache.
+- Why it matters: Speculative decoding plus KV memory in a serving stack, with the claim stated against vLLM baselines. Not previously queued.
+- Testability: Partly. The memory claim needs a vLLM run on a single GPU with a small target/draft pair. Rough cost: $8-20 on a Modal A10G/L4, if code is released (not confirmed). Not runnable on CPU-only Apple Silicon in a meaningful way.
+- Source: arXiv (2609.24197, September 2026), found via web search
+
+### [Mitigating Taint-Style Vulnerabilities in MCP Servers via Security-Aware Tool Descriptions](https://arxiv.org/pdf/2607.07461)
+- Status: proposed — awaiting review
+- Claim: Taint-style vulnerabilities are a dominant risk in MCP servers, and rewriting tool descriptions to be security-aware mitigates them; the paper builds on collected real-world vulnerability reports.
+- Why it matters: Tests a cheap, prompt-level MCP defense, which is easy to measure against a baseline description.
+- Testability: Yes. Write a few toy MCP tools with injectable parameters, run Haiku 4.5 with original vs. security-aware descriptions, and count unsafe calls. Rough cost: $2-8. Paper not read in full; the result may depend on the authors' vulnerability set.
+- Source: arXiv (2607.07461, July 2026), found via web search; not found in queue by id or title
