@@ -1616,3 +1616,35 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: It ties two queued themes together (sparse KV eviction and speculative decoding). The open question is whether the accuracy-at-budget number holds outside the authors' setup. It is also not in the queue yet.
 - Testability: Partly. The throughput claim needs a vLLM multi-GPU setup and is out of budget. The accuracy-at-small-KV-budget half can be approximated on a 1-8B model with an existing sparse-attention / KV-budget baseline on a single rented GPU, if the authors release code (not confirmed). Rough cost: $10-25 on a Modal A10G/L4.
 - Source: arXiv (2608.08097, submitted 2026-08-08), found via web search; reported numbers are the authors' own, with no independent verification found
+
+---
+
+## 2026-10-23 — proposed by research-scout
+
+<!-- Run note: arxiv.org / export.arxiv.org / huggingface.co were unreachable from the sandbox, so
+     this run used web search only; no 2610.x papers surfaced. Claims below come from search
+     snippets, not the full papers — verify at Phase-1 triage. -->
+
+### [Beyond Token Savings: A Systematic Study of Context Compression in LLM Agents](https://arxiv.org/abs/2609.32961)
+- Status: proposed — awaiting review
+- Claim: Stacked threshold-based context-compression policies cut agent token usage 22–55% while keeping call counts near full-context and latency at 0.88–1.01×.
+- Why it matters: Tests whether compression savings survive end-to-end cost (extra calls, latency), the same "headline vs. net" gap the TokenPilot row found (~⅘ of the win was prompt caching).
+- Testable on small model: yes — Haiku 4.5 over the API on a multi-step tool task; compare full-context vs. threshold compression with and without prompt caching. ~$2–6.
+
+### [Towards Robust Tool Use in Agents via Experience-Driven Adaptive Guidance (ExpG)](https://arxiv.org/abs/2608.03403)
+- Status: proposed — awaiting review
+- Claim: Per-tool guidance built from experience (acquire → distill → reuse) at runtime improves tool-use robustness inside the agent harness.
+- Why it matters: A cheap, training-free harness addition, unlike the heavier structured harnesses that lost on the scoreboard; a clean test of whether distilled guidance beats a plain system prompt.
+- Testable on small model: yes — Haiku 4.5, a small tool-calling benchmark with injected tool quirks, n≥3. ~$3–8.
+
+### [Semantic Tool Discovery for LLMs: A Vector-Based Approach to MCP Tool Selection](https://arxiv.org/abs/2603.20313)
+- Status: proposed — awaiting review
+- Claim: Embedding-based retrieval over MCP tool descriptions selects relevant tools by query meaning, avoiding loading every tool schema into context.
+- Why it matters: Tool-schema bloat is a real MCP cost; checks token savings against selection accuracy loss.
+- Testable on small model: yes — local sentence-embedding model on CPU plus Haiku 4.5; synthetic pool of 100–200 MCP tool specs. ~$1–4.
+
+### [Conf-KV: Confidence-Aware KV Cache Eviction with Mixed-Precision Storage](https://arxiv.org/abs/2605.24786)
+- Status: proposed — awaiting review
+- Claim: Using next-token confidence to set per-step KV retention closes 74% of the perplexity gap between a 512-token sliding window and the full cache (GPT-2).
+- Why it matters: A serving-side technique with a concrete, checkable number.
+- Testable on small model: partly — GPT-2 / small open model perplexity eval runs on CPU for ~$0. Larger models or throughput claims need a GPU (Modal, est. ~$5–15). Code availability not checked.
