@@ -1616,3 +1616,37 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: It ties two queued themes together (sparse KV eviction and speculative decoding). The open question is whether the accuracy-at-budget number holds outside the authors' setup. It is also not in the queue yet.
 - Testability: Partly. The throughput claim needs a vLLM multi-GPU setup and is out of budget. The accuracy-at-small-KV-budget half can be approximated on a 1-8B model with an existing sparse-attention / KV-budget baseline on a single rented GPU, if the authors release code (not confirmed). Rough cost: $10-25 on a Modal A10G/L4.
 - Source: arXiv (2608.08097, submitted 2026-08-08), found via web search; reported numbers are the authors' own, with no independent verification found
+
+---
+
+## 2026-10-26 — proposed by research-scout
+
+Ranked by fit to the repo's harness-overhead thread and cost to test. Search snippets only (arxiv.org was unreachable from the sandbox), so reported numbers are the authors' own and unverified.
+
+### [Measuring the Microtask Eligibility Gap: When Is an Off-the-Shelf SLM Enough for an Agent Harness?](https://arxiv.org/abs/2610.00025)
+- Status: proposed — awaiting review
+- Claim: Across 4 harness microtasks (auto-approving shell commands, memory writing, tool selection, ranking past turns) and Qwen3 0.6B-8B, none of 16 configurations beat a cheap non-LLM baseline by the authors' confidence-interval rule; 4-bit quantization didn't help, and a 4B re-ranker over a BM25 shortlist does beat BM25 alone.
+- Why it matters: It asks whether small models can replace the LLM inside harness components, which extends the harness-overhead findings in the scoreboard. A null replication would still be informative.
+- Testability: Yes. Build one or two of the microtasks (tool selection, command approval) with a BM25/rule baseline vs a local 1-4B model on Apple Silicon (Ollama/llama.cpp), with Haiku 4.5 as an upper reference. Rough cost: $1-5 API plus local compute.
+- Source: arXiv (2610.00025), found via web search
+
+### [Better Harnesses, Smaller Models: Building 90% Cheaper Agents via Automated Harness Adaptation](https://arxiv.org/abs/2607.08938)
+- Status: proposed — awaiting review
+- Claim: A meta-agent that maps failure modes to harness adaptations improves 16 of 21 task-model pairs (7 business tasks, 3 small-model families); the best small-model agent recovers ~89.7% of the LLM's performance at ~4% of the cost. The abstract and body quote different cost ratios (90% cheaper, 4%, 8%).
+- Why it matters: It is the cost-efficiency counterpart to the queued self-evolving-harness items. It tests whether a tuned harness lets a cheap model replace an expensive one, rather than adding overhead.
+- Testability: Partly. Code is reportedly at github.com/malusamayo/migration-analysis. A directional repro on 1-2 tasks with Haiku 4.5 as the "small" model against Sonnet 4.6, with a hand-run failure-to-adaptation loop, fits the budget. The full optimizer loop may exceed it. Rough cost: $10-25.
+- Source: arXiv (2607.08938, 2026-07-09), found via web search
+
+### [RATED: Reliability-Aware AI Agent Tool Retrieval via Execution Dynamics](https://arxiv.org/abs/2610.13889)
+- Status: proposed — awaiting review
+- Claim: A frozen dual-encoder plus a contextual-bandit re-ranker on live execution feedback gives a 52.2% relative MRR gain over the ToolLLM retriever and, under a simulated 30% API failure rate, cuts faulty-tool selection from 86.2% to 2.9% at under 1 ms overhead (CIKM '26; EcoAgent benchmark, 5,172 tools).
+- Why it matters: Tool-selection robustness to flaky MCP/API tools is rarely tested. The failure-injection result is a sharp, checkable claim.
+- Testability: Yes. The bandit layer is CPU-only. Inject failures into a small tool pool and compare a Haiku 4.5 agent with and without the reliability re-ranker. Code and dataset are reportedly on GitHub. Rough cost: $3-10.
+- Source: arXiv (2610.13889, 2026-10-09), found via web search
+
+### [Persistent Memory in Multi-Agent LLM Inference: What It Costs, What It Buys, and When You Can Tell](https://arxiv.org/abs/2610.07782)
+- Status: proposed — awaiting review
+- Claim: A persistent reasoning-trace memory tier shows a structural null on single-question benchmarks because each item brings its own evidence. Reaching that conclusion took four measurement corrections, three of which inflated the apparent benefit.
+- Why it matters: It is a methodology paper about ablations that overstate memory gains, in line with this repo's aim of testing claims with rigor. It could be turned into a checklist for our own harness tests.
+- Testability: Yes, cheaply. Run a memory-on vs memory-off ablation on a small multi-turn task set where later items do or don't reuse earlier evidence, and check whether the benefit appears only in the reuse case. Rough cost: $2-6 with Haiku 4.5.
+- Source: arXiv (2610.07782, ~2026-10-06), found via web search; only the abstract-level claim was seen
