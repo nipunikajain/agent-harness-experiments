@@ -1616,3 +1616,44 @@ Note: arxiv.org and the arXiv API were blocked by the network proxy this run, so
 - Why it matters: It ties two queued themes together (sparse KV eviction and speculative decoding). The open question is whether the accuracy-at-budget number holds outside the authors' setup. It is also not in the queue yet.
 - Testability: Partly. The throughput claim needs a vLLM multi-GPU setup and is out of budget. The accuracy-at-small-KV-budget half can be approximated on a 1-8B model with an existing sparse-attention / KV-budget baseline on a single rented GPU, if the authors release code (not confirmed). Rough cost: $10-25 on a Modal A10G/L4.
 - Source: arXiv (2608.08097, submitted 2026-08-08), found via web search; reported numbers are the authors' own, with no independent verification found
+
+---
+
+## 2026-10-27 — proposed by research-scout
+
+<!-- Thin-ish run: arxiv.org and export.arxiv.org are not resolvable from this environment, so everything below comes from web-search snippets only (abstracts not read). Verify claims at triage. All five were checked against queue.md (by arXiv ID and title) and the README scoreboard and are new. -->
+
+### [Tool-Calling LLM Agents Under Realistic MCP Faults: Scale Does Not Purchase Fault Tolerance](https://arxiv.org/abs/2610.32555)
+- Status: proposed — awaiting review
+- Claim: Using a fault-injection tool (MCP-Injector) on MCP tool calls, agent task score falls from 8.08 to 3.23 out of 10 under a permanent-heavy fault profile, and larger models are not more fault tolerant; framework-level error handling matters more than model size.
+- Why it matters: Squarely harness-vs-model: it asks whether harness-side retry/error handling, not model scale, determines reliability when MCP servers misbehave. Fits this repo's harness-overhead line.
+- Testability: Good. Build a small mock MCP/tool layer with injected timeouts and errors, run Haiku 4.5 vs Sonnet 4.6, with and without a retry/error-handling wrapper. API only, no GPU. Rough cost: $5-15.
+- Source: arXiv (2610.32555), found via web search snippet
+
+### [CTXAgent: Self-Controlled Context Management of LLM Agents](https://arxiv.org/abs/2610.34425)
+- Status: proposed — awaiting review
+- Claim: The agent compresses its own history into a summary via a dedicated tool, while archived tool results stay recallable, with no separate summariser call or added cost. Gains vs baselines not read.
+- Why it matters: Direct comparison point for the tested TokenPilot row (harness-managed context vs agent-managed context). Tests whether self-managed compaction beats harness-side compaction on cost and accuracy.
+- Testability: Good. Reuse the 4-hop referral-chain task from the TokenPilot experiment with Haiku 4.5; add a compress/recall tool arm. API only. Rough cost: $2-8.
+- Source: arXiv (2610.34425), found via web search snippet
+
+### [How Do Coding-Agent Harnesses Self-Evolve? An Empirical Study of Retrospective Adaptation](https://arxiv.org/abs/2610.34938)
+- Status: proposed — awaiting review
+- Claim: In a study of Claude Code on 30 SWE-bench Verified issues, 12 harness changes proposed by a retrospective skill showed no consistent task-success gain; of 7 evaluations where the targeted problem appeared, 2 removed the targeted action and 4 showed no reduction.
+- Why it matters: A null-leaning result on self-evolving harnesses, which matches this repo's scoreboard pattern. It is a useful skeptical counterweight to the queued Self-Harness and TTHE claims.
+- Testability: Partial. Full SWE-bench Verified with Claude Code is out of budget; a directional version on a toy multi-task suite with Haiku 4.5 could fit. Rough cost: $10-20. Best run only alongside the Self-Harness entry as a pair.
+- Source: arXiv (2610.34938), found via web search snippet
+
+### [SchemaFill: Efficient LLM Tool Calling via Slot-Parallel Speculative Decoding](https://arxiv.org/abs/2610.07086)
+- Status: proposed — awaiting review
+- Claim: Filling tool-call argument slots in parallel with speculative decoding speeds up tool-call generation versus token-by-token decoding. Speedup numbers not read.
+- Why it matters: Tool-call latency is a harness/serving bottleneck, and this joins the queued speculative-decoding items with the agent-tooling lane.
+- Testability: Needs a local or GPU-served open model with a custom decoding loop. Local CPU latency checks on a 1-3B model are possible but slow. A directional repro on a Modal A10G is roughly $5-15 if code is released (not confirmed). Likely not worth it without released code.
+- Source: arXiv (2610.07086), found via web search snippet
+
+### [vToken: Token-Level Virtualization for Reclaimable KV Caches](https://arxiv.org/abs/2608.13263)
+- Status: proposed — awaiting review
+- Claim: A token-level virtualization layer lets token-level KV eviction actually free memory in block-based runtimes such as vLLM, giving up to 1.37x SLA-constrained throughput over naive eviction.
+- Why it matters: Addresses a real gap in KV-eviction work (eviction rarely returns memory in paged runtimes), which complements the queued KV-compression entries.
+- Testability: Needs vLLM on a GPU plus a throughput harness. Single-GPU directional repro on a 1-8B model is about $10-25 on Modal L4/A10G; the authors' SLA-throughput setup likely exceeds budget. Depends on code availability (not confirmed).
+- Source: arXiv (2608.13263), found via web search snippet
