@@ -1650,3 +1650,30 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-10-28 — proposed by research-scout
+
+<!-- Search coverage was thin: arxiv listings and github trending were not directly reachable, and web search surfaced almost nothing dated October. Three candidates survived dedupe against queue.md and the scoreboard (several other hits, e.g. 2606.25447, 2606.12882, 2605.27922, headroom, context-mode, were already queued). Claims come from search snippets only; verify at triage. Ranked by fit to the repo's harness/MCP line and by cost to test. -->
+
+### [Enhancing LLM Task Efficiency with Task-Aware MCP Server Recommendation](https://arxiv.org/pdf/2604.17234)
+- Status: proposed — awaiting review
+- Claim: Recommending a small, task-relevant set of MCP servers to an agent, rather than exposing everything, improves task efficiency (exact gains not verified from the snippet).
+- Why it matters: Pairs with the queued MCP context-cost measurement. It tests whether pre-selecting servers beats loading all tool schemas, on both tokens and tool-selection accuracy.
+- Testability: Likely yes. A recommender plus a synthetic multi-server tool-selection set on Haiku 4.5, comparing full vs recommended tool lists. No GPU. Rough cost: $3-10.
+- Source: arXiv (2604.17234), found via web search; snippet only
+
+### [ReFlect: An Effective Harness System for Complex Long-Horizon LLM Reasoning](https://arxiv.org/pdf/2605.05737)
+- Status: proposed — awaiting review
+- Claim: Wrapping the LLM in a deterministic loop that classifies problem shape and dispatches tools improves long-horizon reasoning across six LLMs, including Sonnet 4.5 and Haiku 4.5 (magnitude not verified).
+- Why it matters: A harness claim that already includes Haiku, so a direct comparison against a plain-prompt baseline fits the repo's harness-overhead scoreboard rows.
+- Testability: Likely yes if code or enough method detail is available. Haiku 4.5 on a small reasoning task set, harness vs plain. Rough cost: $5-15.
+- Source: arXiv (2605.05737), found via web search; snippet only
+
+### [SoL-Pi: Recursively Scaling Auto-Research Loops for Efficient Agent Harness](https://arxiv.org/pdf/2609.20519)
+- Status: proposed — awaiting review
+- Claim: Recursively scaled auto-research loops can produce more efficient agent harnesses (specific results not verified from the snippet).
+- Why it matters: Related to the queued harness-evolution items (TTHE, JIT-Agent); worth a check only if it differs materially from them, which triage should settle first.
+- Testability: Uncertain. Likely expensive, since an outer search loop multiplies run cost. Rough cost: $15-25+, possibly over budget; a scaled-down loop may be needed.
+- Source: arXiv (2609.20519), found via web search; snippet only
