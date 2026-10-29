@@ -1650,3 +1650,30 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-10-29 — proposed by research-scout
+
+_Scout note: arXiv.org was unreachable from the scout sandbox this run (DNS failure; it likely needs allowing in the session's network settings), and web search surfaced little dated after mid-October. Claims below come from search snippets and third-party summaries only — verify before picking. Everything else surfaced was already in this file or the scoreboard._
+
+### [Optimizing Agentic Language Model Inference via Speculative Tool Calls](https://arxiv.org/abs/2512.15834)
+- Status: proposed — awaiting review
+- Claim: A small fast model proposes tool calls early; the client starts them and caches results, so a matching later call from the main model is a cache hit. Aggregator summary reports 6-21% end-to-end time savings per agent turn (not verified against the paper).
+- Why it matters: Hides tool latency behind generation in the agent loop — a harness-level latency win, no model change. Dec 2025 paper, so older than the usual window, but not yet queued.
+- Testability: Feasible without a GPU. Haiku 4.5 as the main model with a cheap draft predictor over stateless tools (search/read/calc), measuring wall-clock and hit rate vs. synchronous. Rough cost: $5-12. Wrong guesses are only safe for stateless tools.
+- Source: arXiv (2512.15834), found via web search; summary only
+
+### [SPORK: Self-Speculative Forking to Accelerate Agentic LLM Inference](https://www.alphaxiv.org/abs/2607.03333)
+- Status: proposed — awaiting review
+- Claim: The model itself predicts its next tool call and forks to run it early; authors report tool-wait consumes 16-37% of wall time in their workloads (speedup figure not verified).
+- Why it matters: Follow-up to the above; testing both together would show whether self-speculation beats a separate drafter.
+- Testability: Needs local open-weights serving for true forking (small model, e.g. 1-8B, single L4/A10G, ~$10-20); an API-only approximation is weaker. Code availability unconfirmed.
+- Source: alphaxiv (2607.03333), found via web search; snippet only
+
+### [A Two-Dimensional Study of the Model Context Protocol: Publication and Adoption](https://arxiv.org/abs/2609.14721)
+- Status: proposed — awaiting review
+- Claim: Measurement study of MCP research publication vs. real-world adoption (findings not seen).
+- Why it matters: Low priority — a measurement study, little to reproduce; listed only for awareness.
+- Testability: Little to run; data-collection replication only, ~$0. Probably skip.
+- Source: arXiv (2609.14721), found via web search; title only
