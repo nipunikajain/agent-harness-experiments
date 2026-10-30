@@ -1650,3 +1650,37 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-10-30 — proposed by research-scout
+
+<!-- Note: arxiv.org, export.arxiv.org and blog.vllm.ai were unreachable from this run (network allowlist); candidates come from web search snippets and GitHub trending only, so claims are unverified against the full papers. -->
+
+### [Trial by Trace: Benchmarking AI Agent Harnesses for Reliability and Failure Attribution](https://arxiv.org/abs/2610.32285)
+- Status: proposed — awaiting review
+- Claim: Across 4 harnesses, 9 models, 95 tasks (3,420 runs), harness reliability scores range 59.8%–72.0%, and 31.1% of runs succeed on the task despite failing at least one harness criterion.
+- Why it matters: Separates harness quality from task success, which is the confound behind this repo's scoreboard rows (structured harness vs naive).
+- Testability: A scaled-down replication (2 harness configs, Haiku 4.5, ~20 tasks, trace-based criteria checks) is feasible via API, no GPU. Rough cost: $8-20. Benchmark availability unconfirmed.
+- Source: arXiv (2610.32285), web search snippet only
+
+### [SHarP: Saliency-based Pruning of Agent Harnesses](https://arxiv.org/abs/2610.04178)
+- Status: proposed — awaiting review
+- Claim: Most agent harnesses are highly redundant; a substantial fraction of modules can be pruned with comparable performance and efficiency (exact numbers not verified).
+- Why it matters: Direct complement to the repo's finding that added harness structure can cost tokens without benefit — tests ablation rather than addition.
+- Testability: Ablate modules of a small open harness with Haiku 4.5 on a toy task suite; no GPU. Rough cost: $5-15. Code availability unconfirmed.
+- Source: arXiv (2610.04178), web search snippet only
+
+### [Design and Cross-Domain Evaluation of an Agent Execution Harness](https://arxiv.org/abs/2610.25568)
+- Status: proposed — awaiting review
+- Claim: A harness separating the original objective, a revisable plan, and an execution record passes 83/89 on Terminal-Bench 2.1 and adds 19.89 points over direct completion on 53 HealthBench tasks, at cost rising from $0.29 to $2.13 per task.
+- Why it matters: Reports gain and a ~7x cost increase together — a clean test of whether the gain survives a cost-matched naive baseline.
+- Testability: Terminal-Bench full run is expensive; a small-model, ~20-task subset with a naive baseline is plausible. Rough cost: $15-40. Harness code availability unconfirmed.
+- Source: arXiv (2610.25568), web search snippet only
+
+### [When Agents Fail: Model or Harness—Who's to Blame?](https://arxiv.org/abs/2610.32483)
+- Status: proposed — awaiting review
+- Claim: Harness rankings vary across models and benchmarks; model-harness fit, not either alone, drives outcomes (measured via valid-completion rate and fit metrics).
+- Why it matters: Tests whether this repo's single-model harness verdicts generalize to a second model.
+- Testability: Reuse existing harness arms across Haiku 4.5 and Sonnet; analysis-heavy, no GPU. Rough cost: $10-25.
+- Source: arXiv (2610.32483), web search snippet only
