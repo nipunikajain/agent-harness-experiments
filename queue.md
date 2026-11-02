@@ -1650,3 +1650,44 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-02 — proposed by research-scout
+
+_Scout note: export.arxiv.org, arxiv.org, blog.vllm.ai and simonwillison.net were unreachable from the scout sandbox this run (not in allowed network domains). arXiv items were found via web search and claims come from search-result snippets only (abstracts not opened); verify before picking. Reached: GitHub trending (python, typescript), Anthropic Engineering (nothing testable: newest post is a source-control redesign). Latent Space, Ahead of AI, Hugging Face blog and DeepMind were not checked this run._
+
+### [Tool-Calling LLM Agents Under Realistic MCP Faults: Scale Does Not Purchase Fault Tolerance](https://arxiv.org/abs/2610.32555)
+- Status: proposed — awaiting review
+- Claim: With fault-injection middleware on the MCP tool-call path (1,350-cell experiment), permanent-fault profiles sharply cut task completion, and larger backbone models do not avoid the degradation.
+- Why it matters: Directly tests MCP robustness and whether harness-level retry/fallback is worth building; matches the repo's harness-vs-model question.
+- Testability: Very feasible. A small fault-injecting wrapper around a toy tool suite, Haiku 4.5 vs Sonnet 4.6, no GPU. Rough cost: $5-15.
+- Source: arXiv (2610.32555), found via web search; snippet only
+
+### [MedicalHarness: A Controlled Evaluation of LLMs and Agent Harnesses on Medical Tasks](https://arxiv.org/abs/2610.05778)
+- Status: proposed — awaiting review
+- Claim: Across 107 tasks, five open-weight models and five harnesses, harness and model-harness interaction explain roughly a quarter of outcome variance; no single harness wins everywhere. Ships MH-Lab for ablating context management, planning, tool exposure one at a time.
+- Why it matters: Another controlled harness-effect study; the ablation design could be borrowed for the repo's own harness experiments.
+- Testability: Full replication uses open-weight models (likely GPU); a directional repro of the one-component-at-a-time ablation with Haiku 4.5 on a task subset is feasible. Rough cost: $8-20 via API; open-weight arm on Modal about $10-25 if needed. Domain data availability unconfirmed.
+- Source: arXiv (2610.05778), found via web search; snippet only
+
+### [Is Bash All You Need? An Empirical Study of Tool Interfaces for Enterprise Digital Worker Agents](https://arxiv.org/abs/2609.11999)
+- Status: proposed — awaiting review
+- Claim: Compares tool interface styles (bash/CLI vs structured tools) for enterprise agents; exact result not verified from snippet.
+- Why it matters: Complements the queued MCP-vs-CLI comparison with a different interface axis; cheap to test as a harness variable.
+- Testability: Feasible. Same task set under a bash tool vs structured tools with Haiku 4.5, no GPU. Rough cost: $5-12.
+- Source: arXiv (2609.11999), found via web search; snippet only (link is the arxiv.org/pdf/2609.11999 paper)
+
+### [What the Trace Shows and What the Label Says: Auditing Behavioral Detectors in Agent Evaluation](https://arxiv.org/abs/2610.30491)
+- Status: proposed — awaiting review
+- Claim: In a GSM8K calculator setup with deliberately corrupted tool outputs (known ground truth), automated behavioral labels in agent evals often disagree with what the traces actually show.
+- Why it matters: Validity of agent-eval tooling; relevant to how trustworthy the repo's own verdicts are.
+- Testability: Very cheap. GSM8K plus a calculator tool with injected corruption, Haiku 4.5 as agent and judge, no GPU. Rough cost: $3-8.
+- Source: arXiv (2610.30491), found via web search; snippet only
+
+### [Efficient LLM Serving for Agentic Workflows: A Data Systems Perspective (Helium)](https://arxiv.org/abs/2603.16104)
+- Status: proposed — awaiting review
+- Claim: Treating agent steps as query plans with a templated radix tree for cache-aware scheduling gives up to 1.56x speedup over state-of-the-art agent serving systems.
+- Why it matters: Agentic-workload serving, the intersection of the repo's agents and LLM-systems lanes.
+- Testability: Needs a GPU serving stack (vLLM-class); not runnable on Apple Silicon CPU. Small-model directional repro on one Modal A10G/L4, about $10-25, if code is released (unconfirmed). Older paper (March 2026).
+- Source: arXiv (2603.16104), found via web search; snippet only
