@@ -1650,3 +1650,44 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-03 — proposed by research-scout
+
+<!-- Ranked by fit with the scoreboard's open question (does harness structure earn its cost?) and cheapness. All entries below are from search snippets only; abstracts not read in full, claims unverified. -->
+
+### [When Agents Fail: Model or Harness — Who's to Blame?](https://arxiv.org/abs/2610.32483)
+- Status: proposed — awaiting review
+- Claim: Proposes measures that attribute agent failures to the model versus the harness, evaluated across four general-purpose harnesses and several models.
+- Why it matters: The scoreboard's harness rows show structure costing tokens for no gain; this gives a method to say which side a failure belongs to, and could be applied to those existing traces.
+- Testability: Very cheap. Re-analysis of existing scoreboard traces plus a few Haiku 4.5 reruns across 2 harnesses, roughly $3-10. No GPU.
+- Source: arXiv (2610.32483), found via web search; snippet only
+
+### [Can LLMs Improve Their Own Harness? A Controlled Study on ARC-AGI-3](https://arxiv.org/abs/2610.30499)
+- Status: proposed — awaiting review
+- Claim: Across 27 lineages of models building and revising their own harness, outcomes ranged from zero to near ceiling, and strong early performance did not guarantee later revisions generalize.
+- Why it matters: A controlled counterpoint to the self-evolving-harness papers already queued (Self-Harness, TTHE); tests whether self-edits generalize or overfit.
+- Testability: Feasible small-scale. ARC-AGI-3 itself is likely heavy; use a toy puzzle suite with Haiku 4.5 as harness editor, 3-5 lineages, about $10-25. No GPU.
+- Source: arXiv (2610.30499), found via web search; snippet only
+
+### [HarnessOpt-Bench: Evaluating LLMs at Harness Optimization](https://arxiv.org/abs/2608.06301)
+- Status: proposed — awaiting review
+- Claim: Measures how well frontier LLMs optimize an agent's harness; reports that model choice dominates harness choice for optimization ability.
+- Why it matters: If model choice dominates, it is consistent with the scoreboard's null harness results; a small-model replication would check it holds below frontier scale.
+- Testability: Feasible small-scale if the benchmark is public and subsettable; Haiku 4.5 as optimizer on a few tasks, about $10-20. Needs a check of the release first.
+- Source: Scale AI Labs / arXiv (2608.06301), found via web search; snippet only
+
+### [Semantic Tool Discovery for Large Language Models](https://arxiv.org/abs/2603.20313)
+- Status: proposed — awaiting review
+- Claim: Filtering MCP tools by query-tool similarity so the model sees only a handful of relevant tools cuts token use and cost while keeping tool-selection accuracy.
+- Why it matters: Pairs with the queued MCP context-cost measurement (38,900 tokens); this is the retrieval-side fix, and a direct test of whether pruning hurts selection.
+- Testability: Very cheap. Local embedding model on CPU for retrieval plus Haiku 4.5 for selection over ~100 mock tools, about $3-8. No GPU.
+- Source: arXiv (2603.20313), found via web search; snippet only
+
+### [Memories That Outlive Their Reasons: Dependency-Tethered Memory for Tool-Using LLM Agents](https://arxiv.org/abs/2610.25123)
+- Status: proposed — awaiting review
+- Claim: Tying each stored memory to the versions of facts it depends on, and withdrawing it at read time when an upstream fact fails, reduces stale-memory errors (plain fact-memory agents published 62% of upstream-failing objects in the authors' simulation).
+- Why it matters: Stale memory is a concrete long-horizon failure mode; the fix is a small harness-level mechanism, cheap to isolate.
+- Testability: Feasible small-scale. Toy simulation with versioned facts and Haiku 4.5, plain vs tethered memory, n=3 seeds, about $5-12. No GPU.
+- Source: arXiv (2610.25123), found via web search; snippet only
