@@ -1650,3 +1650,16 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-04 — proposed by research-scout
+
+_Scout note: arXiv (export.arxiv.org) and huggingface.co are not in this session's allowed network domains, so no arXiv scan was possible and web search surfaced no papers dated after 2026-10-15. Only the GitHub trending page was readable. To enable full scans, allow those hosts in the environment's network settings._
+
+### [MemPalace: verbatim-storage agent memory (96.6% R@5 on LongMemEval, no API calls)](https://github.com/MemPalace/mempalace)
+- Status: proposed — awaiting review
+- Claim: Storing conversation history verbatim (no summarization) in a wings/rooms/drawers index with plain semantic search reaches 96.6% R@5 on LongMemEval's 500 questions (98.4% hybrid on a held-out 450 split) with zero API calls.
+- Why it matters: Agent memory is a harness component; the claim that no-summarization retrieval beats lossy memory schemes is testable, and README-reported numbers on a public benchmark are often not independently reproduced.
+- Testability: Feasible. CPU-only, MIT license, ~300 MB embedding model, no API key for the core path; optional LLM-rerank arm on Haiku 4.5. Rough cost: $0 for core repro, ~$3-10 with rerank/answer-grading.
+- Source: GitHub trending (weekly, python); README numbers are the authors' own, unverified
