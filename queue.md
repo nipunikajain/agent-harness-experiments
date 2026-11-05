@@ -1650,3 +1650,37 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-05 — proposed by research-scout
+
+_Scout note: web-search snippets only (abstracts not opened); verify claims before picking. Ranked by fit to the repo's harness-overhead / MCP-cost line of work._
+
+### [Tool Attention Is All You Need: dynamic tool gating + lazy schema loading](https://arxiv.org/abs/2604.21816)
+- Status: proposed — awaiting review
+- Claim: Gating which MCP tools are exposed per step and loading full schemas lazily cuts the context cost of MCP tool schemas (exact reduction not verified).
+- Why it matters: Pairs with the queued MCP token-cost measurement; tests whether schema trimming saves tokens without hurting tool selection.
+- Testability: Feasible, no GPU. Haiku 4.5 via API, full-schema vs gated on a small multi-tool task. Rough cost: $4-10.
+- Source: arXiv 2604.21816, web search; snippet only
+
+### [Semantic Tool Discovery: Vector-Based MCP Tool Selection](https://arxiv.org/abs/2603.20313)
+- Status: proposed — awaiting review
+- Claim: Embedding-based retrieval of relevant MCP tools beats presenting all tools; irrelevant tools add noise that lowers selection accuracy. Releases a 140-query, 5-server benchmark.
+- Why it matters: Ready-made benchmark makes a cheap, controlled retrieval-vs-all-tools comparison possible.
+- Testability: Feasible, no GPU. Small local embedding model + Haiku 4.5. Rough cost: $3-8.
+- Source: arXiv 2603.20313, web search; snippet only
+
+### [HarnessOpt-Bench: end-to-end harness optimization under expensive, stochastic evaluation](https://labs.scale.com/papers/harnessopt-bench)
+- Status: proposed — awaiting review
+- Claim: Benchmark for optimizer-LLMs that edit a coding harness; evaluation noise and cost make harness optimization hard (results not verified).
+- Why it matters: Directly relevant to the scoreboard's pattern of harness changes not paying off; noise-aware angle.
+- Testability: Uncertain; depends on released code and eval cost. Likely a reduced slice only. Rough cost: $15-40.
+- Source: Scale Labs page (8/2026), web search; snippet only
+
+### [When Hidden States Drift: Can KV Caches Rescue Long-Range Speculative Decoding?](https://arxiv.org/abs/2604.26412)
+- Status: proposed — awaiting review
+- Claim: Hidden-state drafters lose draft accuracy as speculative step count grows; adding KV caches to the drafter is proposed to fix it.
+- Why it matters: Serving-efficiency claim in the LLM systems lane.
+- Testability: Needs a GPU and likely vLLM or custom code; 1-8B directional repro on a single Modal A10G/L4 if code exists (unconfirmed). Rough cost: $10-25. Not runnable on a laptop CPU.
+- Source: arXiv 2604.26412, web search; snippet only
