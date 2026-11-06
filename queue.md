@@ -1650,3 +1650,44 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-06 — proposed by research-scout
+
+Note: export.arxiv.org and arxiv.org did not resolve from this session (network allowlist), so this run used WebSearch snippets only; claims below come from abstracts and are unverified.
+
+### [Latent Harness: Compiling Agent Behaviors into Post-Block Activation Shifts](https://arxiv.org/abs/2611.01415)
+- Status: proposed — awaiting review
+- Claim: A harness's behavior can be compiled into a small activation shift on a frozen model, so inference needs no harness text; the compiled behavior recovers the source-harness gain in 8 of 10 preregistered settings.
+- Why it matters: Directly tests whether harness gains can be moved out of the prompt, relevant to the harness-overhead nulls already on the scoreboard.
+- Testability: Needs open-weights model activations, so not doable via the Claude API. Small open model (1-3B) on Modal A10G, roughly $10-25. Borderline on budget; tight scope needed.
+- Source: arXiv (2611.01415), found via web search; snippet only
+
+### [MCP Tool Poisoning in Agentic AI Frameworks: A Cross-Framework Measurement Study](https://arxiv.org/abs/2611.03555)
+- Status: proposed — awaiting review
+- Claim: Across agent frameworks, tool-poisoning attacks via MCP succeed 22.9% of the time overall, with 12.1% of vulnerable cases verifiably exfiltrating a secret.
+- Why it matters: Measures real MCP security exposure, so a mini-replication with a poisoned local MCP server is squarely in the lane.
+- Testability: Yes. Haiku 4.5 or Sonnet 4.6 over the API with a local mock MCP server and canary secret, CPU only. Rough cost $3-10.
+- Source: arXiv (2611.03555), found via web search; snippet only
+
+### [GatewayBench: Unified Capability and Security Evaluation of MCP Gateways](https://arxiv.org/pdf/2610.23449)
+- Status: proposed — awaiting review
+- Claim: Evaluates seven widely deployed MCP gateways on capability and security and argues the gateway should be co-designed with the agent harness (title abbreviated; exact title unverified).
+- Why it matters: Gateways are an emerging MCP infrastructure layer; the repo has queued microsoft/mcp-gateway but no gateway comparison.
+- Testability: Partial. Running two or three open-source gateways locally is CPU-feasible; agent calls on Haiku 4.5 cost about $5-12. Benchmark code availability unknown.
+- Source: arXiv (2610.23449), found via web search; snippet only
+
+### [Can Agent Harnesses and Inference Engines Hear Each Other? The HEAR Protocol for Agentic LLM Serving](https://arxiv.org/abs/2610.06597)
+- Status: proposed — awaiting review
+- Claim: A protocol letting agent harnesses pass hints (e.g. upcoming tool calls, reuse) to the inference engine improves agentic serving efficiency (numbers not seen).
+- Why it matters: Harness-to-serving interface, bridging two lanes; adjacent to queued Leyline and "Ask the Tool, Don't Guess".
+- Testability: Needs a serving engine with prefix caching, so likely a GPU: small model on vLLM on Modal A10G, about $10-20. Arxiv id found only via a GitHub issue citation, not confirmed on the arXiv page.
+- Source: arXiv (2610.06597), found via GitHub awesome-papers issue
+
+### [MCPHallu: Benchmarking Reasoning, Execution, and Memory Hallucinations in MCP Agents](https://arxiv.org/abs/2611.07689)
+- Status: proposed — awaiting review
+- Claim: A 358-task benchmark over 36 production MCP servers measures reasoning, execution and memory hallucinations in MCP agents.
+- Why it matters: Gives a ready benchmark for how often small models hallucinate tool results or calls over real MCP servers.
+- Testability: Plausible with Haiku 4.5 on a subset of tasks, CPU only; needs the 36 servers or a subset set up. Rough cost $8-20 depending on subset. Benchmark release not confirmed.
+- Source: arXiv (2611.07689), found via web search; snippet only
