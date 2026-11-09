@@ -1650,3 +1650,30 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-09 — proposed by research-scout
+
+<!-- Note: arxiv.org was unreachable from this session (DNS blocked), so claims below come from web-search snippets, not the abstracts. Verify at triage. Only 3 items were new after deduping against queue.md and the scoreboard; searches surfaced no November-2026 arXiv postings. -->
+
+### [Stateful inference for multi-agent tool calling (LayerScale)](https://arxiv.org/abs/2605.26289)
+- Status: proposed — awaiting review
+- Claim: A radix prefix cache over a unified KV cache plus a prompt-lookup speculative decoder for structured tool-call output speeds up multi-agent tool-calling inference (exact numbers not verified).
+- Why it matters: Targets the repeated-prefix and structured-output cost that dominates agent loops; pairs with the TokenPilot row on the scoreboard.
+- Testability: Partly. Prefix caching plus prompt-lookup decoding can be approximated on a small local model with vLLM or llama.cpp. Roughly $0–5 on Apple Silicon or a small Modal GPU; the paper's own system may not be released.
+- Source: arXiv cs.LG/cs.DC (via web search)
+
+### [Continuum: Efficient and Robust Multi-Turn LLM Agent Scheduling with KV Cache Time-to-Live](https://arxiv.org/abs/2511.02230)
+- Status: proposed — awaiting review
+- Claim: Keeping an agent's KV cache alive with a TTL while it waits on tool calls cuts multi-turn agent latency versus evicting it (numbers not verified).
+- Why it matters: Tool-call pauses are the core agentic-serving inefficiency; the TTL policy is simple enough to test on its own.
+- Testability: Needs a serving engine with a tunable cache policy (vLLM or SGLang) and a small model with simulated tool latency. Roughly $5–20 on Modal; a toy simulation is feasible locally.
+- Source: arXiv cs.DC (via web search)
+
+### [Windowed-MTP: Removing the Full-Context Draft-KV Tax in Million-Token Agentic Serving](https://neurips.cc/virtual/2026/166776)
+- Status: proposed — awaiting review
+- Claim: On hybrid-attention targets, speculative-decoding drafts are not negligibly cheap at agentic context lengths; windowing the draft's context removes that cost (numbers not verified; only a NeurIPS listing found, no arXiv link).
+- Why it matters: Challenges the assumption that the draft model is free in long-context agent serving.
+- Testability: Likely out of budget. Million-token contexts on hybrid-attention models need large GPUs. A scaled-down check at 32k context on a small model is possible but may not reproduce the effect.
+- Source: NeurIPS 2026 listing
