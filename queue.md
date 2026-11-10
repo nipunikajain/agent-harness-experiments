@@ -1650,3 +1650,37 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-10 — proposed by research-scout
+
+_Scout note: arxiv.org, export.arxiv.org, and aggregator hosts were unreachable from the scout sandbox this run, so the arXiv API and GitHub trending could not be scanned directly. Claims below come from web-search snippets only (abstracts not opened). Most fresh lane papers were already queued; only these survived dedupe. Verify before picking._
+
+### [Agent-Controlled Forgetting for Tool-Using Agents](https://arxiv.org/abs/2610.10590)
+- Status: proposed — awaiting review
+- Claim: A tool-using agent that selectively and reversibly evicts earlier tool outputs from its history can shrink long contexts versus keeping full history (exact gain not verified).
+- Why it matters: Context management inside the agent harness; complements the TokenPilot result by testing agent-driven rather than rule-driven curation.
+- Testability: Likely feasible. Haiku 4.5 via API on a multi-hop tool task, forgetting on vs off, no GPU. Rough cost: $5-12.
+- Source: arXiv cs.AI (2610.10590), found via web search; snippet only
+
+### [Semantic Tool Discovery for Large Language Models: A Vector-Based Approach to MCP Tool Selection](https://arxiv.org/abs/2603.20313)
+- Status: proposed — awaiting review
+- Claim: Embedding-based retrieval of MCP tools reaches 97.1% hit rate at K=3 (MRR 0.91) on the authors' 140 queries over 121 tools from 5 MCP servers (authors' own dataset).
+- Why it matters: Tests whether retrieving a few tools beats exposing all tool schemas, directly relevant to MCP context cost.
+- Testability: Very cheap. Local small embedding model on CPU plus Haiku 4.5 end-to-end selection accuracy with retrieved vs full tool list. Rough cost: $2-6. No GPU.
+- Source: arXiv (2603.20313), found via web search; snippet only
+
+### [Description-Code Inconsistency in Real-World MCP Servers](https://arxiv.org/pdf/2606.04769)
+- Status: proposed — awaiting review
+- Claim: Studies whether MCP tool descriptions of capabilities and security boundaries match what the server code actually does; MCP has no built-in verification (title and findings not verified, only the topic from a snippet).
+- Why it matters: MCP trust and safety; descriptions drive agent tool choice, so mismatches matter.
+- Testability: Mostly static analysis, CPU-only. A small-scale repro on a handful of open-source MCP servers with Haiku 4.5 as the checker costs about $3-10. Check the exact paper title when opening the link.
+- Source: arXiv (2606.04769), found via web search; snippet only
+
+### [Tool Preferences in Agentic LLMs are Unreliable](https://arxiv.org/abs/2505.18135)
+- Status: proposed — awaiting review
+- Claim: LLM tool choice can be swayed by editing tool descriptions, shown on BFCL-style single-turn cases (older 2025 paper, v2; effect sizes not verified).
+- Why it matters: Cheap robustness check on whether MCP tool descriptions steer agents, relevant to injection and tool-marketplace risk.
+- Testability: Very cheap. Haiku 4.5 and Sonnet 4.6 via API, original vs edited descriptions over a small tool set, no GPU. Rough cost: $2-6.
+- Source: arXiv (2505.18135), found via web search; snippet only
