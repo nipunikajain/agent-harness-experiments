@@ -1650,3 +1650,51 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-11 — proposed by research-scout
+
+_Scout note: arxiv.org/export.arxiv.org, vllm blog, simonwillison.net, huggingface.co, latent.space, Raschka's magazine and deepmind.google were all unreachable from the scout sandbox this run; arXiv claims come from search-result snippets only (abstracts not opened). GitHub and anthropic.com were reachable. Verify before picking._
+
+### [The Harness Is the Model: Agent Scaffolding Changes a Fixed LLM's Compliance with Banking Conduct Rules, Unevenly Across Models](https://arxiv.org/abs/2611.06116)
+- Status: proposed — awaiting review
+- Claim: Holding the model fixed and swapping only the harness moved rule-violation rates by up to 11.5 points for one model and not at all for another; date-arithmetic rules failed under every harness, and ~26% of violations came with a customer message denying the action the agent had actually taken (invisible to transcript-only review).
+- Why it matters: Direct harness-effect measurement on a compliance task rather than task completion; the "harness helps model A, not model B" finding matches this repo's own null/negative harness results and gives a cheap way to test whether harness gains are model-specific.
+- Testability: Feasible, no GPU. Rebuild a small banking-style tool environment with 5-10 conduct rules, run 2-3 harness variants on Haiku 4.5 and Sonnet 4.6 at n=3+, score violations by state diff rather than transcript. Rough cost: $8-20.
+- Source: arXiv (2611.06116, submitted 2026-11-04), found via web search; snippet only
+
+### [Tool-Calling LLM Agents Under Realistic MCP Faults: Scale Does Not Purchase Fault Tolerance](https://arxiv.org/abs/2610.32555)
+- Status: proposed — awaiting review
+- Claim: MCP-Injector, a fault-injection middleware whose fault model is mined from 57,240 issue/PR threads across 1,774 MCP repos, cuts task completion by ~60% across 1,350 cells (20B vs 120B backbones × 3 agent stacks × 3 fault conditions); the larger model wins fault-free but completes fewer tasks under faults, and framework-level error handling matters more than model scale.
+- Why it matters: Squarely MCP infrastructure; tests whether harness error handling, not model size, buys reliability — the same harness-vs-model question this repo keeps asking, on a dimension (tool faults) none of the queued reliability papers inject deliberately.
+- Testability: Feasible, no GPU. Wrap a local MCP server with a seedable fault injector (permanent / transient / intermittent), run Haiku 4.5 vs Sonnet 4.6 with and without retry/error-handling scaffolding on 20-30 tool tasks. Rough cost: $10-20. Also appears as a NeurIPS 2026 poster under the title "The Scaling Paradox of Tool-Calling LLM Agents Under Realistic MCP Faults".
+- Source: arXiv (2610.32555), found via web search; snippet only
+
+### [Which Metadata Matters for LLM Tool Selection in MCP? Evidence from Controlled Factor-Level Interventions](https://arxiv.org/abs/2610.14334)
+- Status: proposed — awaiting review
+- Claim: In controlled single-factor interventions on MCP tool metadata, changes to the parameter schema shift which tool a model selects more than any other tested factor, and tool ordering in the list changes selection even when functionality is unchanged (effect sizes not verified from snippet).
+- Why it matters: Complements the queued "Tool Descriptions Are Smelly" and "38,900 tokens" entries from the other side: if schema and ordering, not prose, drive selection, then schema trimming to save context has an accuracy cost the earlier entries would miss.
+- Testability: Very cheap, no GPU. Build 15-20 tool sets with near-duplicate tools, mutate one factor at a time (schema, ordering, name, description), measure Haiku 4.5 selection rates at n=10 per cell. Rough cost: $3-8.
+- Source: arXiv (2610.14334), found via web search; snippet only
+
+### [Don't Lose the Thread: Empowering Long-Horizon LLM Agents with Cognitive Resource Self-Allocation (CORAL)](https://arxiv.org/abs/2610.40350)
+- Status: proposed — awaiting review
+- Claim: Giving the agent a working-memory toolset it controls itself (checkpoint progress, reset cluttered context) lets an 8B model reach 42.8% average accuracy on GAIA, with the largest gains on Level 2/3 long-horizon tasks, while using 6-7× fewer input tokens than a ReAct agent.
+- Why it matters: An agent-driven context-management primitive (the model decides when to checkpoint and reset) rather than a harness-driven compaction policy; the token claim is the kind this repo has found to be mostly prompt caching in disguise (see TokenPilot), so worth checking against a cache-enabled baseline.
+- Testability: Feasible, no GPU. Implement checkpoint/reset as two tools for Haiku 4.5 on a 4-6 hop tool task (reuse the TokenPilot harness), compare to ReAct with and without prompt caching, n=3. Rough cost: $5-12. The paper's own numbers use Qwen3-8B / QwQ-32B, so the Haiku run is directional only.
+- Source: arXiv (2610.40350, submitted 2026-10-29), found via web search; snippet only
+
+### [The components of agent memory](https://www.anthropic.com/research/components-of-agent-memory)
+- Status: proposed — awaiting review
+- Claim: A layered file-based memory (raw transcripts → model-written notes → wiki → injected context) plus an offline "dreaming" pass that rewrites notes and promotes them into injected context raises CL-Bench database-task reward by +0.18 to +0.32 on frontier Claude models (e.g. Opus 4.7 0.383→0.700), but only +0.034 on Sonnet 4.6 unless memory-use instructions are made explicit (then 0.641); a wiki built over 128 dreaming sessions went from 13% to 48% on an internal 25-question eval and saved ~20k tokens/question.
+- Why it matters: The most concrete public recipe for agent memory from a lab blog; the "weaker models need explicit memory instructions" finding is directly testable and the small-n (24-25 question), no-variance reporting is exactly the sort of claim this repo exists to stress.
+- Testability: Partly feasible, no GPU. The loop (memory dir + reflection pass + injected index) can be rebuilt for Haiku 4.5 on a small repeated-task suite; what cannot be reproduced are the proprietary corpora (Stainless, Harvey) and the Managed Agents harness. Directional run with explicit-vs-steered memory instructions, n=3: $8-20.
+- Source: Anthropic Engineering (2026-11-06)
+
+### [Accelerating CPU Speculative Decoding via Unified Graph Execution and Transactional KV Isolation (SubTernary)](https://arxiv.org/abs/2610.28671)
+- Status: proposed — awaiting review
+- Claim: A CPU execution framework with unified graph caching (no draft/target graph swapping) and transactional KV-cache isolation (O(1) rollback) is 1.35× faster than llama.cpp speculative decoding and 3.99× faster than autoregressive decoding on CPU.
+- Why it matters: The rare serving-lane paper that targets CPU, i.e. the user's actual hardware; if the 1.35× over llama.cpp holds it is a free local inference win, and if it is mostly the rollback allocator the baseline comparison is easy to isolate.
+- Testability: Runs on Apple Silicon CPU, $0 in compute, but no code was found in this run (only the NeurIPS 2026 listing and the arXiv id); without a release the repro means re-implementing the KV transaction layer on top of llama.cpp, which is likely out of scope. Worth a check for a code drop before picking.
+- Source: arXiv (2610.28671) / NeurIPS 2026 listing, found via web search; snippet only
