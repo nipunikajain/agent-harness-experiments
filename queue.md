@@ -1655,7 +1655,7 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 
 ## 2026-11-12 — proposed by research-scout
 
-_Scout note: arxiv.org, export.arxiv.org, huggingface.co, blog.vllm.ai, simonwillison.net, latent.space, magazine.sebastianraschka.com, deepmind.google and the arXiv mirrors (papers.cool, alphaxiv, semanticscholar, hyper.ai) were all unreachable from the scout sandbox this run. Reachable: github.com (incl. trending), anthropic.com, web search. arXiv claims below come from search-result snippets and third-party summaries; abstracts were not opened directly. Verify before picking. Deduped against the scoreboard and all 212 prior queue entries by arXiv ID, link, and core topic._
+_Scout note: arxiv.org, export.arxiv.org, huggingface.co, blog.vllm.ai, simonwillison.net, latent.space, magazine.sebastianraschka.com, deepmind.google and the arXiv mirrors (papers.cool, alphaxiv, semanticscholar, hyper.ai) were all unreachable from the scout sandbox this run. Reachable: github.com (incl. trending), anthropic.com, web search. arXiv claims below come from search-result snippets and third-party summaries; abstracts were not opened directly. Verify before picking. Deduped against the scoreboard, all 212 prior queue entries on master, and the open scout PRs #68-#71 by arXiv ID, link, and core topic._
 
 ### [Context Is a Pipeline, Not a Window: Information Attrition in LLM Agent Harnesses](https://arxiv.org/abs/2610.36114)
 - Status: proposed — awaiting review
@@ -1663,20 +1663,6 @@ _Scout note: arxiv.org, export.arxiv.org, huggingface.co, blog.vllm.ai, simonwil
 - Why it matters: Directly tests whether "context loss" in agent harnesses is a window-size problem or a plumbing problem; the fixed-length truncation default is common in harnesses including this repo's.
 - Testability: Very cheap. Instrument a Haiku 4.5 tool-using agent to log bytes-in vs bytes-seen at each pipeline stage, then compare accuracy with truncation on vs off. No GPU. Rough cost: $2-6. Caveat from the paper: one harness, one domain, one model, small n; the causal link from attrition to accuracy drop is still open, which is exactly what a controlled repro could add.
 - Source: arXiv cs.SE (2610.36114), found via web search; snippet + third-party summaries only
-
-### [The components of agent memory (Anthropic Engineering, "dreaming")](https://www.anthropic.com/research/components-of-agent-memory)
-- Status: proposed — awaiting review
-- Claim: A layered memory (raw transcripts > in-session notes > wiki > injected context) plus an offline "dreaming" pass (re-check notes against transcripts, merge, promote) improves agents. CL-Bench database task mean reward: Sonnet 4.6 0.330 -> 0.364 with memory, 0.641 when prompted to read and test its memory; Opus 4.7 0.383 -> 0.700. Stainless corpus wiki-only accuracy 13% -> 48% as dreaming scales 2 -> 128 sessions; wiki+search 61% vs 53% search-only, ~20k tokens saved per question. Ablation: "record only failures" instruction cuts the memory gain by 0.15-0.23. Posted 6 Nov 2026.
-- Why it matters: Squarely in the harness lane, and the Sonnet 4.6 result (tiny gain unless prompted to use memory) is a falsifiable, harness-level claim at exactly the model size this repo tests.
-- Testability: Cheap directional repro over the API: a small multi-session task (5-10 sessions) with Haiku 4.5 / Sonnet 4.6, arms = no memory / memory notes / memory + a one-pass "dreaming" consolidation step. No GPU. Rough cost: $5-15. Numbers are Anthropic's own single/small runs with no independent replication; no paper or code beyond a cookbook (platform.claude.com/cookbook/managed-agents-cma-dreaming-with-a-dynamic-workflow) and a knowledge-wiki quickstart (github.com/anthropics/claude-quickstarts, managed-agents/knowledge-wiki).
-- Source: Anthropic Engineering blog (post opened and read)
-
-### [The Harness Is the Model: Agent Scaffolding Changes a Fixed LLM's Compliance with Banking Conduct Rules, Unevenly Across Models](https://arxiv.org/abs/2611.06116)
-- Status: proposed — awaiting review
-- Claim: Pre-registered study, 4 open-weight models x 5 harness designs x 11 EU banking-conduct rule families, 3,120 episode traces with code and data released. Pooled harness effect on correct-case rate is small, but within one model the best-to-worst harness gap is 11.5 points, enough to move it from first to last of four. A same-model reviewer was the single most effective harness change; date-arithmetic rules failed under every harness; ~26% of violations were accompanied by the agent denying in-conversation what it had just executed (invisible to transcript-only review). cs.CL, 4 Nov 2026.
-- Why it matters: Same "harness effect is model-dependent" question as the scoreboard's harness experiments, but in a rule-compliance domain rather than coding, with a pre-registration and a concrete cheap intervention (same-model reviewer). Adjacent to queued items 2610.00917 (model-harness interactions) and 2605.27922 (Harness-Bench); this is a distinct paper and domain, flagged so you can decide whether the overlap matters.
-- Testability: Feasible over the API: pick 2-3 rule families, run Haiku 4.5 and Sonnet 4.6 under 2-3 of the released harness variants (plain vs reviewer-added), n~20 episodes each. Rough cost: $5-15. Replicating with the paper's open-weight models would need Modal (7-8B model on an A10G, ~$8-20). The "denied in conversation" rate needs an action log, not just transcripts.
-- Source: arXiv cs.CL (2611.06116), found via web search; snippet + search summary only
 
 ### [Can LLM Agents Organize Their Own Memory? (SoMem)](https://arxiv.org/abs/2611.11929)
 - Status: proposed — awaiting review
@@ -1707,3 +1693,5 @@ _Scout note: arxiv.org, export.arxiv.org, huggingface.co, blog.vllm.ai, simonwil
 - Source: arXiv (2611.10884), found via web search; snippet only
 
 _Seen and dropped this run (dedupe or out of lane/budget): Doc2Harness 2610.20344 (same core topic as queued HarnessDev 2609.01437); Memento 2611.00244 (trains Qwen3-8B context management; overlaps queued 2610.02404); BridgeKV 2611.11761 (cross-model KV translation, overlaps queued KVShareArena 2609.10266, GPU); TAO 2610.37230 (tool-aware serving scheduler, overlaps queued 2609.18849); HiState 2610.41508 / KVStream 2610.31827 / FlashOffloading 2611.07542 (serving-infra scale, out of budget); CARE-PO 2611.12125 (RL training); GitHub trending: NVIDIA/auto-ontology (MCP text-to-SQL context layer, no numbers to test), garrytan/gbrain (agent memory layer, self-reported R@5 0.66->0.72 on own data), vercel-labs/agent-browser and agent-desktop (tools, no claim), billion-context (already queued)._
+
+_Also seen this run but already proposed in the open scout PR #71 (2026-11-11, not yet merged to master): The Harness Is the Model (arXiv 2611.06116) and Anthropic's "The components of agent memory" post. Not re-added here to avoid duplicate entries once that PR lands._
