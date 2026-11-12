@@ -1650,3 +1650,60 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-12 — proposed by research-scout
+
+_Scout note: arxiv.org, export.arxiv.org, huggingface.co, blog.vllm.ai, simonwillison.net, latent.space, magazine.sebastianraschka.com, deepmind.google and the arXiv mirrors (papers.cool, alphaxiv, semanticscholar, hyper.ai) were all unreachable from the scout sandbox this run. Reachable: github.com (incl. trending), anthropic.com, web search. arXiv claims below come from search-result snippets and third-party summaries; abstracts were not opened directly. Verify before picking. Deduped against the scoreboard and all 212 prior queue entries by arXiv ID, link, and core topic._
+
+### [Context Is a Pipeline, Not a Window: Information Attrition in LLM Agent Harnesses](https://arxiv.org/abs/2610.36114)
+- Status: proposed — awaiting review
+- Claim: In a Linux-kernel-trace fault-diagnosis agent, the harness truncated a third of all tool results (3,827 of 11,189) by slicing JSON at a fixed length, while the largest prompt used only 5.75% of the context window; proposes a five-stage context pipeline with a per-stage yield metric. 5 pages, cs.SE, 26 Oct 2026; replication package on Zenodo (record 23614755).
+- Why it matters: Directly tests whether "context loss" in agent harnesses is a window-size problem or a plumbing problem; the fixed-length truncation default is common in harnesses including this repo's.
+- Testability: Very cheap. Instrument a Haiku 4.5 tool-using agent to log bytes-in vs bytes-seen at each pipeline stage, then compare accuracy with truncation on vs off. No GPU. Rough cost: $2-6. Caveat from the paper: one harness, one domain, one model, small n; the causal link from attrition to accuracy drop is still open, which is exactly what a controlled repro could add.
+- Source: arXiv cs.SE (2610.36114), found via web search; snippet + third-party summaries only
+
+### [The components of agent memory (Anthropic Engineering, "dreaming")](https://www.anthropic.com/research/components-of-agent-memory)
+- Status: proposed — awaiting review
+- Claim: A layered memory (raw transcripts > in-session notes > wiki > injected context) plus an offline "dreaming" pass (re-check notes against transcripts, merge, promote) improves agents. CL-Bench database task mean reward: Sonnet 4.6 0.330 -> 0.364 with memory, 0.641 when prompted to read and test its memory; Opus 4.7 0.383 -> 0.700. Stainless corpus wiki-only accuracy 13% -> 48% as dreaming scales 2 -> 128 sessions; wiki+search 61% vs 53% search-only, ~20k tokens saved per question. Ablation: "record only failures" instruction cuts the memory gain by 0.15-0.23. Posted 6 Nov 2026.
+- Why it matters: Squarely in the harness lane, and the Sonnet 4.6 result (tiny gain unless prompted to use memory) is a falsifiable, harness-level claim at exactly the model size this repo tests.
+- Testability: Cheap directional repro over the API: a small multi-session task (5-10 sessions) with Haiku 4.5 / Sonnet 4.6, arms = no memory / memory notes / memory + a one-pass "dreaming" consolidation step. No GPU. Rough cost: $5-15. Numbers are Anthropic's own single/small runs with no independent replication; no paper or code beyond a cookbook (platform.claude.com/cookbook/managed-agents-cma-dreaming-with-a-dynamic-workflow) and a knowledge-wiki quickstart (github.com/anthropics/claude-quickstarts, managed-agents/knowledge-wiki).
+- Source: Anthropic Engineering blog (post opened and read)
+
+### [The Harness Is the Model: Agent Scaffolding Changes a Fixed LLM's Compliance with Banking Conduct Rules, Unevenly Across Models](https://arxiv.org/abs/2611.06116)
+- Status: proposed — awaiting review
+- Claim: Pre-registered study, 4 open-weight models x 5 harness designs x 11 EU banking-conduct rule families, 3,120 episode traces with code and data released. Pooled harness effect on correct-case rate is small, but within one model the best-to-worst harness gap is 11.5 points, enough to move it from first to last of four. A same-model reviewer was the single most effective harness change; date-arithmetic rules failed under every harness; ~26% of violations were accompanied by the agent denying in-conversation what it had just executed (invisible to transcript-only review). cs.CL, 4 Nov 2026.
+- Why it matters: Same "harness effect is model-dependent" question as the scoreboard's harness experiments, but in a rule-compliance domain rather than coding, with a pre-registration and a concrete cheap intervention (same-model reviewer). Adjacent to queued items 2610.00917 (model-harness interactions) and 2605.27922 (Harness-Bench); this is a distinct paper and domain, flagged so you can decide whether the overlap matters.
+- Testability: Feasible over the API: pick 2-3 rule families, run Haiku 4.5 and Sonnet 4.6 under 2-3 of the released harness variants (plain vs reviewer-added), n~20 episodes each. Rough cost: $5-15. Replicating with the paper's open-weight models would need Modal (7-8B model on an A10G, ~$8-20). The "denied in conversation" rate needs an action log, not just transcripts.
+- Source: arXiv cs.CL (2611.06116), found via web search; snippet + search summary only
+
+### [Can LLM Agents Organize Their Own Memory? (SoMem)](https://arxiv.org/abs/2611.11929)
+- Status: proposed — awaiting review
+- Claim: SoMem lets an agent keep persistent memory as linked, editable Markdown documents it organizes itself (small core memory + recent context + file inventory + memory tools); the runtime validates updates and derives temporal, relational and recent-memory views. Evaluated on LoCoMo, BEAM-100K and LongMemEval-S; reports that a different model can reuse the workspace an agent built and that more reasoning effort improves answers. Gains vs baselines not verified (abstract not opened). Posted ~9 Nov 2026.
+- Why it matters: Agent-managed memory is a recurring harness question here; this is the "let the agent own the schema" end of the design space, and it pairs naturally with the Anthropic dreaming entry above (self-organized files vs curated wiki).
+- Testability: Feasible over the API: LoCoMo or LongMemEval-S subset (10-20 conversations), Haiku 4.5 as the agent, arms = flat note store vs SoMem-style linked Markdown with the same tool interface. No GPU. Rough cost: $5-15. Whether code is released is unconfirmed; the memory tools are simple enough to reimplement.
+- Source: arXiv (2611.11929), found via web search; snippet only
+
+### [RECEIPT: Measuring and Repairing the Return Assumption of LLM Agents in Web Service Operations](https://arxiv.org/abs/2611.01930)
+- Status: proposed — awaiting review
+- Claim: Agents assume a tool call "returned" means the requested action finished; a terminal prompt left open (or similar incomplete return) produces false claims of success. The paper reports that the harness affects this reliability as much as the model does and that its repair cuts false success claims by 73.5% across 5 LLMs. November 2026; details beyond the snippet not verified.
+- Why it matters: A tool-boundary failure mode the harness can fix cheaply; complements queued 2608.02645 (verified tool calls under non-atomic failures) and 2609.15397 (tool calls succeed but workflows fail), but targets a different mechanism (return-vs-completion) and reports a cross-model harness comparison.
+- Testability: Cheap. Build a mock web-service / shell tool that sometimes returns before the action completes, run Haiku 4.5 and Sonnet 4.6 with and without a completion-verification step, score false-success rate. No GPU. Rough cost: $3-10.
+- Source: arXiv (2611.01930), found via web search; snippet only
+
+### [Cache Engineering for Agents (AKV)](https://arxiv.org/abs/2610.28577)
+- Status: proposed — awaiting review
+- Claim: Let the agent harness issue Drop (remove selected KV entries from future attention) and Reposition (compact position encodings of retained keys) operations instead of rewriting text and re-prefilling. A tool-response rolling-drop cache policy improves average benchmark score by 1.7 points and cuts average cost 27.7% vs threshold-triggered summarization; serving engine gives up to 1.2x output throughput and 1.5x P95 latency speedup; radix-tree extended with "drop nodes" so prefix matching does not reuse wrong states. Tsinghua/CUHK, 20 Oct 2026. Code: https://github.com/thu-nics/AKV (SGLang-based, OpenAI-compatible API; supports Qwen 1.5-3 incl. MoE, GPT-OSS, MiniMax-M2; examples use GPT-OSS-120B with tp=2).
+- Why it matters: Bridges the two halves of this lane (agent context management and KV-cache serving); it is the serving-side answer to the compaction papers already queued (Leyline 2606.01065 is a directive interface, MemDecay 2607.10582 is an eviction policy; AKV is agent-driven drop/reposition with cache-consistent reuse).
+- Testability: GPU required; not runnable on Apple Silicon CPU and not testable against the Anthropic API (needs a self-hosted SGLang fork). Modal: Qwen3-8B on one A100-80GB (~$3-4/hr), 2-4 hours for a small agent benchmark with rolling-drop vs summarization arms -> roughly $10-20, tight against the $25 budget and dependent on the fork building cleanly. The drop-vs-summarize accuracy comparison is the directional claim worth isolating; the throughput numbers are out of scope.
+- Source: arXiv cs.CL (2610.28577), found via web search + GitHub README (opened); abstract not opened directly
+
+### [Keeping LLM Agents on Procedure: Executable Finite-State Control for Long-Horizon Instruction Fidelity](https://arxiv.org/abs/2611.10884)
+- Status: proposed — awaiting review
+- Claim: An executable finite-state machine enforces workflow state at tool-call and turn boundaries (the harness refuses out-of-state actions) and reports gains on SOP-Bench and SWE-bench Verified. November 2026; effect sizes not verified (abstract not opened).
+- Why it matters: Deterministic harness-side control vs trusting the model to follow a procedure; relevant to whether structured harnesses earn their overhead (the scoreboard's structured-vs-naive null results). Adjacent to queued CAAF (2604.17025) and "From Prompts to Contracts" (2607.08028), but this one reports benchmark gains rather than a framework description.
+- Testability: SOP-Bench subset is cheap over the API: Haiku 4.5 with and without an FSM guard on 20-30 SOP tasks, no GPU, rough cost $5-10. The SWE-bench Verified part is out of budget for a full run; skip or sample 5-10 instances.
+- Source: arXiv (2611.10884), found via web search; snippet only
+
+_Seen and dropped this run (dedupe or out of lane/budget): Doc2Harness 2610.20344 (same core topic as queued HarnessDev 2609.01437); Memento 2611.00244 (trains Qwen3-8B context management; overlaps queued 2610.02404); BridgeKV 2611.11761 (cross-model KV translation, overlaps queued KVShareArena 2609.10266, GPU); TAO 2610.37230 (tool-aware serving scheduler, overlaps queued 2609.18849); HiState 2610.41508 / KVStream 2610.31827 / FlashOffloading 2611.07542 (serving-infra scale, out of budget); CARE-PO 2611.12125 (RL training); GitHub trending: NVIDIA/auto-ontology (MCP text-to-SQL context layer, no numbers to test), garrytan/gbrain (agent memory layer, self-reported R@5 0.66->0.72 on own data), vercel-labs/agent-browser and agent-desktop (tools, no claim), billion-context (already queued)._
