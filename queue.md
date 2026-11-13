@@ -1650,3 +1650,65 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-13 — proposed by research-scout
+
+_Scout note: arXiv.org (and the export API, papers.cool, alphaxiv mirrors) plus simonwillison.net, blog.vllm.ai, huggingface.co, latent.space, Raschka and deepmind.google were all unreachable from the scout sandbox this run. arXiv claims below come from search-result snippets only (abstracts not opened); Anthropic Engineering and GitHub trending were fetched directly. Verify numbers before picking. Window scanned: ~2026-10-10 to 2026-11-13._
+
+### [Cache Engineering for Agents](https://arxiv.org/abs/2610.28577)
+- Status: proposed — awaiting review
+- Claim: Instead of trimming/summarizing *text* (context engineering), let the agent operate directly on its KV cache (drop entries from future attention, re-position retained keys) via an "AKV" serving engine; a simple tool-response rolling-drop policy reportedly beats threshold-triggered summarization by +1.7 benchmark points at −27.7% average cost. Code reportedly at github.com/thu-nics/AKV (unverified).
+- Why it matters: Directly follows the TokenPilot scoreboard row — ~4/5 of that headline was prompt caching, and this paper claims the remaining context-management win can be had *without* breaking the prefix cache, by dropping at the KV level rather than rewriting the prompt.
+- Testability: Two tiers. (a) Directional, API-only: implement "rolling-drop old tool responses" vs "summarize at threshold" vs "no management" with Haiku 4.5 on the repo's existing 4-hop tool task, measuring cost + accuracy + cache-hit tokens — ~$8-15, no GPU, but note the Anthropic API cannot do KV-level drops, so the prefix cache *will* break on every drop (that itself is the interesting comparison). (b) Faithful: AKV engine on a Modal A10G/A100 with a 7-8B open model, ~2-3 GPU-hours ≈ $10-25 if the released code runs as-is; over budget if it needs patching.
+- Source: arXiv cs.LG/cs.DC (2610.28577), found via web search; snippet only
+
+### [Prune the Summary, Not the History: Source-Judged Compaction for Long-Horizon Agents](https://arxiv.org/abs/2610.20927)
+- Status: proposed — awaiting review
+- Claim: In a widely used structured compressor, 83% of failed agent runs trace to the agent acting on a summary entry, and most such entries have no support in actual environment outputs. Source-Judged Compaction (SJC) is a training-free post-pass that scores every summary entry for provenance (environment output or prior summary) and drops unsupported ones; reported to cut those failures (exact gain not in snippet).
+- Why it matters: Every compaction item already queued asks *when* or *how much* to compact; this one asks whether the compressor is *hallucinating facts into the summary* — a mechanism the repo's structured-harness runs (which hand context across sessions) never checked.
+- Testability: Very feasible on Apple Silicon/API only. Take the repo's mini-SQL-engine or 4-hop tool task, force compaction every N turns with Haiku 4.5 as compressor, then run with/without an SJC provenance filter (a second Haiku call per summary entry). Measure task success and count unsupported entries. ~$8-15, no GPU.
+- Source: arXiv cs.AI (2610.20927), found via web search; snippet only
+
+### [The Harness Is the Model: Agent Scaffolding Changes a Fixed LLM's Compliance with Banking Conduct Rules, Unevenly Across Models](https://arxiv.org/abs/2611.06116)
+- Status: proposed — awaiting review
+- Claim: Holding the model fixed and swapping only the harness changes compliance with banking conduct rules, but the effect is model-dependent and modest when pooled (correct-case rate moves only 87.3%→92.1% across harnesses); date-arithmetic rules failed under *every* harness tested. Submitted 2026-11-04.
+- Why it matters: A clean, pre-registered-style "harness as treatment, model as block" design on a non-coding task — a near-direct cousin of this repo's three scoreboard rows, which also found the harness mattered far less than hoped. Worth checking whether the small pooled effect replicates with Haiku/Sonnet.
+- Testability: Cheap and GPU-free. Write ~30 rule-compliance scenarios (including a few date-arithmetic ones), run 3 harness variants (bare, checklist-scaffolded, tool-verified) × Haiku 4.5 and Sonnet 4.6 × n=3 seeds. ~$5-10 in API calls.
+- Source: arXiv cs.AI/cs.CL (2611.06116), found via web search; snippet only
+
+### [Compaction Laundering: Provenance Destruction in Context-Compacting Coding Agents](https://arxiv.org/abs/2610.29869)
+- Status: proposed — awaiting review
+- Claim: When a coding harness flattens the conversation into plain text before summarizing, forged "user" instructions planted in tool output survive compaction and are laundered into the agent's trusted memory 87-100% of the time in the flattening harnesses (0% in role-preserving ones) across nine released harnesses; a code-level provenance check catches 77% of laundering at 2% false demotion.
+- Why it matters: Combines two queued themes (compaction, prompt injection via tool output) into a single mechanism the repo hasn't touched — provenance loss at the compaction boundary — and the attack is harness-level, so it is testable regardless of model.
+- Testability: Very feasible, API only. Build one flattening and one role-preserving compactor around Haiku 4.5, inject a forged instruction via a tool result, compact, then check whether the post-compaction agent treats it as a user command. ~20 scenarios × 2 harnesses × n=3 ≈ $5-10. No GPU.
+- Source: arXiv cs.CR/cs.AI (2610.29869), found via web search; snippet only
+
+### [You don't need long context: frequent compaction with short windows matches full-history accuracy](https://arxiv.org/abs/2611.05306)
+- Status: proposed — awaiting review
+- Claim: Across frontier models (Claude Opus 4.5, GPT-5.6 Sol, GLM 5.2, Kimi K2.6, Qwen, Gemma 4) on SWE-bench Verified, Terminal-Bench 2.1, LongBench v2 and LOONG, end-of-conversation compaction at a 16K window / 12K threshold stays within ~3.7pp of full-history accuracy (e.g. GPT-5.6 Sol 84.4%→84.6%; Opus 4.5 70.0% full vs 74.8% best-compacted) at 3.6-7x estimated cost savings. A third-party repro repo (github.com/wakenmeng/context-compaction) reports 82-85% on 100 SWE-bench Verified tasks with a structured-state variant at $0.27-0.30/task. Posted 2026-11-03.
+- Why it matters: If true, it undercuts the "long-context model" premise that most queued context-management work assumes, and it maps straight onto this repo's harness experiments — the structured-vs-naive runs never varied the window size.
+- Testability: Directional only. Run the repo's existing mini-SQL-engine task with Haiku 4.5 under (a) full history, (b) compaction at 16K/12K, (c) 8K/6K; n=3 each. ~$10-20, no GPU. Full SWE-bench Verified is out of budget; the cost-savings multiplier is the authors' estimate and should be re-measured, not trusted.
+- Source: arXiv cs.CL (2611.05306), found via web search (hyper.ai / aiweekly summaries); snippet only; repro repo fetched directly
+
+### [Bursts That Outlast Themselves: Persistent Degradation in Prefix-Cached Agent Serving](https://arxiv.org/abs/2611.13412)
+- Status: proposed — awaiting review
+- Claim: Prefix-cached agent serving is metastable: in vLLM, a short burst of extra arrivals pushes the server into a low-cache-hit, low-throughput state that persists long after the burst ends, at loads a cache-warm server otherwise sustains. Absent without prefix caching; reproduced with Qwen3-32B on SWE-bench agent-trace shapes and on SGLang; a CPU offload tier delays but does not prevent collapse. Posted ~2026-11-10.
+- Why it matters: A falsifiable serving-systems claim with an obvious knob (burst size) and a crisp signature (hit ratio never recovers) — the first pure LLM-serving candidate this queue has had in several runs that does not require a bespoke engine.
+- Testability: Needs a GPU; not runnable on Apple Silicon CPU. Stock vLLM on one Modal A10G/L4 with Qwen3-1.7B or 8B, synthetic agent-shaped traces with a replayed burst, log hit-ratio and throughput over time. ~1-2 GPU-hours ≈ $5-15. Qwen3-32B scale is out of budget; the phenomenon should show at small scale if real.
+- Source: arXiv cs.DC (2611.13412), found via web search; snippet only
+
+### [Robust Function Calling for LLM Agents Under Interface Drift (SchemaShield-Lite)](https://arxiv.org/abs/2610.23342)
+- Status: proposed — awaiting review
+- Claim: Tool descriptions and argument schemas that change after deployment silently break function calling; a training-free repair layer (schema validation + candidate-set retry on missing tool names + one-shot constrained repair) raises Qwen3.5-9B's BFCL-200 accuracy from 0.580 to 0.805 under drift.
+- Why it matters: MCP servers drift (an 89-day drift measurement is already queued); this is the first candidate proposing a cheap harness-side *fix* rather than a measurement, and it is a pure wrapper around the tool-call boundary.
+- Testability: Very feasible, API only. Take a 20-tool toy suite, apply synthetic drift (rename 30% of tools, change 30% of arg schemas), run Haiku 4.5 with and without the repair layer. ~$5-10, no GPU. The 9B open-model result itself would need a Modal GPU (~$5-10) but is not necessary for the directional test.
+- Source: arXiv cs.SE/cs.AI (2610.23342), found via web search; snippet only
+
+### [The components of agent memory (Anthropic Engineering)](https://www.anthropic.com/research/components-of-agent-memory)
+- Status: proposed — awaiting review
+- Claim: Session-time memory notes plus offline "dreaming" (between-session consolidation that re-checks notes against transcripts, builds wiki pages, promotes a *small* top layer into injected context) lifts CL-Bench database-task mean reward for every model tested, e.g. Opus 5 0.564→0.828 and Opus 4.7 0.383→0.700, but Sonnet 4.6 only 0.330→0.364 (0.641 with refined prompting). Over 128 dreaming sessions on a 420M-token corpus, wiki-only accuracy went 13%→48%; wiki+search 61% vs search-only 53% and ~20k fewer tokens/question. Restricting notes to "failures only" cut the memory gain by 0.15-0.23. Published 2026-11-06.
+- Why it matters: The weakest model in the post (Sonnet 4.6) is this repo's preferred model and shows almost no gain by default — a sharp, cheap question: is dreaming a frontier-only effect, or does the "refined prompting" recover it for small models? Also a direct contrast with the queued MEMOIR/A-TMA/Compaction-Cliff memory items, which are all single-session.
+- Testability: Feasible on API only with a toy. Reuse the repo's 30-feature mini-SQL task split across 5 sessions; arms = stateless, notes-only, notes+dreaming, with Haiku 4.5 and Sonnet 4.6; measure per-session feature pass rate and tokens. ~$12-20 (dreaming adds one consolidation call per session). No GPU. The 420M-token corpus experiment is out of budget.
+- Source: Anthropic Engineering blog (fetched directly)
