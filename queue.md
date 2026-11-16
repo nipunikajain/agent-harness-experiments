@@ -1650,3 +1650,58 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-16 — proposed by research-scout
+
+_Scout note: from this sandbox the following configured sources did not resolve and were covered only through web-search snippets: arxiv.org / export.arxiv.org, blog.vllm.ai, simonwillison.net, latent.space, magazine.sebastianraschka.com, huggingface.co, deepmind.google (also the papers.cool / alphaxiv mirrors). GitHub trending and Anthropic Engineering opened normally. No vLLM, Latent Space, Raschka, Hugging Face or DeepMind post dated 2026-10-10 or later surfaced in search. Claims marked "snippet only" come from search results and secondary summaries, not the abstract page; verify at triage. Also seen but not proposed: Callo (arXiv 2611.18459, speculative drafts from invalidated KV on cache-miss requests; vLLM/GPU, snippet only), "Evolving Infra: Agent-Adaptive LLM Serving at Scale" (arXiv 2611.12304, evaluated on 36 GB300s; out of budget), EvoX runtime-policy harness (arXiv 2611.15006, system description, no testable claim found), and "MCP Tool Poisoning in Agentic AI Frameworks" (arXiv 2611.03555, single unconfirmed snippet)._
+
+### [Tool-Calling LLM Agents Under Realistic MCP Faults: Scale Does Not Purchase Fault Tolerance](https://arxiv.org/abs/2610.32555)
+- Status: proposed — awaiting review
+- Claim: A drop-in MCP fault-injection middleware (MCP-Injector: permanent / transient / intermittent faults, seedable schedules) applied across 1,350 cells (20B vs 120B backbone x 3 agent stacks x 3 fault conditions) cuts task completion by ~60%; the larger model scores higher fault-free but completes *fewer* tasks under faults, which the authors attribute to longer reasoning chains amplifying faults. NeurIPS 2026 poster.
+- Why it matters: Directly tests whether harness-level error handling matters more than model scale, which is the repo's recurring question. The "bigger model is more brittle under faults" claim is counter-intuitive and cheap to check.
+- Testability: Good. No GPU: a small MCP tool server with an injected fault layer, a 10-20 task suite, Haiku 4.5 vs Sonnet 4.6 as the scale axis, 3 fault conditions, n=3 seeds. Rough cost: $8-20. If MCP-Injector is released, reuse it; otherwise the fault layer is ~100 lines.
+- Source: arXiv cs.AI (2610.32555, Oct 2026), found via web search; abstract summary from the NeurIPS listing snippet only (arxiv.org unreachable)
+
+### [ParetoSaddler: Pareto-aware harness optimization for quality and cost](https://papers.cool/arxiv/2611.02079)
+- Status: proposed — awaiting review
+- Claim: Promoting intermediate harness candidates on credible progress in *either* quality or cost (Bayesian-bootstrap Pareto support vs the parent over repeated runs), and applying the full quality-cost preference only at final deployment choice, beats quality-only harness optimization: ClawMark 70.86% -> 81.35% quality while cost falls $1.17 -> $1.01/task; GAIA2 56.22% -> 62.89% at $0.78 -> $0.45/task.
+- Why it matters: It is the first harness-search paper in the queue that treats cost as a first-class objective, which matches the scoreboard's finding that structured harnesses mostly add cost. The testable sub-claim is whether Pareto promotion finds cheaper harnesses than quality-only promotion at equal quality.
+- Testability: Borderline. Harness search multiplies runs (candidates x repeats x tasks); a directional repro needs a tiny search space (3-4 harness knobs), Haiku 4.5, ~10 tasks, Pareto vs quality-only promotion. Rough cost: $15-25, at the budget ceiling; cap the number of iterations up front. No GPU.
+- Source: arXiv cs.MA (2611.02079, Nov 2026), found via web search; link is the papers.cool mirror; numbers from a search snippet only. Distinct from the earlier AutoSaddler (2608.23041), which is not in the queue either.
+
+### [The components of agent memory](https://www.anthropic.com/research/components-of-agent-memory)
+- Status: proposed — awaiting review
+- Claim: Letting an agent write memory notes between sessions, plus an offline "dreaming" pass that reviews transcripts, corrects notes and promotes key ones into start-of-session context, raises CL-Bench 1.0 database-task mean reward vs a stateless baseline (Opus 5 0.564 -> 0.828; Sonnet 4.6 only 0.330 -> 0.364, but 0.641 when prompted to read memory and test its theories). Salience matters more than volume: Sonnet 3.7 wrote 413 memory files for one Pokémon badge, Fable 5 ~10 files for four.
+- Why it matters: Agent memory is harness design, and the Sonnet 4.6 numbers are the interesting part: raw memory gave almost nothing, while a one-line prompt change tripled the gain. That is a cheap, well-defined harness intervention to check on the models the repo already uses.
+- Testability: Good. Repeated small task (e.g., the repo's existing toy-feature or mini-SQL setup run 5-8 sessions) with three arms: stateless, memory, memory + "read and test your theories" prompt, on Sonnet 4.6 and Haiku 4.5, n=3. Anthropic links cookbooks for dreaming and knowledge wikis. Rough cost: $10-20. No GPU. Caveat: Anthropic's own evaluation has small n (25 / 24 questions, single Pokémon runs) and an internal corpus.
+- Source: Anthropic Engineering, 2026-11-06; page opened and read
+
+### [JevAgentHarness: Benchmarking, Deploying and Training Decision Models That Share Control with LLMs](https://arxiv.org/html/2610.21412v1)
+- Status: proposed — awaiting review
+- Claim: Most LLM calls in a harness end in a multiple-choice decision (which of 69 tools next). Delegating those choices to a small decision model with a per-choice confidence threshold fitted on the agent's own trajectories keeps task success while cutting LLM calls; delegating *without* a threshold drops success by 19.0 points, and a trained 4B decision model (AgentDecision-4B) reaches 91.5% on out-of-distribution tasks vs 82.0% for the base decision model. Includes AgentDecisionBench.
+- Why it matters: A concrete harness-level cost lever (route routine tool choice to a cheap model) with a stated failure mode (no confidence gate). Fits the cost-per-feature theme on the scoreboard.
+- Testability: Partly. The threshold-vs-no-threshold claim is testable without training: use Haiku 4.5 as the decision model and Sonnet 4.6 as the fallback LLM on a 20-30 tool suite, compare success and cost across no-delegation / gated / ungated. Rough cost: $8-15, no GPU. Reproducing the 4B training is out of budget; running the released 4B checkpoint on CPU is possible but slow.
+- Source: arXiv cs.AI (2610.21412, 2026-10-15), found via web search; abstract via an index-page snippet only; models/data "to be released" per the snippet, unverified
+
+### [OpenCodeReview: Determinism over Non-Determinism for Cost-Effective Agent-Based Code Review (alibaba/open-code-review)](https://github.com/alibaba/open-code-review)
+- Status: proposed — awaiting review
+- Claim: Moving file selection, bundling, rule matching and comment-location checks into deterministic code, and leaving only context retrieval and judgment to an isolated sub-agent per bundle, gives up to 2.17x higher SEM-F1 than Claude Code with the same backbone (25.10% vs 11.57%), ~34% vs ~7% precision, with 5-15x fewer tokens, at the cost of lower recall (~20% vs ~29%). Benchmark: AACR-Bench (200 real PRs, 50 repos, 10 languages, 1,505 annotated defects).
+- Why it matters: It is a direct "harness structure vs general agent" comparison with a public labelled benchmark, and the repo has not yet tested a deterministic-scaffold claim. Trending on GitHub this week (~52k stars). The paper is arXiv 2608.09290 (https://arxiv.org/pdf/2608.09290).
+- Testability: Good. Sample 20-30 PRs from AACR-Bench (Hugging Face: Alibaba-Aone/aacr-bench), run `ocr` vs a plain Claude Code review with Haiku 4.5 behind both, score precision/recall/tokens against the labels. Rough cost: $8-20. No GPU. Watch for tuning-to-benchmark since the authors built both the tool and the benchmark.
+- Source: GitHub trending (weekly, all languages); repo README opened; paper numbers from search snippets of arXiv 2608.09290 and secondary write-ups
+
+### [Doc2Harness: Benchmarking LLMs on Long-Horizon Harness Engineering of Coding Agents](https://arxiv.org/html/2610.20344v1)
+- Status: proposed — awaiting review
+- Claim: A two-stage benchmark where a build model receives a contract skeleton plus a development document and must produce a full coding-agent harness, which is then driven by a scripted mock model in a separate container; 328 cases (94 public). The strongest model fails nearly half the cases, with failures concentrated in how cross-cutting functionality is split across modules.
+- Why it matters: Measures the ability to *build* a harness rather than to work inside one, which complements the queued HarnessDev / Evo-Bench items (different paper, different benchmark design: mock-model-driven, so scoring does not depend on a live LLM in the harness).
+- Testability: Moderate. The public 94-scenario subset plus containerised mock model should run on an Apple Silicon CPU; the cost is the build model. 10-15 scenarios on Haiku 4.5 vs Sonnet 4.6, n=2: rough cost $10-20. No GPU. Depends on the public repo being usable (not verified).
+- Source: arXiv cs.SE (2610.20344, Oct 2026), found via web search; details from secondary summaries (hyper.ai, project repo index) only
+
+### [Tools Need Not Speak in Text: Latent Context Compression for Agents (Coca-Cola)](https://arxiv.org/abs/2611.06500)
+- Status: proposed — awaiting review
+- Claim: Compressing tool observations into continuous latent tokens injected into the agent's input-embedding space (trained to be "action-sufficient") beats discrete text-level pruning/summarisation of tool outputs for agentic tool use; code listed at github.com/THU-Agent/Coca-cola. Headline numbers not visible in the snippet.
+- Why it matters: A different answer to the context-management question the queue keeps circling (TokenPilot, ACM, AutoCompact): compress below the token level rather than summarise. If real, it changes what "context engineering" means for open-weight harnesses.
+- Testability: Limited. Requires an open-weight model with embedding-level access, so it is not testable on Claude via API. Training the compressor is likely out of budget; an inference-only check with a released checkpoint on a 7-8B model on a Modal A10G/L4 against a summarisation baseline is plausible at $10-25 if the checkpoint exists (not verified). Flag as GPU-only.
+- Source: arXiv cs.CL (2611.06500, 2026-11-04), found via web search; abstract via an aggregator mirror snippet only
