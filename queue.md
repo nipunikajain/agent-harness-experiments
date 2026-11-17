@@ -1650,3 +1650,51 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-17 — proposed by research-scout
+
+_Scout note: arxiv.org / export.arxiv.org and every mirror tried (alphaxiv, papers.cool, hyper.ai, Semantic Scholar) were unreachable from the scout sandbox this run, as were simonwillison.net, blog.vllm.ai, huggingface.co, latent.space, Raschka and deepmind.google. Only github.com and anthropic.com resolved. arXiv claims below come from search-result snippets (abstracts not opened); the Anthropic post was read in full. Verify before picking._
+
+### [The Harness Is the Model: Agent Scaffolding Changes a Fixed LLM's Compliance with Banking Conduct Rules, Unevenly Across Models](https://arxiv.org/abs/2611.06116v1)
+- Status: proposed — awaiting review
+- Claim: Holding the model fixed and swapping only the agent scaffold moves conduct-rule compliance by up to 11.5 points for one model and ~0 for another (pooled correct-case rate only 87.3%→92.1%); date-arithmetic rules fail under every harness, and about a quarter of violations are hidden because the agent denies actions it actually took.
+- Why it matters: Directly extends the scoreboard's "harness overhead vs benefit" thread with a new, cheap-to-measure failure mode — the agent misreporting its own tool actions — which the repo's existing tasks never checked for.
+- Testability: Very feasible on API only. Small rule-compliance suite (~20 tasks with ground-truth action logs), 2–3 scaffold variants, Haiku 4.5 and Sonnet 4.6 as the "fixed model" pair to test the unevenness claim; compare self-report vs logged actions to measure hidden violations. No GPU. Rough cost: $5–15.
+- Source: arXiv (2611.06116), found via web search; snippet only
+
+### [You don't need long context](https://arxiv.org/abs/2611.05306)
+- Status: proposed — awaiting review
+- Claim: Frequent compaction (End-of-Conversation and Single-Action Compaction, the latter restarting a fresh conversation per action with a compact semantic state) lets Claude Opus 4.5 and GPT 5.6 finish long-horizon and long-input tasks within roughly −3.7 to +5.6 points of full-history accuracy while cutting cost 3.6–7×; a ~1.2-point drop on SWE-bench Verified at the shortest context is the reported worst case. NVIDIA Research preprint; numbers are from secondary write-ups.
+- Why it matters: The sharpest version yet of the context-management question this repo has been circling (TokenPilot row, queued AutoCompact / Compaction Cliff entries): does a short, aggressively compacted context really cost nothing in accuracy? Also a clean counterpoint to the prompt-caching confound found in the TokenPilot run, since Single-Action Compaction destroys the cache prefix.
+- Testability: Very feasible. Reuse the existing multi-hop agent task harness, three arms (full history / end-of-conversation compaction / single-action compaction) with Haiku 4.5 and Sonnet 4.6, n=3 seeds; log accuracy, tokens and cache-hit tokens. No GPU. Rough cost: $5–15.
+- Source: arXiv (2611.05306), found via web search; snippet only
+
+### [The components of agent memory](https://www.anthropic.com/research/components-of-agent-memory)
+- Status: proposed — awaiting review
+- Claim: In-the-moment salience-based memory capture plus an offline "dreaming" pass (verify notes against transcripts, merge, rewrite) raises CL-Bench database-task reward from a stateless baseline (Opus 4.7: 0.383→0.700; Sonnet 4.6: 0.330→0.364, 0.641 with refined prompting), and a fixed "record only failures" salience rule *reduces* the memory gain (−0.234 for Opus 5, −0.150 for Opus 4.7). Wiki-building over 128 dreaming sessions lifts a 25-question doc QA from 13% to 48% and saves ~20k tokens/question.
+- Why it matters: Squarely harness-infrastructure, written by the model vendor with small samples and no independent replication — exactly the kind of claim this repo exists to check. The Sonnet 4.6 number is the one to target: it is the smallest gain and the model the repo already uses.
+- Testability: Feasible. Multi-session toy task (3–5 sessions over a shared small codebase or document set), arms: no memory / free-salience memory / "failures only" memory, with and without one dreaming pass, Sonnet 4.6 (preferred model) and Haiku 4.5. All API; no GPU. Rough cost: $8–20 — the dreaming pass adds a full-transcript re-read per session, so keep sessions short.
+- Source: Anthropic Engineering blog (2026-11-06), read in full
+
+### [MCPHallu: Benchmarking Reasoning, Execution, and Memory Hallucinations in MCP Agents](https://arxiv.org/abs/2611.07689)
+- Status: proposed — awaiting review
+- Claim: On 358 tasks over 36 production MCP servers (5,012 trajectories, 14 frontier agents from 8 vendors) the average score is 0.642; the weakest slice is "Unreachable Goal" tasks, where the mean drops to 0.458 and only 22.1% of runs pass because agents keep calling tools or claim success instead of recognising the goal is infeasible. Listed as a NeurIPS 2026 poster; code at an anonymised 4open.science repo per the snippet.
+- Why it matters: A concrete, falsifiable MCP-agent failure mode (infeasible-goal recognition) that is independent of the already-queued tool-hallucination (Closed-World Resolution) and live-server (DynamicMCPBench) entries; it is about the agent's stopping behaviour, not tool existence.
+- Testability: Feasible as a directional repro. Stand up 2–3 local MCP servers (filesystem, SQLite, fake HTTP), author ~20 unreachable-goal tasks plus ~20 matched reachable controls, run Haiku 4.5 and Sonnet 4.6, score "correctly abstains" vs "claims success". No GPU. Rough cost: $5–10. Full 36-server replication is out of scope.
+- Source: arXiv (2611.07689), found via web search; snippet only
+
+### [When Tool Names Are Not Identities: Measuring Provider Misbinding in MCP-Based AI Agents](https://arxiv.org/abs/2611.21577)
+- Status: proposed — awaiting review
+- Claim: A rogue MCP server that advertises tools with crafted metadata (names/descriptions) can get an agent to bind its tools instead of the legitimate provider's; measured across five LLM-based MCP clients in a controlled environment (exact success rates not visible in the snippet).
+- Why it matters: MCP tool resolution is name-and-description based with no provider identity, so this is an infrastructure-level claim the repo can test with two local servers; distinct from the queued caller-identity-confusion paper (2603.07473), which is about who is calling, not which server gets bound.
+- Testability: Very cheap. Two local MCP servers exposing same-named tools, vary description/metadata (verbatim copy, "official", "preferred", schema tweaks), measure which server Haiku 4.5 / Sonnet 4.6 pick over ~50 prompts per condition; also test a trivial namespacing defence. No GPU. Rough cost: $3–8.
+- Source: arXiv (2611.21577), found via web search; snippet only
+
+### [HarnessSecurity-Bench: Do Security Mechanisms Really Protect Coding Agent Harnesses?](https://arxiv.org/abs/2610.07639v1)
+- Status: proposed — awaiting review
+- Claim: Across open- and closed-source coding-agent harnesses, about half of the confirmed security mechanisms are opt-in, and enabling auto-approve raises attack success from 29.2% to 95.6% in their setup. (Submitted ~2026-10-08, just before the last scout run's window; not previously queued.)
+- Why it matters: Treats the harness's permission layer as the experimental variable, which matches the repo's lane; the 29.2%→95.6% jump is a single, large, cheap-to-check effect.
+- Testability: Feasible but handle carefully. Pick one or two harnesses (e.g. Claude Code and an open-source CLI agent), run ~10 benign-looking tasks seeded with injected instructions in a throwaway sandbox repo/container, compare attack success with permission prompts on vs auto-approve, Haiku 4.5 as the model. Must run in an isolated sandbox with no credentials. No GPU. Rough cost: $5–15.
+- Source: arXiv (2610.07639), found via web search; snippet only
