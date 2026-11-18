@@ -1655,7 +1655,7 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 
 ## 2026-11-18 — proposed by research-scout
 
-_Scout note: arxiv.org, export.arxiv.org and simonwillison.net were unreachable from the scout sandbox this run, so the arXiv entries below come from search-result summaries of the abstracts (pages not opened). Numbers are the authors' own; verify before picking. Ranked best-first._
+_Scout note: arxiv.org, export.arxiv.org and simonwillison.net were unreachable from the scout sandbox this run, so the arXiv entries below come from search-result summaries of the abstracts (pages not opened). Numbers are the authors' own; verify before picking. Ranked best-first. Also deduped against the 23 scout PRs still open and unmerged (#53-#75); three finds already proposed there were dropped (You Don't Need Long Context, provider misbinding in MCP, MCP tool poisoning)._
 
 ### [What Does a Harness Buy? Tokens, Mostly](https://arxiv.org/abs/2610.04433)
 - Status: proposed — awaiting review
@@ -1671,33 +1671,12 @@ _Scout note: arxiv.org, export.arxiv.org and simonwillison.net were unreachable 
 - Testability: Yes, API only. Small version: 5-10 rules, a scripted long task, Haiku 4.5, three arms (full context / compacted with rule kept / rule absent), count violating tool calls. Benchmark code is at github.com/VUAISec/ARCBench, built on the pi harness (not inspected). Rough cost: $5-15.
 - Source: arXiv cs.CR (2611.03223, early November 2026), found via web search
 
-### [You Don't Need Long Context](https://arxiv.org/abs/2611.05306)
-- Status: proposed — awaiting review
-- Claim: Frequent compaction keeps accuracy on long-horizon tasks: with one action per context, Claude Opus 4.5 scores 70.2 on SWE-bench Verified vs 70.0 with full history while median peak context drops from 32K to 8K tokens; the best end-of-conversation compaction setting reaches 74.8.
-- Why it matters: A strong claim from NVIDIA that pairs with the ARCBench entry above (compaction is free vs compaction breaks rules). The open question a commenter raised, what compaction itself costs in tokens, is the same accounting the TokenPilot run on the scoreboard did.
-- Testability: Partly. SWE-bench Verified with Opus is out of budget. A directional repro fits: the repo's mini SQL engine task, Haiku 4.5, full history vs single-action compaction vs threshold compaction, reporting score and total tokens including compaction calls. Two community reproductions exist (github.com/Gjusev/short-context-agent, github.com/wakenmeng/context-compaction; not inspected). Rough cost: $8-20.
-- Source: arXiv (2611.05306, November 2026), found via web search
-
 ### [Folio: Recoverable Multi-Resolution Context Folding for Long-Horizon Language Agents](https://arxiv.org/abs/2611.16627)
 - Status: proposed — awaiting review
 - Claim: A context manager that keeps three linked levels of history (model-written turn note, runtime event manifest, retained source records) solves 66 of 75 LOCA-bench tasks vs 54 for the same runtime with model-written compaction and 49-59 for Claude Code, Codex and SoL-Pi, with a 0.6 s median fold time.
 - Why it matters: A positive context-management result where folded history stays retrievable by handle. Each task chain was run once per system, so the 66-vs-54 margin has no variance estimate, which is the kind of gap this repo checks.
 - Testability: Likely feasible if code is released (unconfirmed). Without it, a minimal recoverable-fold vs summarize-only comparison on a small long-horizon task with Haiku 4.5, n>=3 seeds. No GPU. Rough cost: $10-20.
 - Source: arXiv (2611.16627, submitted 2026-11-12), found via web search
-
-### [When Tool Names Are Not Identities: Measuring Provider Misbinding in MCP-Based AI Agents](https://arxiv.org/abs/2611.21577)
-- Status: proposed — awaiting review
-- Claim: An attacker who only runs a second MCP server with chosen tool metadata can get a request meant for a legitimate provider resolved to their tool; across five LLM clients, exact name collision plus a task-aligned description plus a compatible schema is the strongest combination (rates not seen in the summaries).
-- Why it matters: A tool-selection attack that needs no prompt injection, different from the queued MCP security items (caller identity confusion, injection, defense placement). It is a two-server setup that is simple to rebuild.
-- Testability: Yes, very cheap. Two local stub MCP servers, a fixed set of requests, Haiku 4.5 and Sonnet 4.6 as the selecting model, measure how often the attacker's tool is chosen per metadata condition. No GPU. Rough cost: $3-8.
-- Source: arXiv cs.CR (2611.21577, about 2026-11-16), found via web search
-
-### [MCP Tool Poisoning in Agentic AI Frameworks: A Cross-Framework Measurement Study](https://arxiv.org/abs/2611.03555)
-- Status: proposed — awaiting review
-- Claim: Across 12 frameworks x 18 models x 45 attack scenarios (9,720 cells), tool poisoning succeeds 22.9% of the time, and resistance is a property of the model, not the framework: per-model attack success ranges from 0.4% to 49.7%.
-- Why it matters: "The framework does not protect you" is a harness-vs-model claim in the security setting, the same question the scoreboard asks about quality. It also gives a per-model number that can be checked for the models used here.
-- Testability: Yes, as a slice. 10-15 of the scenarios, two frameworks (one minimal hand-rolled loop, one off-the-shelf), Haiku 4.5 and Sonnet 4.6, in a sandbox with stub tools. No GPU. Rough cost: $5-15. Scenario release not confirmed.
-- Source: arXiv (2611.03555, early November 2026), found via web search
 
 ### [HarnessFlow: MCTS-Guided Harness Optimization for LLM Agents](https://arxiv.org/abs/2611.06254)
 - Status: proposed — awaiting review
