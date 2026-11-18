@@ -1650,3 +1650,44 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-18 — proposed by research-scout
+
+_Scout note: arxiv.org, export.arxiv.org and simonwillison.net were unreachable from the scout sandbox this run, so the arXiv entries below come from search-result summaries of the abstracts (pages not opened). Numbers are the authors' own; verify before picking. Ranked best-first. Also deduped against the 23 scout PRs still open and unmerged (#53-#75); three finds already proposed there were dropped (You Don't Need Long Context, provider misbinding in MCP, MCP tool poisoning)._
+
+### [What Does a Harness Buy? Tokens, Mostly](https://arxiv.org/abs/2610.04433)
+- Status: proposed — awaiting review
+- Claim: With the model held fixed, swapping the coding-agent harness flips as many tasks (13%) as simply rerunning the same harness, so most small harness gains sit inside rerun noise; what the harness does set is cost, driven by a per-step preamble of 16,581 tokens (Claude Code) vs 7,025 (OpenCode) vs 829 (mini-SWE-agent). 45 tasks detect a 13-point gap only half the time; 447 tasks are needed to resolve 5 points.
+- Why it matters: This is the repo's own scoreboard finding (harness = overhead, no quality gain) stated as a general claim with a noise floor attached. The power numbers also say how many tasks any future harness comparison here needs before a difference counts.
+- Testability: Yes, API only, no GPU. Directional repro: one model (Haiku 4.5), two harnesses with very different preamble sizes, ~40 small tasks, each run twice to compare harness-swap flips against rerun flips. Authors' code is at github.com/YangzeLiu/what-does-a-harness-buy (not inspected). Rough cost: $10-25; the full 447-task study is out of budget.
+- Source: arXiv (2610.04433, posted 2026-10-03), found via web search
+
+### [Do Agents Still Follow the Rules? Benchmarking Rule Compliance under Agent Context Compaction (ARCBench)](https://arxiv.org/abs/2611.03223)
+- Status: proposed — awaiting review
+- Claim: After context compaction, 70.1% of runs still have the operating rule in context, yet 21.1% of those runs violate it in their tool calls, 2.6x the full-context baseline; defenses that restore the rule do not restore compliance.
+- Why it matters: Compaction is in every long-running harness, and this says the failure is not "the rule got deleted". It is a harness-level reliability claim measured through tool calls, which is easy to check on a small model.
+- Testability: Yes, API only. Small version: 5-10 rules, a scripted long task, Haiku 4.5, three arms (full context / compacted with rule kept / rule absent), count violating tool calls. Benchmark code is at github.com/VUAISec/ARCBench, built on the pi harness (not inspected). Rough cost: $5-15.
+- Source: arXiv cs.CR (2611.03223, early November 2026), found via web search
+
+### [Folio: Recoverable Multi-Resolution Context Folding for Long-Horizon Language Agents](https://arxiv.org/abs/2611.16627)
+- Status: proposed — awaiting review
+- Claim: A context manager that keeps three linked levels of history (model-written turn note, runtime event manifest, retained source records) solves 66 of 75 LOCA-bench tasks vs 54 for the same runtime with model-written compaction and 49-59 for Claude Code, Codex and SoL-Pi, with a 0.6 s median fold time.
+- Why it matters: A positive context-management result where folded history stays retrievable by handle. Each task chain was run once per system, so the 66-vs-54 margin has no variance estimate, which is the kind of gap this repo checks.
+- Testability: Likely feasible if code is released (unconfirmed). Without it, a minimal recoverable-fold vs summarize-only comparison on a small long-horizon task with Haiku 4.5, n>=3 seeds. No GPU. Rough cost: $10-20.
+- Source: arXiv (2611.16627, submitted 2026-11-12), found via web search
+
+### [HarnessFlow: MCTS-Guided Harness Optimization for LLM Agents](https://arxiv.org/abs/2611.06254)
+- Status: proposed — awaiting review
+- Claim: Searching over harness designs with Monte Carlo tree search yields harnesses scoring 69.48% on average, 10.89 points above the initial harnesses and 3.95 points above Meta-Harness.
+- Why it matters: Another automated harness-optimization claim. The 3.95-point margin over the prior method is smaller than the rerun noise reported in the first entry of this section, so the two are worth reading together.
+- Testability: Hard within budget. The search loop needs many full agent rollouts; a cut-down version (small search budget, Haiku 4.5, one toy benchmark, optimized vs initial harness re-scored over several seeds) is about $15-25 and may be too small to show anything. Code release not confirmed.
+- Source: arXiv (2611.06254, submitted 2026-11-04), found via web search
+
+### [SkillBuffBench: Measuring What Agent Skills Contribute across Harnesses, Models, Skill Access Modes and Memory](https://arxiv.org/abs/2611.22017)
+- Status: proposed — awaiting review
+- Claim: Across 87 tasks and 18 model-harness configurations, curated skills raise the mean score by about 16.6 points, some tasks get worse with skills, and skills the model writes for itself do not match curated ones.
+- Why it matters: A measured answer to whether skills earn their context cost, across harnesses. Relevant to the skill-scout side of this repo and to the queued skill-evaluation items (SkillCorpus), with a per-task regression finding those lack.
+- Testability: Yes, as a subset. 10-15 tasks, one harness, Haiku 4.5, three arms (no skill / curated skill / self-written skill), n=3. No GPU. Rough cost: $8-20, if the benchmark tasks are released (unconfirmed).
+- Source: arXiv (2611.22017, mid-November 2026), found via web search
