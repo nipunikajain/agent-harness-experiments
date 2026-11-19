@@ -1650,3 +1650,30 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-19 — proposed by research-scout
+
+_Scout note: arxiv.org, export.arxiv.org, simonwillison.net, vllm.ai and huggingface.co were not reachable from the scout sandbox this run, so the entries below come from search-result snippets (abstracts not opened). Verify numbers before picking. Ranked best-first. Deduped against the scoreboard, this file, and the 104 proposals in the still-open scout PRs #53-#76; four finds already proposed there were dropped (ARCBench 2611.03223, MCP faults 2610.32555, MCP tool poisoning 2611.03555, Anthropic's "The components of agent memory"). What is left is serving-side and GPU-bound, so this is a thin run for the API-only budget._
+
+### [SpecCompact: Accelerating LLM Agent Context Compaction with Slot-Parallel Semantic Speculative Verification](https://arxiv.org/abs/2611.06876)
+- Status: proposed — awaiting review
+- Claim: 2.04-5.63× faster context compaction than Hermes-style summarization on AppWorld and τ³ with two target models (8.68× median in a user study), without degrading the compacted result.
+- Why it matters: Compaction latency is a real stall in long-running agents; targets speed rather than quality, which nobody on the scoreboard has measured.
+- Testability: Unclear. "Slot-parallel" suggests serving-side batching, which likely needs a GPU and vLLM (Modal A10G/L4, roughly $10-25 for a small-model directional run). An API-only approximation (parallel chunk summaries + verification vs one sequential summary) would cost about $5-10 but tests a weaker version of the claim. Code availability not confirmed.
+- Source: arXiv (2611.06876), found via web search; snippet only
+
+### [DLite: History-free Speculative Decoding for Agentic AI](https://arxiv.org/abs/2610.23787)
+- Status: proposed — awaiting review
+- Claim: Existing draft models lose up to 80% of acceptance length on agentic workloads; a history-free draft head reusing the target's hidden states reaches acceptance length 2-6 and beats DSpark by up to 70% on that metric (acceptance length, not confirmed wall-clock speedup).
+- Why it matters: Speculative decoding tuned for long agentic contexts; DSpark is already in the queue, so this is a direct follow-on comparison.
+- Testability: Needs a GPU; not runnable on Apple Silicon CPU. Requires the released draft head (a repo, SJTU-DAI-Sys/DLite, is reported by an aggregator but not verified) — training one is out of budget. Inference-only acceptance-length check on a small target on a Modal A10G: roughly $10-25.
+- Source: arXiv (2610.23787), found via web search; snippet only
+
+### [Memory-Efficient Speculative Decoding with Quantized Draft KV Cache](https://arxiv.org/abs/2611.20565)
+- Status: proposed — awaiting review
+- Claim: Quantizing only the draft model's KV cache in two-model speculative decoding shrinks the draft cache by roughly two-thirds, but the prototype decodes slower than the BF16 baseline — the memory win does not come with a speed win.
+- Why it matters: A self-reported trade-off rather than a headline speedup; low priority, listed for completeness in the serving lane.
+- Testability: Needs a GPU (Modal A10G/L4, roughly $10-20 with small draft/target models). Not runnable on Apple Silicon CPU. Code availability not confirmed.
+- Source: arXiv (2611.20565), found via web search; snippet only
