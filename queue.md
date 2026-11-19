@@ -1655,35 +1655,7 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 
 ## 2026-11-19 — proposed by research-scout
 
-_Scout note: arxiv.org, export.arxiv.org, simonwillison.net, vllm.ai and huggingface.co were not reachable from the scout sandbox this run, so the arXiv entries below come from search-result snippets and secondary write-ups (abstracts not opened). Only the Anthropic post was read directly. Verify numbers before picking. Ranked best-first._
-
-### [Do Agents Still Follow the Rules? Benchmarking Rule Compliance under Agent Context Compaction (ARCBench)](https://arxiv.org/abs/2611.03223)
-- Status: proposed — awaiting review
-- Claim: Rule violations rise from 9.6% with full history to 37.8% after compaction, even though ~70% of compacted summaries still contain the rule; rules delivered via a policy tool are violated 22.2% vs 56.3% for in-conversation instructions (figures from secondary write-ups).
-- Why it matters: Says compaction breaks compliance even when the rule is retained, and that the delivery channel is a harness-level lever; graded on tool calls, so it is cheap to check deterministically.
-- Testability: Feasible on Apple Silicon over the API. A reduced grid (a few scenarios × full-history vs compacted × rule-in-chat vs rule-in-tool, Haiku 4.5, n≈5) is roughly $8-20. No GPU. Built on the open-source pi harness; code availability not confirmed. Overlaps in topic with the queued "Governance Decay" (2606.22528) but is a different benchmark and adds the delivery-channel claim.
-- Source: arXiv (2611.03223), found via web search; snippet only
-
-### [The components of agent memory](https://www.anthropic.com/engineering/components-of-agent-memory)
-- Status: proposed — awaiting review
-- Claim: Open-ended memory notes plus an offline consolidation pass ("dreaming") raise CL-Bench reward (e.g. Sonnet 4.6 0.330 → 0.364, or 0.641 with refined prompting; Opus 5 0.564 → 0.828), and a fixed rule like "record only failures" cuts the memory gain (by 0.234 on Opus 5, only 0.020 on Sonnet 4.6).
-- Why it matters: Vendor-reported and model-dependent; the small-model end of the claim (does memory help Haiku/Sonnet-class models at all, and do fixed note-taking rules hurt?) is exactly the kind of scaffolding-vs-cost question the scoreboard tracks.
-- Testability: Feasible. Multi-session toy task with a notes file, three arms (no memory / free notes / "failures only" rule), optional consolidation pass, Haiku 4.5 and Sonnet 4.6, n≈3-5. Rough cost $10-25 (multi-session runs add up; cap sessions). No GPU. CL-Bench itself may not be public — a directional repro on an own task is the realistic version.
-- Source: Anthropic Engineering (2026-11-06), read directly
-
-### [Tool-Calling LLM Agents Under Realistic MCP Faults: Scale Does Not Purchase Fault Tolerance (MCP-Injector)](https://arxiv.org/abs/2610.32555)
-- Status: proposed — awaiting review
-- Claim: Calibrated MCP faults (permanent / transient / intermittent, modelled on issues from 1,774 MCP repos) cut task-completion score by ~60%, and the larger backbone (120B) does worse under faults than the smaller one (20B) despite higher fault-free scores (NeurIPS 2026 poster; numbers from the poster abstract).
-- Why it matters: A counter-intuitive "bigger model is more brittle" claim on the MCP tool path; a fault-injecting MCP proxy is small, reusable harness infrastructure.
-- Testability: Feasible over the API. A minimal fault-injecting wrapper around 2-3 local MCP tools, Haiku 4.5 vs Sonnet 4.6, 3 fault modes × ~10 tasks × n=3, roughly $8-20. No GPU. The paper used open-weight 20B/120B models, so an API-model run tests the direction, not the exact cells. Distinct from the queued AgentCheck (2607.11098).
-- Source: arXiv (2610.32555) / NeurIPS 2026, found via web search; snippet only
-
-### [MCP Tool Poisoning in Agentic AI Frameworks: A Cross-Framework Measurement Study](https://arxiv.org/abs/2611.03555)
-- Status: proposed — awaiting review
-- Claim: Across 18 models and 45 attack scenarios with real tool execution, overall attack success is 22.9%, and nine frameworks sit in a narrow 23-26% band — resistance comes from the model, not the framework, and no framework ships an intentional defense.
-- Why it matters: A clean, falsifiable harness claim: the framework layer adds ~no protection against poisoned tool descriptions.
-- Testability: Feasible as a reduced, fully local repro: a handful of poisoned-description scenarios against a canary endpoint on localhost, 2-3 frameworks × Haiku 4.5, roughly $5-15. No GPU. Security-flavoured: keep everything sandboxed and local; requires installing agent frameworks, which is a human call.
-- Source: arXiv (2611.03555), found via web search; snippet only
+_Scout note: arxiv.org, export.arxiv.org, simonwillison.net, vllm.ai and huggingface.co were not reachable from the scout sandbox this run, so the entries below come from search-result snippets (abstracts not opened). Verify numbers before picking. Ranked best-first. Deduped against the scoreboard, this file, and the 104 proposals in the still-open scout PRs #53-#76; four finds already proposed there were dropped (ARCBench 2611.03223, MCP faults 2610.32555, MCP tool poisoning 2611.03555, Anthropic's "The components of agent memory"). What is left is serving-side and GPU-bound, so this is a thin run for the API-only budget._
 
 ### [SpecCompact: Accelerating LLM Agent Context Compaction with Slot-Parallel Semantic Speculative Verification](https://arxiv.org/abs/2611.06876)
 - Status: proposed — awaiting review
