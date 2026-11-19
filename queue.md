@@ -1650,3 +1650,58 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-19 — proposed by research-scout
+
+_Scout note: arxiv.org, export.arxiv.org, simonwillison.net, vllm.ai and huggingface.co were not reachable from the scout sandbox this run, so the arXiv entries below come from search-result snippets and secondary write-ups (abstracts not opened). Only the Anthropic post was read directly. Verify numbers before picking. Ranked best-first._
+
+### [Do Agents Still Follow the Rules? Benchmarking Rule Compliance under Agent Context Compaction (ARCBench)](https://arxiv.org/abs/2611.03223)
+- Status: proposed — awaiting review
+- Claim: Rule violations rise from 9.6% with full history to 37.8% after compaction, even though ~70% of compacted summaries still contain the rule; rules delivered via a policy tool are violated 22.2% vs 56.3% for in-conversation instructions (figures from secondary write-ups).
+- Why it matters: Says compaction breaks compliance even when the rule is retained, and that the delivery channel is a harness-level lever; graded on tool calls, so it is cheap to check deterministically.
+- Testability: Feasible on Apple Silicon over the API. A reduced grid (a few scenarios × full-history vs compacted × rule-in-chat vs rule-in-tool, Haiku 4.5, n≈5) is roughly $8-20. No GPU. Built on the open-source pi harness; code availability not confirmed. Overlaps in topic with the queued "Governance Decay" (2606.22528) but is a different benchmark and adds the delivery-channel claim.
+- Source: arXiv (2611.03223), found via web search; snippet only
+
+### [The components of agent memory](https://www.anthropic.com/engineering/components-of-agent-memory)
+- Status: proposed — awaiting review
+- Claim: Open-ended memory notes plus an offline consolidation pass ("dreaming") raise CL-Bench reward (e.g. Sonnet 4.6 0.330 → 0.364, or 0.641 with refined prompting; Opus 5 0.564 → 0.828), and a fixed rule like "record only failures" cuts the memory gain (by 0.234 on Opus 5, only 0.020 on Sonnet 4.6).
+- Why it matters: Vendor-reported and model-dependent; the small-model end of the claim (does memory help Haiku/Sonnet-class models at all, and do fixed note-taking rules hurt?) is exactly the kind of scaffolding-vs-cost question the scoreboard tracks.
+- Testability: Feasible. Multi-session toy task with a notes file, three arms (no memory / free notes / "failures only" rule), optional consolidation pass, Haiku 4.5 and Sonnet 4.6, n≈3-5. Rough cost $10-25 (multi-session runs add up; cap sessions). No GPU. CL-Bench itself may not be public — a directional repro on an own task is the realistic version.
+- Source: Anthropic Engineering (2026-11-06), read directly
+
+### [Tool-Calling LLM Agents Under Realistic MCP Faults: Scale Does Not Purchase Fault Tolerance (MCP-Injector)](https://arxiv.org/abs/2610.32555)
+- Status: proposed — awaiting review
+- Claim: Calibrated MCP faults (permanent / transient / intermittent, modelled on issues from 1,774 MCP repos) cut task-completion score by ~60%, and the larger backbone (120B) does worse under faults than the smaller one (20B) despite higher fault-free scores (NeurIPS 2026 poster; numbers from the poster abstract).
+- Why it matters: A counter-intuitive "bigger model is more brittle" claim on the MCP tool path; a fault-injecting MCP proxy is small, reusable harness infrastructure.
+- Testability: Feasible over the API. A minimal fault-injecting wrapper around 2-3 local MCP tools, Haiku 4.5 vs Sonnet 4.6, 3 fault modes × ~10 tasks × n=3, roughly $8-20. No GPU. The paper used open-weight 20B/120B models, so an API-model run tests the direction, not the exact cells. Distinct from the queued AgentCheck (2607.11098).
+- Source: arXiv (2610.32555) / NeurIPS 2026, found via web search; snippet only
+
+### [MCP Tool Poisoning in Agentic AI Frameworks: A Cross-Framework Measurement Study](https://arxiv.org/abs/2611.03555)
+- Status: proposed — awaiting review
+- Claim: Across 18 models and 45 attack scenarios with real tool execution, overall attack success is 22.9%, and nine frameworks sit in a narrow 23-26% band — resistance comes from the model, not the framework, and no framework ships an intentional defense.
+- Why it matters: A clean, falsifiable harness claim: the framework layer adds ~no protection against poisoned tool descriptions.
+- Testability: Feasible as a reduced, fully local repro: a handful of poisoned-description scenarios against a canary endpoint on localhost, 2-3 frameworks × Haiku 4.5, roughly $5-15. No GPU. Security-flavoured: keep everything sandboxed and local; requires installing agent frameworks, which is a human call.
+- Source: arXiv (2611.03555), found via web search; snippet only
+
+### [SpecCompact: Accelerating LLM Agent Context Compaction with Slot-Parallel Semantic Speculative Verification](https://arxiv.org/abs/2611.06876)
+- Status: proposed — awaiting review
+- Claim: 2.04-5.63× faster context compaction than Hermes-style summarization on AppWorld and τ³ with two target models (8.68× median in a user study), without degrading the compacted result.
+- Why it matters: Compaction latency is a real stall in long-running agents; targets speed rather than quality, which nobody on the scoreboard has measured.
+- Testability: Unclear. "Slot-parallel" suggests serving-side batching, which likely needs a GPU and vLLM (Modal A10G/L4, roughly $10-25 for a small-model directional run). An API-only approximation (parallel chunk summaries + verification vs one sequential summary) would cost about $5-10 but tests a weaker version of the claim. Code availability not confirmed.
+- Source: arXiv (2611.06876), found via web search; snippet only
+
+### [DLite: History-free Speculative Decoding for Agentic AI](https://arxiv.org/abs/2610.23787)
+- Status: proposed — awaiting review
+- Claim: Existing draft models lose up to 80% of acceptance length on agentic workloads; a history-free draft head reusing the target's hidden states reaches acceptance length 2-6 and beats DSpark by up to 70% on that metric (acceptance length, not confirmed wall-clock speedup).
+- Why it matters: Speculative decoding tuned for long agentic contexts; DSpark is already in the queue, so this is a direct follow-on comparison.
+- Testability: Needs a GPU; not runnable on Apple Silicon CPU. Requires the released draft head (a repo, SJTU-DAI-Sys/DLite, is reported by an aggregator but not verified) — training one is out of budget. Inference-only acceptance-length check on a small target on a Modal A10G: roughly $10-25.
+- Source: arXiv (2610.23787), found via web search; snippet only
+
+### [Memory-Efficient Speculative Decoding with Quantized Draft KV Cache](https://arxiv.org/abs/2611.20565)
+- Status: proposed — awaiting review
+- Claim: Quantizing only the draft model's KV cache in two-model speculative decoding shrinks the draft cache by roughly two-thirds, but the prototype decodes slower than the BF16 baseline — the memory win does not come with a speed win.
+- Why it matters: A self-reported trade-off rather than a headline speedup; low priority, listed for completeness in the serving lane.
+- Testability: Needs a GPU (Modal A10G/L4, roughly $10-20 with small draft/target models). Not runnable on Apple Silicon CPU. Code availability not confirmed.
+- Source: arXiv (2611.20565), found via web search; snippet only
