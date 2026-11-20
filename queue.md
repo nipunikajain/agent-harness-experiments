@@ -1650,3 +1650,51 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-20 — proposed by research-scout
+
+_Scout note: arxiv.org and export.arxiv.org were unreachable from the scout sandbox this run. Every arXiv entry below was confirmed through a GitHub page that was actually fetched (named in each Source line), not through the arXiv abstract page itself. Claims are as relayed by those pages; check the paper before picking._
+
+### [System Optimizations for Cost-Efficient Agent Harnesses](https://arxiv.org/abs/2611.12122)
+- Status: proposed — awaiting review
+- Claim: Harness design barely changes task success but moves cost by up to 2.6x on the same model and task; the authors' "Agency" interposition layer cuts cost by up to 35% at an accuracy ratio of 0.97 (Park et al., UC Berkeley).
+- Why it matters: Same shape as this repo's own scoreboard findings (structured harness: more tokens, no quality gain), but with a claimed fix. An unofficial offline repro already exists and explicitly did not reproduce the headline numbers with real models.
+- Testability: Feasible. A handful of tool-heavy tasks on Haiku 4.5 under 3-4 harness variants (baseline, compacted tool output, batched calls, indexed output), measuring real token cost and success; no GPU. Rough cost: $5-15. The full Agency platform (ptrace/cgroups around real harnesses) and the 100-task benchmark run are out of scope.
+- Source: arXiv (2611.12122, 9 Nov 2026), confirmed via the fetched README of the unofficial repro [Gjusev/agency-bench](https://github.com/Gjusev/agency-bench) (stub agents only, 0 stars)
+
+### [The RSI Tax: When Recursive Self-Improvement Is Not Worth the Cost](https://arxiv.org/abs/2611.13524)
+- Status: proposed — awaiting review
+- Claim: When the token cost of the self-improvement process is counted, a bounded-note baseline matches or beats the accuracy of Meta-Harness, EvoSkill and RRSI on continual task streams with 65.6-71.0% fewer total tokens; verification is 74.8-93.6% of the improvement cost.
+- Why it matters: The queue holds many harness-evolution papers that report gains without the cost of getting them. This is the counter-claim, and it is the cheaper one to check.
+- Testability: Feasible as a directional repro. A short continual task stream on Haiku 4.5, bounded-note baseline vs one simple self-improving harness loop, counting improvement tokens separately from execution tokens; no GPU. Rough cost: $10-20. The abstract relayed by the tracker does not name the benchmarks or the two models, and no code link was found.
+- Source: arXiv (2611.13524), confirmed via the fetched abstract in [adongwanai/follow-rsi issue #126](https://github.com/adongwanai/follow-rsi/issues/126)
+
+### [MCPHallu: Benchmarking Reasoning, Execution, and Memory Hallucinations in MCP Agents](https://arxiv.org/abs/2611.07689)
+- Status: proposed — awaiting review
+- Claim: On 358 tasks over 36 production MCP servers (302 tools), 14 frontier agents average 0.642; the "unreachable goal" subtype, where the agent should report the task cannot be done, averages 0.458.
+- Why it matters: An MCP benchmark aimed at specific failure modes (branch collapse, unreachable goal, tool confusion, context forgetting) with released code and per-task results. An open issue on the repo asks for a no-trap control arm for the 0.642, so the headline may partly reflect ordinary task difficulty.
+- Testability: Feasible for one subtype. Needs Docker with 8 GB (the mcp-atlas server image) on the Mac, plus API keys for the agent and a judge (default judge is gemini-2.5-pro; overridable). One subtype file (82-103 tasks) on Haiku 4.5 with a Sonnet 4.6 judge: roughly $8-20; no GPU. Re-scoring the shipped completions for the 14 models is free. Some of the 36 servers may need their own credentials (not checked).
+- Source: arXiv (2611.07689, 5 Nov 2026; NeurIPS 2026 E&D track), confirmed via the fetched code repo [J1zz/mcp_hallu](https://github.com/J1zz/mcp_hallu)
+
+### [The components of agent memory](https://www.anthropic.com/engineering/components-of-agent-memory)
+- Status: proposed — awaiting review
+- Claim: File-based memory with a learning loop raises CL-Bench 1.0 mean reward for newer models (e.g. Opus 5: 0.564 to 0.828) but barely moves Sonnet 4.6 (0.330 to 0.364) unless it is prompted to read memory and test theories (0.641); an offline "dreaming" pass that builds a wiki lifts a 25-question corpus Q&A from 53% (search alone) to 61% (wiki plus search) and saves about 20,000 tokens per question.
+- Why it matters: Vendor numbers on the vendor's own models, covering memory design choices the queue's memory papers argue about. The Sonnet 4.6 result is specific, cheap to check, and uses one of the repo's preferred models.
+- Testability: Feasible. Stateless vs memory vs memory-plus-prompting on Sonnet 4.6 and Haiku 4.5 over a small multi-session task; and wiki-plus-search vs search-only on a small document corpus. No GPU. Rough cost: $10-20. The 420M-token corpus and 128-session dreaming runs are out of budget; whether CL-Bench 1.0 is publicly runnable was not checked.
+- Source: Anthropic Engineering blog (6 Nov 2026), page fetched
+
+### [Callo: Serving Cache-Miss Requests with Speculative Decoding on Invalidated KV under Prefill-Decode Disaggregation](https://arxiv.org/abs/2611.18459)
+- Status: proposed — awaiting review
+- Claim: When an agent's context edit invalidates the KV cache, drafting on the stale KV while the exact prefill runs, then verifying against the fresh KV, gives lossless output with a latency gain over vLLM (the repro's README cites 1.13-1.32x and 65% whole-window draft acceptance on Llama-3.3-70B; a search snippet of the abstract said 1.05-1.19x at moderate load).
+- Why it matters: Connects context editing in agent harnesses to serving cost. An independent laptop-scale reimplementation already found much lower acceptance on small models (15-32% vs 65%) and a modelled speedup of about 1.0x.
+- Testability: Needs a CUDA GPU; not runnable on Apple Silicon CPU. The acceptance-rate half can be rerun with the MIT-licensed reimplementation on Qwen3-0.6B/1.7B on one Modal T4/L4 (about 3 GPU-hours): roughly $3-8. The latency claim needs a two-GPU disaggregated setup with a 70B model and is out of budget; no official code found.
+- Source: arXiv (2611.18459), confirmed via the fetched README of the unofficial reimplementation [tatra-labs/stale-kv](https://github.com/tatra-labs/stale-kv) (0 stars)
+
+### [open-code-review](https://github.com/alibaba/open-code-review)
+- Status: proposed — awaiting review
+- Claim: A code-review CLI that puts deterministic file selection, rule matching and comment-location checks around an LLM agent reports higher precision and F1 than Claude Code on the same underlying model at about 1/9 of the tokens, with lower recall, on AACR-Bench (200 PRs, 1,505 annotated issues).
+- Why it matters: A concrete "deterministic scaffolding beats a general harness on cost" claim from a tool builder; exact numbers are only in README images and are self-reported.
+- Testability: Likely feasible as a small slice. 10-20 annotated PRs, the CLI vs a plain agent review prompt, both on Haiku 4.5 or Sonnet 4.6, comparing precision, recall and tokens; no GPU. Rough cost: $10-25. Public availability of AACR-Bench annotations was not confirmed. Apache-2.0; running it means installing a third-party CLI, which is the human's call.
+- Source: GitHub trending (weekly, all languages), repo page fetched
