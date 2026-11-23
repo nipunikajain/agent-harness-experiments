@@ -1650,3 +1650,58 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-23 — proposed by research-scout
+
+_Scout note: arxiv.org, export.arxiv.org, huggingface.co, alphaxiv.org and simonwillison.net were unreachable from the scout sandbox this run, so arXiv claims below come from search-result snippets only (abstracts not opened). Numbers are the authors' as quoted in snippets. Verify before picking. Ranked best-first. GitHub trending (python, weekly) was read and had nothing testable in lane (mostly skill bundles). Two serving-side titles surfaced with no readable content and are not proposed: MORTIS (arXiv 2611.08638) and "Reducing Batch Makespan for LLM Agent Workloads" (arXiv 2611.16661)._
+
+### [What Does a Harness Buy? Tokens, Mostly](https://arxiv.org/pdf/2610.04433)
+- Status: proposed — awaiting review
+- Claim: On the same model, harness choice moves the token bill by up to 3x, driven by the fixed preamble paid every step (16,581 tokens in Claude Code, 7,025 in OpenCode, 829 in mini-SWE-agent); 96-99% of input tokens are cache hits, and the model's step count can matter more than list price.
+- Why it matters: Directly parallels this repo's three harness-overhead scoreboard rows; an independent check of "overhead, not quality" on real coding harnesses.
+- Testability: Feasible, no GPU. Run one model (Haiku 4.5) through a minimal loop vs a heavy-preamble loop on 10-20 small coding tasks and compare tokens, cache-hit share and pass rate. Rough cost: $8-20. Full multi-harness SWE-bench repro is out of budget.
+- Source: arXiv (2610.04433), found via web search; snippet only
+
+### [Prefix Stability for Prompt Caching in LLM Agents: When It Helps and When It Backfires](https://neurips.cc/virtual/2026/159036)
+- Status: proposed — awaiting review
+- Claim: With an invariant append-only prefix, full-rate input processing drops from quadratic to linear in turns; but a phase-switched loop (system prompt changes between phases) can cost more than no caching, with a measured ~24.6-24.9% cost increase across four prompt architectures on two production models.
+- Why it matters: Extends the TokenPilot scoreboard row (most of the saving was just enabling caching) with the opposite case: when caching loses money.
+- Testability: Very feasible. Haiku 4.5 over the API, 3 arms (no cache, stable prefix, phase-switched prefix), read cost from usage fields; could reuse the TokenPilot experiment's task. Rough cost: $3-10. No GPU.
+- Source: NeurIPS 2026 listing, found via web search; abstract snippet only (the two listings quote 24.6% and 24.9%)
+
+### [Silent and Costly: Characterizing and Detecting Prompt-Caching Mis-Integration in LLM Agents](https://arxiv.org/pdf/2610.34817)
+- Status: proposed — awaiting review
+- Claim: Small prefix changes in agent code silently disable prompt caching (correct output, full price); the paper characterizes these mis-integrations and detects them with a tool/dataset called CacheLint (prevalence and detection accuracy not verified).
+- Why it matters: Harness-infrastructure bug class that costs money without failing any test; pairs with the Prefix Stability entry above.
+- Testability: Feasible if the CacheLint artifact is public (unconfirmed). Seed 5-10 known cache-breaking patterns into a small agent loop, check detection, and confirm the cost delta on Haiku 4.5. Rough cost: $3-8. No GPU.
+- Source: arXiv (2610.34817), found via web search; title and references only
+
+### [Which Metadata Matters for LLM Tool Selection in MCP? Evidence from Controlled Factor-Level Interventions](https://arxiv.org/pdf/2610.14334)
+- Status: proposed — awaiting review
+- Claim: Varying one of four fields at a time (server name, tool name, description, parameter schema) among functionally equivalent MCP tools shifts which tool the LLM selects; effect sizes per field not verified.
+- Why it matters: MCP-lane, selection-only (no tool execution), and complements the queued "MCP servers cost 38,900 tokens" entry: which metadata can be trimmed without hurting selection.
+- Testability: Very feasible. Selection-only prompts on Haiku 4.5 with a few hundred single-turn calls. Rough cost: $2-6. No GPU.
+- Source: arXiv (2610.14334), found via web search; methodology snippet only
+
+### [The components of agent memory](https://www.anthropic.com/engineering/components-of-agent-memory)
+- Status: proposed — awaiting review
+- Claim: A file-based memory directory lifts CL-Bench mean reward (e.g. Opus 4.7 0.383 → 0.700) but barely helps a weaker model (Sonnet 4.6 0.330 → 0.364) unless it is told to read memory and test its theories (→ 0.641); restricting notes to failures only cut the gain by 0.234.
+- Why it matters: Vendor-authored and unreplicated; the "weak models need an explicit read-memory instruction" claim is a cheap harness-level A/B.
+- Testability: Feasible on a small multi-session task with Haiku 4.5 or Sonnet 4.6, 3 arms (no memory, memory, memory + read/test instruction), n=3. Rough cost: $10-25. No GPU. The dreaming/wiki results (420M-token corpus, 128 sessions) are out of budget.
+- Source: Anthropic Engineering blog (2026-11-06); page read directly
+
+### [Folio: Recoverable Multi-Resolution Context Folding for Long-Horizon Language Agents](https://arxiv.org/pdf/2611.16627)
+- Status: proposed — awaiting review
+- Claim: Folding old history by switching to coarser pre-existing views (turn note / event manifest / source record) instead of model-written summaries solves 66 of 75 LOCAbench tasks vs 54 for the same runtime with summary compaction and 49-59 for Claude Code, Codex and SoL-Pi, all on DeepSeek-V4-Pro.
+- Why it matters: Tests whether LLM-free, recoverable compaction beats summarization; relates to the queued Compaction Cliff entry. Caveat: each task chain was run once per system.
+- Testability: Partly feasible. A directional repro (fold vs summarize on a 10-15 task long-context subset, Haiku 4.5) fits if code is released (unconfirmed). Rough cost: $15-25. Full 75-task run likely over budget. No GPU.
+- Source: arXiv (2611.16627), found via web search; snippet only
+
+### [HarnessFlow: MCTS-Guided Harness Optimization for LLM Agents](https://arxiv.org/pdf/2611.06254)
+- Status: proposed — awaiting review
+- Claim: Searching over complete agent harnesses with MCTS plus coding-agent refinement (a refinement tree scored on a validation set) yields better harnesses than baselines (gain not verified); the authors note evaluation compute limits the search budget.
+- Why it matters: Automated harness optimization is in lane, but the search loop multiplies evaluation cost.
+- Testability: Marginal. Each search node is a full validation run, so even a tiny search (10-20 nodes × 10 tasks on Haiku 4.5) costs roughly $20-40; likely at or over the $25 budget. Needs released code (unconfirmed). No GPU.
+- Source: arXiv (2611.06254), found via web search; conclusion snippet only
