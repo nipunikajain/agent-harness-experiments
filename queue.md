@@ -1655,35 +1655,7 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 
 ## 2026-11-24 — proposed by research-scout
 
-_Scout note: arxiv.org and export.arxiv.org were not resolvable from the scout sandbox this run, so the arXiv entries below come from web-search snippets of the abstract/PDF pages only (pages not opened). Titles and ids are as returned by search; numbers are the authors' own. Verify at triage. GitHub trending was reachable but had no testable claim in the lane._
-
-### [System Optimizations for Cost-Efficient Agent Harnesses](https://arxiv.org/abs/2611.12122)
-- Status: proposed — awaiting review
-- Claim: Harness-side choices (context, tools, environment) move agent cost substantially while leaving accuracy largely intact; re-reading existing context is the largest cost source, up to 73% of total cost even with caching, and the authors' harness-interposition platform (Agency) reaches end-to-end cost reductions of up to 35% with marginal accuracy loss on existing harnesses such as Claude Code and Codex.
-- Why it matters: Same question as the TokenPilot row on the scoreboard (how much cost is harness vs caching), from a systems group with a cache-using baseline; a natural check on whether the ~28% net context-management win found here generalizes.
-- Testability: Feasible directionally. Reproduce the cost breakdown (cached-read share of spend) and one or two of the harness-side optimizations on a small multi-step tool task with Haiku 4.5 via API; no GPU. Rough cost: $5-15. Whether the Agency platform code is released is unconfirmed; a full Claude Code/Codex interposition repro is likely more work than budget.
-- Source: arXiv (2611.12122, submitted 2026-11-09), found via web search; snippet only
-
-### [Callo: Serving Cache-Miss Requests with Speculative Decoding on Invalidated KV under Prefill-Decode Disaggregation](https://arxiv.org/abs/2611.18459)
-- Status: proposed — awaiting review
-- Claim: When an agent's context edit invalidates cached KV state, drafting speculatively from the stale KV and verifying against the exact KV once re-prefill finishes gives all-request speedups of 1.05-1.19x over vLLM at moderate load on a two-GPU testbed running SWE-agent sessions.
-- Why it matters: Serving-side counterpart to the context-editing work in this queue: it prices what a context edit costs at the KV layer. The paper states it needs session affinity, the previous request's KV still cached, and spare decode capacity, so the gain is conditional.
-- Testability: Not runnable on Apple Silicon CPU as published; needs two GPUs and disaggregated vLLM, and search found no official code release. A single-GPU directional check of the core idea (draft acceptance rate on stale KV after a prompt edit, small 1-8B model) on a Modal A10G is plausible at about $10-25. A community laptop-scale reimplementation was surfaced by search (https://github.com/tatra-labs/stale-kv, not opened; it reportedly finds almost no saving near capacity).
-- Source: arXiv cs.DC (2611.18459, dated 2026-11-13), found via web search; snippet only
-
-### [HarnessFlow: MCTS-Guided Harness Optimization for LLM Agents](https://arxiv.org/abs/2611.06254)
-- Status: proposed — awaiting review
-- Claim: Searching over complete agent harnesses with Monte Carlo tree search plus coding-agent refinement raises average test score across six benchmarks by 10.89 points over a vanilla baseline and 3.95 points over Meta-Harness, at lower average execution cost than the hand-engineered harnesses compared.
-- Why it matters: Another automated-harness-search claim in a cluster this queue already holds (Self-Harness, DemoEvolve, Evo-Bench); the distinguishing claim is that the found harness is also cheaper to run, which is the axis the scoreboard rows measure.
-- Testability: Partly feasible. The search needs an automatic grader and spends evaluation compute up front (the authors list both as limitations). A cut-down run (small search budget, toy graded task suite, Haiku 4.5 as agent and Sonnet 4.6 as refiner) fits in about $15-25 but would be far below the paper's search budget; the six-benchmark result is out of budget. No GPU.
-- Source: arXiv (2611.06254, submitted 2026-11-04), found via web search; snippet only
-
-### [Prune the Summary, Not the History: Source-Judged Compaction for Long-Horizon Agents](https://arxiv.org/pdf/2610.20927)
-- Status: proposed — awaiting review
-- Claim: Compaction summaries mix environment facts with the compressor's own reasoning; with a widely used structured compressor, 83% of failed runs trace to an action that executes a specific summary entry, most of them unsupported by any environment output. A training-free post-processing step that drops summary entries with no source in environment outputs or the prior summary is proposed as the fix (size of the gain not verified).
-- Why it matters: A concrete, checkable mechanism for why compaction hurts, distinct from the queued compaction papers (TRACE, Compaction Cliff, Governance Decay), and the fix leaves agent and compressor unchanged.
-- Testability: Failure-attribution half is cheap: run a long-horizon task with compaction on Haiku 4.5 and label failed runs, about $5-15, no GPU. The fix uses the authors' own non-generative judge model (Jev); availability is unconfirmed, so a repro may need an LLM judge substituted, which changes what is being tested.
-- Source: arXiv (2610.20927), found via web search; snippet only
+_Scout note: arxiv.org and export.arxiv.org were not resolvable from the scout sandbox this run, so the arXiv entries below come from web-search snippets of the abstract/PDF pages only (pages not opened). Titles and ids are as returned by search; numbers are the authors' own. Verify at triage. GitHub trending was reachable but had no testable claim in the lane. Four further finds were dropped because open, unmerged scout PRs already propose them: System Optimizations for Cost-Efficient Agent Harnesses (#78), Callo (#74, #78), HarnessFlow (#76, #79) and Prune the Summary (#73)._
 
 ### [Elicitation or Expansion? Demystifying Gains from Agent Harness Optimization](https://arxiv.org/pdf/2610.27889)
 - Status: proposed — awaiting review
