@@ -1650,3 +1650,23 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-24 — proposed by research-scout
+
+_Scout note: arxiv.org and export.arxiv.org were not resolvable from the scout sandbox this run, so the arXiv entries below come from web-search snippets of the abstract/PDF pages only (pages not opened). Titles and ids are as returned by search; numbers are the authors' own. Verify at triage. GitHub trending was reachable but had no testable claim in the lane. Four further finds were dropped because open, unmerged scout PRs already propose them: System Optimizations for Cost-Efficient Agent Harnesses (#78), Callo (#74, #78), HarnessFlow (#76, #79) and Prune the Summary (#73)._
+
+### [Elicitation or Expansion? Demystifying Gains from Agent Harness Optimization](https://arxiv.org/pdf/2610.27889)
+- Status: proposed — awaiting review
+- Claim: Comparing optimized harnesses with their pre-optimization versions under pass@k, the pass@1 advantage of harness optimization over stronger interventions (model scaling, more inference-time compute) can reverse at larger attempt budgets, and aggregate gains can hide shortfalls on hard tasks. Qualitative claim; no headline number found.
+- Why it matters: A measurement method (pass@k instead of pass@1) that could be applied directly to this repo's naive-vs-structured comparisons, which were all scored on single attempts per seed.
+- Testability: Feasible. Re-score an existing harness comparison at k=1..8 attempts with Haiku 4.5; cost scales linearly with k, roughly $8-20 for a small task set. No GPU. Search reports code and a trajectory dataset are released (not opened).
+- Source: arXiv (2610.27889, dated 2026-10-20 per a third-party listing), found via web search; snippet only
+
+### [Free to Look, Free to Reason: Simple LLM Harnesses Outdiagnose Hand-Crafted Root Cause Analysis Agents](https://arxiv.org/pdf/2610.35767)
+- Status: proposed — awaiting review
+- Claim: On the same root-cause-analysis cases with three mid-tier models, simple harnesses that let the model choose what to inspect and how to reason reach 65-77% PR@1, versus 16-53% for published hand-crafted RCA agents and 6-39% for non-LLM statistical/causal methods.
+- Why it matters: Independent support, in a different domain, for the scoreboard's recurring result that a naive harness matches or beats a structured one.
+- Testability: Plausible but unconfirmed. Needs the RCA benchmark cases and tooling (availability not checked); if public, a subset with Haiku 4.5 on a simple harness versus one published agent would run about $10-25, no GPU. Reproducing all five published agents is likely out of budget in engineering time.
+- Source: arXiv (2610.35767), found via web search; snippet only
