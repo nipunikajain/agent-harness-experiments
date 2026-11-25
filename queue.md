@@ -1650,3 +1650,39 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-25 — proposed by research-scout
+
+_Scout note: arxiv.org, export.arxiv.org, simonwillison.net and blog.vllm.ai were not reachable from the scout sandbox this run (outside the session's allowed network domains), so every arXiv claim below comes from search-result snippets and third-party mirrors, not the abstract page. Numbers are the authors' own as relayed by those snippets. Verify before picking. Ranked best first._
+
+### [When the harness decides success: state that cannot be re-observed](https://arxiv.org/abs/2610.26632)
+- Status: proposed — awaiting review
+- Claim: In a pre-registered synthetic probe, truncating the context window costs a low-cost reasoning model nothing when the needed fact can be looked up again, but drops success to chance when the fact cannot be re-observed, a 92.5-point gap between the two penalties, replicated on one model from a second provider.
+- Why it matters: A sharp, falsifiable statement of when context management matters at all. It would explain the repo's own null results (toy tasks where everything stays re-observable on disk) and gives a design rule for a task that actually engages the failure mode.
+- Testability: Very cheap. A synthetic 2x2 (truncation on/off x fact re-observable or not) with Haiku 4.5 over the API, several seeds. No GPU. Rough cost: $2-6.
+- Source: arXiv (2610.26632, October 2026), found via web search; snippet only (abstract was cut off after the headline result)
+
+### [ToolBottleneckBench: Measuring Tool-Agent Performance under Controlled Pressures and Fixed Harness Budgets](https://arxiv.org/abs/2610.21098) ([GitHub](https://github.com/zichuanxu/tool-bottleneck-bench))
+- Status: proposed — awaiting review
+- Claim: Holding synthetic enterprise tasks fixed and varying one pressure at a time (registered tool catalog, visible tool menu, certified workflow, record encoding) across 21 model/harness configurations, only the visible tool menu has a large effect, and that effect is mostly truncation at the completion cap: raising the cap 16x removes most of the penalty.
+- Why it matters: Says a commonly reported "too many tools hurts" result is partly a harness-budget artifact. Pairs with the queued MCP context-cost items and is a claim about measurement rigor, which is this repo's whole point.
+- Testability: Feasible. The benchmark is public and synthetic, so a subset can be run with Haiku 4.5 at two completion caps and two menu sizes. Read the repo before running anything from it. No GPU. Rough cost: $5-15 depending on subset size.
+- Source: arXiv (2610.21098), found via web search; snippet only
+
+### [Benchmarks Are Surprisingly Compaction-Friendly](https://arxiv.org/abs/2610.31778)
+- Status: proposed — awaiting review
+- Claim: With the scaffold fixed (OpenCode) and five compaction strategies across three frontier models on PaperBench, ProgramBench and PostTrainBench, compaction barely changes task scores because the objective is fixed and progress stays on disk; what it does lose is constraints that live nowhere else (one model drops 2.73 of 3 rules per compaction vs 0.51 for another), which benchmark scores do not measure.
+- Why it matters: Overlaps the queued "Governance Decay" item but adds the measurement angle: task score is the wrong metric for compaction. Combines naturally with the re-observability item above.
+- Testability: Partly. The long-horizon benchmarks are out of budget, but the rule-retention half is cheap: plant 3 process rules, force compaction with a few summarizer variants, count surviving rules, Haiku 4.5 vs Sonnet 4.6. No GPU. Rough cost: $5-12.
+- Source: arXiv (2610.31778), found via web search; snippet and a third-party aggregator only
+
+### [Bud ContextCompact 2.0: Context Compaction for Agent Success and Accuracy with Small Language Models and Constrained Context Windows](https://arxiv.org/abs/2610.25516)
+- Status: proposed — awaiting review
+- Claim: For a 1.2B model, compacting history to a 16K budget gives recall accuracy 0.335, above both plain truncation and the full 32K history; for a reasoning model the main failure without compaction is a reasoning turn running out of room, not the history overflowing.
+- Why it matters: The only small-model compaction result found this run, and "compacted beats full history" is a strong claim worth checking. Vendor-authored, so an independent check has value.
+- Testability: Feasible locally. A 1-3B open model runs on Apple Silicon CPU (slowly) via llama.cpp or MLX, with truncation vs compaction vs full history as three arms; a Haiku 4.5 arm is optional. No Modal GPU needed for a small task set. Rough cost: $0-5.
+- Source: arXiv (2610.25516), found via web search; snippet only
+
+_Dropped as duplicates of still-open scout PRs (not yet in this file): System Optimizations for Cost-Efficient Agent Harnesses (arXiv 2611.12122, PR #78), MCP Tool Poisoning in Agentic AI Frameworks (arXiv 2611.03555, PR #68), MCPHallu (arXiv 2611.07689, PRs #68, #75, #78). Leads not proposed because only the title could be seen: "Inside the Trap: A Renewal Law for Prefix-Cache Collapse in LLM Agent Serving" (arXiv 2611.08902), "Fairway: Load-Aware KV Cache Reuse for LLM Prefill Scheduling" (arXiv 2611.02082), "Beyond Prompt Injection: The Tool Update Gap in LLM Agent Security" (arXiv 2611.01976). GitHub trending (python, typescript, weekly) was mostly skill bundles and UI tooling this week; nothing testable as a claim._
