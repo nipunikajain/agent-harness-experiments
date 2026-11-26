@@ -1662,13 +1662,6 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Testability: Very feasible. API-only on Haiku 4.5 (optionally Sonnet 4.6): a few hundred stubbed tool calls with error vs silent-bad-value returns, status-flag instruction on vs off. No GPU. Rough cost: $3-10.
 - Source: arXiv (2609.14758), found via web search; arxiv.org was unreachable from this session, abstract read via search snippet only
 
-### [Prune the Summary, Not the History: Source-Judged Compaction for Long-Horizon Agents](https://arxiv.org/pdf/2610.20927)
-- Status: proposed — awaiting review
-- Claim: A training-free post-processing step that drops compaction-summary entries with no source in environment outputs or the previous summary; a secondary write-up reports that in a widely used structured compressor 83% of failed runs trace to actions executing unsupported summary entries (that figure is not verified against the paper, and no end-task gain was visible in the snippets).
-- Why it matters: Context compaction is core to the lane, and this is a cheap, model-agnostic filter that can be bolted onto an existing compaction step and A/B tested.
-- Testability: Feasible. Haiku 4.5 on a small long-horizon task with forced compaction, plain summary vs source-judged pruned summary; the filter itself is a few extra LLM-judge calls per compaction. No GPU. Rough cost: $8-20.
-- Source: arXiv (2610.20927), found via web search; snippet plus aiweekly.co summary only
-
 ### [When Tools Fail, Agents Fabricate: Silent Failure and Verification-First Oversight in Tool-Using LLM Agents](https://arxiv.org/abs/2611.28341)
 - Status: proposed — awaiting review
 - Claim: On RetryRealistic (8 tools, 9 fault types, 30 multi-step tasks; four agents, 2,100 fault-fired runs) recovery is 27-54% correct and 19-30% of runs end in confident fabrication; a verification-first monitor that issues corrective directives raises correct recovery from 42.5% to 48.0% and cuts fabrication from 24.7% to 20.3% per the NeurIPS listing abstract (a second search snippet quoted 45.6% to 56.3% and 17.3% to 10.8%, so the exact numbers need checking against the paper).
@@ -1676,26 +1669,12 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Testability: Feasible if the testbed is released (not confirmed); otherwise a reduced fault-injection sandbox (filesystem, SQLite, local HTTP) is buildable locally. Haiku 4.5 as agent and monitor, no GPU. Rough cost: $10-20.
 - Source: arXiv (2611.28341) and NeurIPS 2026 listing, found via web search; snippet only
 
-### [The components of agent memory](https://www.anthropic.com/research/components-of-agent-memory)
-- Status: proposed — awaiting review
-- Claim: Memory plus an offline "dreaming" consolidation pass improves agents: Opus 5 on a CL-Bench database task goes from 0.564 to 0.828 mean reward with memory, while Sonnet 4.6 goes from 0.330 to only 0.364 (0.641 with refined prompting); a "record only failures" rule cuts the memory gain by 0.234 for Opus 5 but 0.020 for Sonnet 4.6; wiki plus search reaches 61% vs 53% for search alone on a ~350,000-file corpus.
-- Why it matters: Concrete, model-tier-dependent claims about memory-write policy and consolidation that can be checked on the small models this repo prefers.
-- Testability: Directional repro feasible. Sonnet 4.6 / Haiku 4.5 on a small multi-session task comparing no memory vs free-judgment notes vs failures-only notes, optionally with a consolidation pass. No GPU. Rough cost: $10-25; the Opus-tier and 350k-file results are out of budget.
-- Source: Anthropic Engineering (2026-11-06)
-
 ### [Cortex: Measurement-Gated Evolution and Pruning of Coding-Agent Skills and Rules](https://arxiv.org/pdf/2610.14216)
 - Status: proposed — awaiting review
 - Claim: A tool that only keeps a candidate skill or rule for a coding agent after measuring it against the live harness, and measures the cost of removal before pruning; on held-out tasks the built harnesses made the agent follow project conventions much more often than no skills/rules, with auto-loaded rules doing most of the work, little added under a stronger model, and little to learn on a real open-source project (no numbers in the abstract as surfaced).
 - Why it matters: Directly about whether skills and rules files earn their context cost, with the authors' own negative findings making it a good honest-replication target.
 - Testability: Feasible. Tool, test setup and data are reported as released; run a handful of convention-following tasks with rules on vs off vs pruned on Haiku 4.5 / Sonnet 4.6. No GPU. Rough cost: $10-25.
 - Source: arXiv (2610.14216), found via web search; abstract via search summary only
-
-### [RECEIPT: Measuring and Repairing the Return Assumption of LLM Agents in Web Service Operations](https://arxiv.org/abs/2611.01930)
-- Status: proposed — awaiting review
-- Claim: Agents assume a tool call that returns has finished its work; the paper reports this fails (for example, a program can return status 0 without performing the requested action when input is closed) and proposes inferring from system calls what each process is waiting on and handing that state back to an unmodified agent (no numbers in the snippets read).
-- Why it matters: A harness-observability claim: reliability depends on what the harness lets the agent see about process state, not only on the model.
-- Testability: Partly feasible. The measurement half (do agents notice a zero-exit command that did nothing?) is cheap on Haiku 4.5, about $5-10, no GPU. The repair half relies on syscall tracing, which likely needs Linux rather than macOS; code availability not confirmed.
-- Source: arXiv (2611.01930), found via web search; snippet only
 
 ### [Beneath the Surface: What We Overlook When We Talk About Agent Evolution](https://arxiv.org/abs/2611.07624)
 - Status: proposed — awaiting review
