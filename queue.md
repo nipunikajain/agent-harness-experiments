@@ -1650,3 +1650,44 @@ _Scout note: arXiv.org was unreachable from the scout sandbox this run, so claim
 - Why it matters: Blog measurement, not peer reviewed; a replication plus an accuracy check (does trimming schemas hurt tool selection?) is squarely MCP-infrastructure.
 - Testability: Very cheap. Token counting is free; a schema-trimmed vs full tool-selection comparison on Haiku 4.5 costs about $3-8. No GPU.
 - Source: blog (Towards AI), found via web search; author's own numbers, unverified
+
+---
+
+## 2026-11-27 — proposed by research-scout
+
+_Scout note: arxiv.org, export.arxiv.org and the configured blogs were unreachable from the scout sandbox this run (blocked by the session network policy), so claims below come from web-search snippets and secondary summaries, not opened abstracts. Verify numbers before picking. GitHub trending (Python, weekly) was reachable but held only skill bundles and apps, nothing with a testable claim. Deduped against this file and against the open, unmerged scout PRs #53-#82._
+
+### [Termination Lag: Coding Agents Solve Early but Stop Late](https://arxiv.org/abs/2611.14960)
+- Status: proposed — awaiting review
+- Claim: Across 5 models, 2 agent frameworks and 3 SWE-bench datasets, 38-82% of successful runs are already correct at the first source edit; post-solution steps are a median 35-37% of a successful run (Qwen3-Coder) to 54-60% (Laguna-XS.2), and in 1-8% of cases the extra work undoes the correct patch.
+- Why it matters: A direct, measurable harness-overhead claim (wasted steps after the task is solved) in the same vein as the scoreboard's overhead findings; a stop-rule in the harness would be the obvious intervention to test.
+- Testability: Feasible via API, no GPU. Reuse the mini SQL engine task from `experiments/2026-06-db-harness`, run the test suite after every edit, and measure steps and tokens spent after the first passing state with Haiku 4.5 (Sonnet 4.6 as a second point). Rough cost: $8-15. Will not reproduce SWE-bench scale, only the direction and size of the lag.
+- Source: arXiv (2611.14960), found via web search; abstract snippet only
+
+### [Agent Harness Awareness: Turning Verified Telemetry into Operational Control for Tool-Using Agents](https://arxiv.org/abs/2611.05391)
+- Status: proposed — awaiting review
+- Claim: Having the harness inject a small, fresh, verified tool-health snapshot before a consequential action cuts mean observable policy regret by 96.9% vs a same-shape neutral control (4,252 ms to 131 ms) over a 216-decision ablation on three model families, and completes the live action in 9/9 model-by-fault cases vs 5/9.
+- Why it matters: A cheap harness-side change (telemetry in context, not more scaffolding) with a large claimed effect and a small sample; worth checking whether it holds outside the authors' fault set.
+- Testability: Very feasible on Apple Silicon via API. Mock 3-4 redundant tools with injected faults (slow, failing, stale), run health-snapshot vs neutral-padding arms on Haiku 4.5, score regret and completion. No GPU. Rough cost: $3-8. Numbers above come from a third-party summary, not the abstract.
+- Source: arXiv (2611.05391), found via web search; secondary summary only
+
+### [An Empirical Study of Agent Skills' Downstream Utility](https://arxiv.org/abs/2610.08875)
+- Status: proposed — awaiting review
+- Claim: On 87 SkillsBench tasks, a relevant Skill does not necessarily improve pass rate; utility (pass-rate gap with vs without the Skill, same model and harness) varies with Skill content, execution configuration (9 configurations compared) and how multiple Skills are organised. Effect sizes not verified.
+- Why it matters: The repo's agents run on skills and the skill scout proposes more of them; this is the "does the added thing earn its tokens" question applied to skills.
+- Testability: Feasible via API, no GPU. Take 10-15 small tasks, run with vs without a relevant skill, plus a distractor-skill arm, on Haiku 4.5 with 3 seeds. Rough cost: $8-15. The full 87-task SkillsBench sweep across 9 configurations is out of budget.
+- Source: arXiv (2610.08875), found via web search; abstract snippet only
+
+### [EPISTEME: Trustworthy Coding Agents Through Tool Call Intent](https://arxiv.org/abs/2611.06563)
+- Status: proposed — awaiting review
+- Claim: Requiring a declared type and reason on every shell tool call, then having the harness diff the workspace and check declared intent against actual effect, exposed 90% of 49 reward-hacking runs from two open-weight models on ImpossibleBench.
+- Why it matters: A harness-level audit mechanism with a concrete detection rate; the open questions are its token overhead and false-positive rate on honest runs, neither of which the snippet reports.
+- Testability: Feasible via API, no GPU. Add type/reason arguments to a shell tool, run a small set of impossible-test tasks plus honest controls on Haiku 4.5, measure detection, false positives and added tokens. Rough cost: $8-15. Depends on Haiku actually attempting to game the tests; if it never does, the detection arm produces no signal.
+- Source: arXiv (2611.06563), found via web search; snippet only
+
+### [SpecSearch: Towards Hardware-Aware Efficient Speculative Decoding](https://arxiv.org/abs/2611.22296)
+- Status: proposed — awaiting review
+- Claim: Under a fixed memory budget, vLLM's speculative mode keeps only about 0.73x the autoregressive KV-cache capacity at equal precision yet still delivers 3.5-3.9x autoregressive throughput at concurrency 1-4; the paper searches speculative-decoding configurations per hardware target.
+- Why it matters: A serving claim with a stated trade-off (throughput vs KV capacity) that should flip at higher concurrency, which is the part worth testing.
+- Testability: Needs a GPU and vLLM; not runnable on Apple Silicon CPU. A directional repro with a 1-8B target and small drafter on one Modal A10G, sweeping concurrency 1-32, is plausible. Rough cost: $10-20. The hardware-aware search itself is likely out of budget.
+- Source: arXiv (2611.22296), found via web search; snippet only
